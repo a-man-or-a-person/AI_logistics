@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Логистика AI — Карта перевозок</title>
+  <meta name="description" content="Интерактивная карта логистических перевозок. Анализ цен, маршрутов и трендов по регионам России.">
+
+  <!-- OpenLayers CSS -->
+  <link rel="stylesheet" href="/css/ol.css">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <header id="header">
+    <div class="header-logo">
+      <div class="logo-icon">🗺️</div>
+      <h1>Логистика <span>AI</span></h1>
+    </div>
+
+    <div class="header-right">
+      <div class="header-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="stat-total-rows">—</div>
+          <div class="stat-label">Всего записей</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-ship-towns">—</div>
+          <div class="stat-label">Городов отгрузки</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-del-towns">—</div>
+          <div class="stat-label">Городов доставки</div>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-text">Инициализация...</span>
+      </div>
+
+      <button id="theme-toggle-header" class="theme-toggle-btn" title="Переключить тему">
+        <span class="theme-icon">☀️</span>
+        <span class="theme-label">Светлая тема</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside id="sidebar">
+    <div class="sidebar-scroll">
+
+      <!-- Тип периода -->
+      <div class="panel-section collapsed" id="section-period">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">📅</span>
+            Тип данных
+          </div>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="toggle-group" id="period-toggles">
+            <!-- Заполняется JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Тип цены -->
+      <div class="panel-section collapsed" id="section-ptype">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">💰</span>
+            Тип цены
+          </div>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="toggle-group" id="price-toggles">
+            <!-- Заполняется JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Регионы отгрузки -->
+      <div class="panel-section collapsed" id="section-ship">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">📦</span>
+            Откуда (отгрузка)
+          </div>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="region-label">
+            <div class="dot dot-ship"></div>
+            Регионы отгрузки
+          </div>
+
+          <!-- Выбранные теги -->
+          <div class="selected-tags" id="tags-ship"></div>
+
+          <!-- Поиск -->
+          <div class="region-search">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              id="search-ship"
+              placeholder="Поиск региона..."
+              autocomplete="off"
+            >
+          </div>
+
+          <!-- Список -->
+          <div class="region-list" id="region-list-ship">
+            <!-- Заполняется JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Регионы доставки -->
+      <div class="panel-section collapsed" id="section-del">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">📍</span>
+            Куда (доставка)
+          </div>
+          <span class="section-chevron">▾</span>
+        </div>
+        <div class="section-body">
+          <div class="region-label">
+            <div class="dot dot-del"></div>
+            Регионы доставки
+          </div>
+
+          <!-- Выбранные теги -->
+          <div class="selected-tags" id="tags-del"></div>
+
+          <!-- Поиск -->
+          <div class="region-search">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              id="search-del"
+              placeholder="Поиск региона..."
+              autocomplete="off"
+            >
+          </div>
+
+          <!-- Список -->
+          <div class="region-list" id="region-list-del">
+            <!-- Заполняется JS -->
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sidebar-scroll -->
+
+    <!-- Кнопки -->
+    <div class="sidebar-footer">
+      <button id="btn-apply">🔍 Показать на карте</button>
+      <button id="btn-reset">↺ Сбросить фильтры</button>
+    </div>
+  </aside>
+
+  <!-- ── Map ─────────────────────────────────────────────────── -->
+  <main id="map-container">
+
+    <!-- OpenLayers карта -->
+    <div id="map"></div>
+    
+    <!-- Переключатель слоев -->
+    <div id="layer-switcher" class="ol-layer-switcher">
+      <select id="layer-select">
+        <option value="2gis">Карта (2ГИС)</option>
+        <option value="hybrid">Спутник (Гибрид)</option>
+      </select>
+    </div>
+
+    <div id="popup" class="ol-popup hidden">
+      <a href="#" id="popup-closer" class="ol-popup-closer">✖</a>
+      <div id="popup-content"></div>
+    </div>
+
+    <!-- Пустое состояние -->
+    <div id="empty-state">
+      <div class="empty-icon">🗺️</div>
+      <div class="empty-title">Выберите регион отгрузки или доставки</div>
+      <div class="empty-sub">Выберите нужные регионы в фильтрах слева и нажмите «Показать на карте»</div>
+    </div>
+
+    <!-- Info panel (верхний правый угол) -->
+    <div id="map-info">
+      <div class="map-info-top">
+        <span class="map-info-title">📊 Данные на карте</span>
+        <button id="theme-toggle-info" class="theme-toggle-btn" title="Переключить тему оформления">
+          <span class="theme-icon">☀️</span>
+          <span class="theme-label">Светлая тема</span>
+        </button>
+      </div>
+      <div class="map-info-divider"></div>
+      <div class="info-row">
+        <span class="info-label">📦 Точек отгрузки</span>
+        <span class="info-value ship" id="info-ship">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">📍 Точек доставки</span>
+        <span class="info-value del" id="info-del">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">🌐 Геокодировано</span>
+        <span class="info-value" id="info-geocoded">—</span>
+      </div>
+    </div>
+
+    <!-- Легенда (нижний правый угол) -->
+    <div id="map-legend">
+      <div class="legend-title">Условные обозначения</div>
+      <div class="legend-item">
+        <div class="legend-dot ship"></div>
+        Точка отгрузки
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot del"></div>
+        Точка доставки
+      </div>
+      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07)">
+        <div class="legend-title">Размер маркера = объём</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#3dd68c;opacity:0.5"></div>
+          <div style="width:14px;height:14px;border-radius:50%;background:#3dd68c;opacity:0.7"></div>
+          <div style="width:20px;height:20px;border-radius:50%;background:#3dd68c"></div>
+          <span style="font-size:11px;color:#4d5a73;margin-left:4px">мало → много</span>
+        </div>
+      </div>
+      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07)">
+        <div class="legend-title">Типы данных</div>
+        <div class="legend-item" style="margin-top:6px">
+          <div class="legend-dot" style="background:#a78bfa;box-shadow:0 0 6px #a78bfa"></div>
+          Архив (retro)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#38bdf8;box-shadow:0 0 6px #38bdf8"></div>
+          Текущий (current)
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div>
+          Прогноз (forecast)
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="hidden">
+      <div class="loading-spinner"></div>
+      <div class="loading-text" id="loading-text">Загрузка данных...</div>
+      <div class="loading-sub" id="loading-sub">Подождите, идёт обработка</div>
+    </div>
+
+  </main><!-- /map-container -->
+
+</div><!-- /app -->
+
+<!-- Modal for Raw Records -->
+<div id="records-modal" class="modal hidden">
+  <div class="modal-overlay" id="modal-overlay"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modal-title">Записи для города</h2>
+      <button id="modal-close" class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-loading" class="hidden">Загрузка...</div>
+      <div id="modal-error" class="hidden error-text"></div>
+      <div class="table-container">
+        <table id="records-table">
+          <thead>
+            <tr>
+              <th>Цена (₽)</th>
+              <th>Км</th>
+              <th>₽/км</th>
+              <th>Заявки</th>
+              <th>Тип данных</th>
+              <th>Тип цены</th>
+              <th>Достоверность</th>
+              <th>Отгрузка (рег.)</th>
+              <th>Доставка (рег.)</th>
+            </tr>
+          </thead>
+          <tbody id="records-tbody">
+            <!-- Data rows here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Geocode Status Bar -->
+<div id="geocode-status" class="hidden">
+  <div class="geocode-spinner"></div>
+  <span id="geocode-status-text">Геокодирование...</span>
+  <div class="geocode-progress-bar">
+    <div class="geocode-progress-fill" id="geocode-progress-fill" style="width: 0%"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- OpenLayers JS -->
+<script src="/js/ol.js"></script>
+
+<!-- App JS (ES modules) -->
+<script type="module" src="/js/app.js"></script>
+
+</body>
+</html>
