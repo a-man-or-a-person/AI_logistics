@@ -11,6 +11,8 @@ let _map = null;
 let _vectorSource = null;
 let _clusterSource = null;
 let _vectorLayer = null;
+let _mlVectorSource = null;
+let _mlVectorLayer = null;
 let _overlay = null;
 let _popupContainer = null;
 let _popupContent = null;
@@ -71,13 +73,22 @@ export function initMap(containerId) {
 
   _vectorLayer = new ol.layer.Vector({
     source: _clusterSource,
-    style: clusterStyleFunction
+    style: clusterStyleFunction,
+    zIndex: 2
+  });
+
+  // Векторный слой для ML-кластеров
+  _mlVectorSource = new ol.source.Vector();
+  _mlVectorLayer = new ol.layer.Vector({
+    source: _mlVectorSource,
+    style: mlClusterStyleFunction,
+    zIndex: 1
   });
 
   // Инициализация карты
   _map = new ol.Map({
     target: containerId,
-    layers: [_defaultLayer, _hybridLayer, _vectorLayer],
+    layers: [_defaultLayer, _hybridLayer, _vectorLayer, _mlVectorLayer],
     overlays: [_overlay],
     view: new ol.View({
       center: ol.proj.fromLonLat([55.0, 58.0]),
@@ -116,19 +127,65 @@ export function initMap(containerId) {
     if (feature) {
       const clusterFeatures = feature.get('features');
       
-      // Если это кластер из нескольких точек — приближаем
+      // Если это кластер из нескольких точек
       if (clusterFeatures && clusterFeatures.length > 1) {
         const extent = ol.extent.createEmpty();
         clusterFeatures.forEach((f) => ol.extent.extend(extent, f.getGeometry().getExtent()));
         
-        _map.getView().fit(extent, {
-          duration: 500,
-          padding: [50, 50, 50, 50],
-          maxZoom: _map.getView().getZoom() + 2
-        });
-        _overlay.setPosition(undefined); // Скрываем попап, если был открыт
+        const currentZoom = _map.getView().getZoom();
+        const maxZoom = _map.getView().getMaxZoom();
+        // Проверяем, находятся ли точки в абсолютно одинаковых координатах (размер экстента = 0)
+        const isPointExtent = ol.extent.getWidth(extent) === 0 && ol.extent.getHeight(extent) === 0;
+        
+        if (isPointExtent || currentZoom >= maxZoom - 1) {
+          // Точки невозможно разделить зумом -> показываем список
+          const popupHtml = _makeClusterPopupContent(clusterFeatures);
+          _popupContent.innerHTML = popupHtml;
+          _popupContainer.classList.remove('hidden');
+          _overlay.setPosition(feature.getGeometry().getCoordinates());
+          
+          // Биндим кнопки списка
+          const clusterBtns = _popupContent.querySelectorAll('.popup-btn-details-small');
+          clusterBtns.forEach(b => {
+            b.addEventListener('click', () => {
+              const event = new CustomEvent('show-records-modal', {
+                detail: {
+                  town: b.dataset.town,
+                  region: b.dataset.region,
+                  type: b.dataset.type
+                }
+              });
+              window.dispatchEvent(event);
+            });
+          });
+
+          const regeocodeBtns = _popupContent.querySelectorAll('.popup-btn-regeocode-small');
+          regeocodeBtns.forEach(b => {
+            b.addEventListener('click', (e) => {
+              e.stopPropagation();
+              b.disabled = true;
+              b.style.opacity = '0.5';
+              b.style.cursor = 'wait';
+              const event = new CustomEvent('regeocode-point', {
+                detail: {
+                  town: b.dataset.town,
+                  region: b.dataset.region
+                }
+              });
+              window.dispatchEvent(event);
+            });
+          });
+        } else {
+          // Обычный зум в кластер
+          _map.getView().fit(extent, {
+            duration: 500,
+            padding: [50, 50, 50, 50],
+            maxZoom: currentZoom + 2
+          });
+          _overlay.setPosition(undefined); // Скрываем попап, если был открыт
+        }
       } 
-      // Если это одиночная точка (или кластер из одной точки) — показываем попап
+      // Если это одиночная точка (или кластер из одной точки) — показываем обычный попап
       else if (clusterFeatures && clusterFeatures.length === 1) {
         const ptFeature = clusterFeatures[0];
         const coordinates = feature.getGeometry().getCoordinates();
@@ -232,8 +289,129 @@ export function clearMarkers() {
   if (_vectorSource) {
     _vectorSource.clear();
   }
+  if (_mlVectorSource) {
+    _mlVectorSource.clear();
+  }
   if (_overlay) {
     _overlay.setPosition(undefined);
+  }
+}
+
+// ── ML Clusters ───────────────────────────────────────────────
+
+export function renderMlClusters(clustersData) {
+  clearMarkers();
+
+  const features = [];
+  const colors = [
+    'rgba(239, 68, 68, 0.4)', // red
+    'rgba(59, 130, 246, 0.4)', // blue
+    'rgba(16, 185, 129, 0.4)', // green
+    'rgba(245, 158, 11, 0.4)', // yellow
+    'rgba(139, 92, 246, 0.4)', // purple
+    'rgba(236, 72, 153, 0.4)', // pink
+    'rgba(20, 184, 166, 0.4)', // teal
+    'rgba(249, 115, 22, 0.4)', // orange
+    'rgba(99, 102, 241, 0.4)', // indigo
+    'rgba(132, 204, 22, 0.4)'  // lime
+  ];
+  const strokeColors = [
+    'rgba(239, 68, 68, 0.9)', 'rgba(59, 130, 246, 0.9)', 'rgba(16, 185, 129, 0.9)',
+    'rgba(245, 158, 11, 0.9)', 'rgba(139, 92, 246, 0.9)', 'rgba(236, 72, 153, 0.9)',
+    'rgba(20, 184, 166, 0.9)', 'rgba(249, 115, 22, 0.9)', 'rgba(99, 102, 241, 0.9)',
+    'rgba(132, 204, 22, 0.9)'
+  ];
+
+  clustersData.forEach((c, idx) => {
+    const color = colors[idx % colors.length];
+    const strokeColor = strokeColors[idx % strokeColors.length];
+
+    // Полигон
+    if (c.polygon && c.polygon.length >= 3) {
+      const polygonCoords = c.polygon.map(p => ol.proj.fromLonLat([p[1], p[0]]));
+      polygonCoords.push(polygonCoords[0]); // Замыкаем
+      
+      const polyFeature = new ol.Feature({
+        geometry: new ol.geom.Polygon([polygonCoords]),
+        isMlPolygon: true,
+        fillColor: color,
+        strokeColor: strokeColor
+      });
+      features.push(polyFeature);
+    }
+
+    // Точки внутри кластера
+    if (c.points) {
+      c.points.forEach(pt => {
+        const coords = ol.proj.fromLonLat([pt.lon, pt.lat]);
+        const ptFeature = new ol.Feature({
+          geometry: new ol.geom.Point(coords),
+          isMlPoint: true,
+          fillColor: strokeColor
+        });
+        features.push(ptFeature);
+      });
+    }
+
+    // Центроид (текстовая метка)
+    if (c.center) {
+      const centerCoords = ol.proj.fromLonLat([c.center[1], c.center[0]]);
+      const textFeature = new ol.Feature({
+        geometry: new ol.geom.Point(centerCoords),
+        isMlLabel: true,
+        avgRubKm: c.avg_rub_km,
+        bids: c.total_bids,
+        fillColor: strokeColor
+      });
+      features.push(textFeature);
+    }
+  });
+
+  _mlVectorSource.addFeatures(features);
+
+  if (features.length > 0) {
+    const extent = _mlVectorSource.getExtent();
+    if (!ol.extent.isEmpty(extent)) {
+      _map.getView().fit(extent, {
+        padding: [50, 50, 50, 50],
+        maxZoom: 10,
+        duration: 500
+      });
+    }
+  }
+}
+
+function mlClusterStyleFunction(feature) {
+  if (feature.get('isMlPolygon')) {
+    return new ol.style.Style({
+      fill: new ol.style.Fill({ color: feature.get('fillColor') }),
+      stroke: new ol.style.Stroke({ color: feature.get('strokeColor'), width: 2 })
+    });
+  }
+  
+  if (feature.get('isMlPoint')) {
+    return new ol.style.Style({
+      image: new ol.style.Circle({
+        radius: 4,
+        fill: new ol.style.Fill({ color: feature.get('fillColor') }),
+        stroke: new ol.style.Stroke({ color: '#fff', width: 1 })
+      })
+    });
+  }
+
+  if (feature.get('isMlLabel')) {
+    const avg = feature.get('avgRubKm');
+    const bids = feature.get('bids');
+    return new ol.style.Style({
+      text: new ol.style.Text({
+        text: `${avg} ₽/км\n(${bids} заяв.)`,
+        font: 'bold 13px sans-serif',
+        fill: new ol.style.Fill({ color: '#fff' }),
+        backgroundFill: new ol.style.Fill({ color: feature.get('fillColor') }),
+        padding: [4, 6, 4, 6],
+        offsetY: -15
+      })
+    });
   }
 }
 
@@ -419,6 +597,46 @@ function _makePopupContent(pt, kind) {
         <button class="popup-btn-details">
           📄 Детализация записей (${pt.count} шт.)
         </button>
+      </div>
+    </div>
+  `;
+}
+
+function _makeClusterPopupContent(features) {
+  let listHtml = features.map(f => {
+    const pt = f.get('ptData');
+    const kind = f.get('kind');
+    const typeEmoji = kind === 'ship' ? '📦' : '📍';
+    const priceFormatted = pt.avg_price ? _fmt(pt.avg_price, 0) + ' ₽' : '—';
+    return `
+      <div class="cluster-popup-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+        <div style="flex:1; min-width: 0;">
+          <div style="font-weight: 600; font-size: 13px; color: var(--text-main); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${typeEmoji} ${pt.town}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">${priceFormatted} • ${pt.count} заяв.</div>
+        </div>
+        <div style="display: flex; gap: 4px;">
+          <button class="popup-btn-regeocode-small" data-town="${pt.town}" data-region="${pt.region}" title="Пересчитать координаты" style="background: rgba(255,255,255,0.1); color: var(--text-main); border: 1px solid var(--border); padding: 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+            🔄
+          </button>
+          <button class="popup-btn-details-small" data-town="${pt.town}" data-region="${pt.region}" data-type="${kind === 'ship' ? 'shipment' : 'delivery'}" style="background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; transition: background 0.2s;">
+            Детали
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="popup-container" style="width: 300px; padding: 0;">
+      <div class="popup-header" style="padding: 16px;">
+        <span class="popup-type-icon">🧩</span>
+        <div>
+          <div class="popup-title">Объединенные точки</div>
+          <div class="popup-subtitle">В этих координатах найдено ${features.length} городов</div>
+        </div>
+      </div>
+      <div class="popup-body" style="max-height: 250px; overflow-y: auto; padding: 0; background: var(--bg-main);">
+        ${listHtml}
       </div>
     </div>
   `;

@@ -99,3 +99,24 @@ export async function regeocodeTown(town, region) {
   if (!data.ok) throw new Error(data.error || 'Unknown error');
   return data;
 }
+
+/**
+ * ML-кластеризация для региона
+ */
+export async function fetchMlClusters({ region, type, k, filters = {} }) {
+  const params = new URLSearchParams();
+  params.append('region', region);
+  params.append('town_type', type);
+  params.append('k', k);
+  
+  if (filters.periodTypes?.length) params.set('period_types', filters.periodTypes.join(','));
+  if (filters.priceTypes?.length)  params.set('price_types', filters.priceTypes.join(','));
+
+  const url = `${API_BASE}/api/ml-cluster?${params.toString()}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const data = await resp.json();
+  if (!data.ok) throw new Error(data.error || 'Unknown error');
+  return data;
+}
+

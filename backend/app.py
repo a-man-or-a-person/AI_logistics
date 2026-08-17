@@ -258,6 +258,79 @@ def api_geocode_status():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route("/api/ml-cluster")
+def api_ml_cluster():
+    """
+    ML Кластеризация для конкретного региона.
+    Query params:
+      region
+      town_type (shipment/delivery)
+      k (число кластеров или "auto")
+      period_types, price_types
+    """
+    try:
+        region = request.args.get("region", "")
+        town_type = request.args.get("town_type", "")
+        k_val = request.args.get("k", "auto")
+        period_types_str = request.args.get("period_types", "")
+        price_types_str = request.args.get("price_types", "")
+
+        if not region or not town_type:
+            return jsonify({"ok": False, "error": "Необходимы region и town_type"}), 400
+
+        period_types = [p.strip() for p in period_types_str.split(",") if p.strip()]
+        price_types = [p.strip() for p in price_types_str.split(",") if p.strip()]
+
+        from backend.ml_clustering import cluster_points
+        from backend.geocoder import geocode_town
+
+        # Извлекаем все города нужного региона
+        data = load_data()
+        
+        points_to_cluster = []
+        towns_dict = data["shipment_towns"] if town_type == "shipment" else data["delivery_towns"]
+        
+        for key, town_data in towns_dict.items():
+            if town_data["region"] == region:
+                # Фильтруем записи
+                records = town_data["records"]
+                filtered = [
+                    r for r in records
+                    if (not period_types or r["period_type"] in period_types)
+                    and (not price_types or r["price_type"] in price_types)
+                ]
+                if not filtered:
+                    continue
+                
+                prices = [r["price"] for r in filtered if r["price"] > 0]
+                lengths = [r["route_length"] for r in filtered if r["route_length"] > 0]
+                bids = sum(r["bid_count"] for r in filtered)
+                
+                if not prices or not lengths:
+                    continue
+                    
+                avg_price = sum(prices) / len(prices)
+                avg_length = sum(lengths) / len(lengths)
+                rub_per_km = avg_price / avg_length if avg_length > 0 else 0
+                
+                # Координаты
+                coords = geocode_town(town_data["town"], region, offline_only=True)
+                if coords:
+                    points_to_cluster.append({
+                        "town": town_data["town"],
+                        "lat": coords[0],
+                        "lon": coords[1],
+                        "rub_per_km": rub_per_km,
+                        "bid_count": bids
+                    })
+
+        result = cluster_points(points_to_cluster, min_k=2, max_k=10, k=k_val)
+        return jsonify({"ok": True, **result})
+    except Exception as e:
+        logger.exception("Ошибка в /api/ml-cluster")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # ─── Запуск ───────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

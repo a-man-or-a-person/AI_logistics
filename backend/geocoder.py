@@ -149,8 +149,19 @@ def _load_cache() -> dict:
 def _save_cache(cache: dict) -> None:
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
     try:
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+        temp_file = CACHE_FILE + ".tmp"
+        with open(temp_file, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
+        try:
+            os.replace(temp_file, CACHE_FILE)
+        except OSError:
+            # Fallback на случай блокировки файла (особенно на Windows)
+            import shutil
+            shutil.copyfile(temp_file, CACHE_FILE)
+            try:
+                os.remove(temp_file)
+            except OSError:
+                pass
     except Exception as e:
         logger.error(f"Ошибка сохранения кэша координат: {e}")
 

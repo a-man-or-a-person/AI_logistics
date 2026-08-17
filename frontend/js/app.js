@@ -2,9 +2,9 @@
  * app.js — точка входа, связывает map ↔ filters ↔ api
  */
 
-import { fetchRegions, fetchStats, fetchPoints, fetchRecords, fetchGeocodeStatus, regeocodeTown } from './api.js';
+import { fetchRegions, fetchStats, fetchPoints, fetchRecords, fetchGeocodeStatus, regeocodeTown, fetchMlClusters } from './api.js';
 import { initFilters, getFilters, resetFilters } from './filters.js';
-import { initMap, renderPoints, clearMarkers, setThemeLayer } from './map.js';
+import { initMap, renderPoints, clearMarkers, setThemeLayer, renderMlClusters } from './map.js';
 
 // ── DOM refs ──────────────────────────────────────────────────
 
@@ -28,6 +28,13 @@ const statDelTowns   = $('stat-del-towns');
 const geocodeStatus     = $('geocode-status');
 const geocodeStatusText = $('geocode-status-text');
 const geocodeProgressFill = $('geocode-progress-fill');
+
+// DOM Refs (ML)
+const mlRegionSelect = $('ml-region-select');
+const mlTypeSelect   = $('ml-type-select');
+const mlKInput       = $('ml-k-input');
+const mlAutoK        = $('ml-auto-k');
+const btnRunMl       = $('btn-run-ml');
 
 // DOM Refs (Modal)
 const recordsModal   = $('records-modal');
@@ -155,6 +162,17 @@ async function main() {
     // Инициализируем фильтры
     initFilters(regionsData.ship_regions, regionsData.del_regions, () => {});
 
+    // Заполняем селект регионов для ML
+    if (mlRegionSelect) {
+      const allRegions = [...new Set([...regionsData.ship_regions, ...regionsData.del_regions])].sort();
+      allRegions.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r;
+        opt.textContent = r;
+        mlRegionSelect.appendChild(opt);
+      });
+    }
+
     setLoading(false);
 
     // Сразу загружаем начальные данные
@@ -179,6 +197,45 @@ async function main() {
     infoShip.textContent = '—';
     infoDel.textContent  = '—';
   });
+
+  // Логика ML интерфейса
+  if (mlAutoK && mlKInput) {
+    mlAutoK.addEventListener('change', (e) => {
+      mlKInput.disabled = e.target.checked;
+      if (e.target.checked) mlKInput.value = '';
+    });
+  }
+
+  if (btnRunMl) {
+    btnRunMl.addEventListener('click', async () => {
+      const region = mlRegionSelect.value;
+      if (!region) {
+        showToast('Выберите регион для ML кластеризации', 'error');
+        return;
+      }
+      const type = mlTypeSelect.value;
+      const k = mlAutoK.checked ? 'auto' : (mlKInput.value || 2);
+      
+      setLoading(true, 'Анализ данных (ML)...', 'Запущен алгоритм машинного обучения');
+      
+      try {
+        const filters = getFilters();
+        const res = await fetchMlClusters({ region, type, k, filters });
+        
+        renderMlClusters(res.clusters);
+        showToast(`✅ ML кластеризация завершена. Найдено кластеров: ${res.k}`, 'success', 5000);
+        
+        if (emptyState) emptyState.classList.add('hidden');
+        infoShip.textContent = 'ML';
+        infoDel.textContent = 'Зоны';
+      } catch (err) {
+        console.error(err);
+        setError(`Ошибка ML: ${err.message}`);
+      } finally {
+        setLoading(false); // убираем оверлей в любом случае
+      }
+    });
+  }
 
   // Логика переключения темы (синхронизация кнопок + localStorage)
   const savedTheme = localStorage.getItem('app-theme') || 'dark';
