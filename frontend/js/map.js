@@ -9,6 +9,7 @@ const PERIOD_NAMES  = { retro: 'Архив', current: 'Текущий', forecast
 
 let _map = null;
 let _vectorSource = null;
+let _clusterSource = null;
 let _vectorLayer = null;
 let _overlay = null;
 let _popupContainer = null;
@@ -62,8 +63,15 @@ export function initMap(containerId) {
 
   // Векторный слой для маркеров
   _vectorSource = new ol.source.Vector();
-  _vectorLayer = new ol.layer.Vector({
+  
+  _clusterSource = new ol.source.Cluster({
+    distance: 35, // Пикселей между маркерами для кластеризации
     source: _vectorSource,
+  });
+
+  _vectorLayer = new ol.layer.Vector({
+    source: _clusterSource,
+    style: clusterStyleFunction
   });
 
   // Инициализация карты
@@ -106,9 +114,30 @@ export function initMap(containerId) {
     });
 
     if (feature) {
-      const coordinates = feature.getGeometry().getCoordinates();
-      const popupHtml = feature.get('popupHtml');
-      if (popupHtml) {
+      const clusterFeatures = feature.get('features');
+      
+      // Если это кластер из нескольких точек — приближаем
+      if (clusterFeatures && clusterFeatures.length > 1) {
+        const extent = ol.extent.createEmpty();
+        clusterFeatures.forEach((f) => ol.extent.extend(extent, f.getGeometry().getExtent()));
+        
+        _map.getView().fit(extent, {
+          duration: 500,
+          padding: [50, 50, 50, 50],
+          maxZoom: _map.getView().getZoom() + 2
+        });
+        _overlay.setPosition(undefined); // Скрываем попап, если был открыт
+      } 
+      // Если это одиночная точка (или кластер из одной точки) — показываем попап
+      else if (clusterFeatures && clusterFeatures.length === 1) {
+        const ptFeature = clusterFeatures[0];
+        const coordinates = feature.getGeometry().getCoordinates();
+        const ptData = ptFeature.get('ptData');
+        const kind = ptFeature.get('kind');
+        
+        // Ленивая генерация HTML попапа
+        const popupHtml = _makePopupContent(ptData, kind);
+        
         _popupContent.innerHTML = popupHtml;
         _popupContainer.classList.remove('hidden');
         _overlay.setPosition(coordinates);
@@ -117,8 +146,6 @@ export function initMap(containerId) {
         const btn = _popupContent.querySelector('.popup-btn-details');
         if (btn) {
           btn.addEventListener('click', () => {
-            const ptData = feature.get('ptData');
-            const kind = feature.get('kind');
             const event = new CustomEvent('show-records-modal', {
               detail: {
                 town: ptData.town,
@@ -134,7 +161,6 @@ export function initMap(containerId) {
         const btnRegeocode = _popupContent.querySelector('.popup-btn-regeocode');
         if (btnRegeocode) {
           btnRegeocode.addEventListener('click', () => {
-            const ptData = feature.get('ptData');
             const event = new CustomEvent('regeocode-point', {
               detail: {
                 town: ptData.town,
@@ -213,34 +239,69 @@ export function clearMarkers() {
 
 // ── Marker creation ───────────────────────────────────────────
 
-function _createFeature(pt, kind) {
-  const color = kind === 'ship' ? SHIP_COLOR : DEL_COLOR;
-  const emoji = kind === 'ship' ? '📦' : '📍';
-  const size = _markerSize(pt.count);
+const _styleCache = {};
 
+function clusterStyleFunction(feature) {
+  const features = feature.get('features');
+  const size = features.length;
+
+  if (size === 1) {
+    // Стиль одиночной точки
+    const ptFeature = features[0];
+    const kind = ptFeature.get('kind');
+    const ptData = ptFeature.get('ptData');
+    const ptSize = _markerSize(ptData.count);
+    
+    const cacheKey = `${kind}_${ptSize}`;
+    if (!_styleCache[cacheKey]) {
+      const color = kind === 'ship' ? SHIP_COLOR : DEL_COLOR;
+      const emoji = kind === 'ship' ? '📦' : '📍';
+      _styleCache[cacheKey] = new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: ptSize / 2,
+          fill: new ol.style.Fill({ color: color }),
+          stroke: new ol.style.Stroke({ color: 'rgba(255,255,255,0.4)', width: 2.5 }),
+        }),
+        text: new ol.style.Text({
+          text: emoji,
+          font: `${Math.round(ptSize * 0.42)}px sans-serif`,
+          fill: new ol.style.Fill({ color: '#fff' }),
+          offsetY: 1
+        })
+      });
+    }
+    return _styleCache[cacheKey];
+  } else {
+    // Стиль кластера
+    const cacheKey = `cluster_${size}`;
+    if (!_styleCache[cacheKey]) {
+      const radius = 16 + Math.min(size.toString().length * 2, 10);
+      _styleCache[cacheKey] = new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: radius,
+          fill: new ol.style.Fill({ color: 'rgba(56, 189, 248, 0.9)' }),
+          stroke: new ol.style.Stroke({ color: 'rgba(255, 255, 255, 0.5)', width: 2 })
+        }),
+        text: new ol.style.Text({
+          text: size.toString(),
+          font: 'bold 12px sans-serif',
+          fill: new ol.style.Fill({ color: '#fff' })
+        })
+      });
+    }
+    return _styleCache[cacheKey];
+  }
+}
+
+function _createFeature(pt, kind) {
   const coords = ol.proj.fromLonLat([pt.lon, pt.lat]);
+  // В фичу пишем только данные. Никаких стилей и HTML-строк.
   const feature = new ol.Feature({
     geometry: new ol.geom.Point(coords),
     ptData: pt,
-    kind: kind,
-    popupHtml: _makePopupContent(pt, kind)
+    kind: kind
   });
 
-  const style = new ol.style.Style({
-    image: new ol.style.Circle({
-      radius: size / 2,
-      fill: new ol.style.Fill({ color: color }),
-      stroke: new ol.style.Stroke({ color: 'rgba(255,255,255,0.4)', width: 2.5 }),
-    }),
-    text: new ol.style.Text({
-      text: emoji,
-      font: `${Math.round(size * 0.42)}px sans-serif`,
-      fill: new ol.style.Fill({ color: '#fff' }),
-      offsetY: 1
-    })
-  });
-
-  feature.setStyle(style);
   return feature;
 }
 
