@@ -1,205 +1,374 @@
+"""
+ml_clustering.py — ML кластеризация точек для логистической карты.
+
+Ключевые особенности:
+  1. Координаты конвертируются в Web Mercator (метры) — корректные расстояния
+     на высоких широтах России.
+  2. Границы кластеров — Voronoi-тесселяция: k центроидов KMeans делят
+     всю территорию на k непересекающихся зон без пробелов. Это позволяет
+     каждой точке принадлежать ровно одной зоне и вся карта покрыта.
+  3. Центроид кластера взвешен по bid_count — маркер ставится там, где
+     физически больше заявок.
+  4. silhouette_score с sample_size для защиты от O(N²) при больших данных.
+  5. Вырожденные кластеры (0 точек) фильтруются из ответа.
+"""
+
+import math
+import logging
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
-from scipy.spatial import ConvexHull
 
-def cluster_points(points: list[dict], min_k: int = 2, max_k: int = 10, k: int | str = "auto") -> dict:
+logger = logging.getLogger(__name__)
+
+
+# ── Географические утилиты ────────────────────────────────────────────────────
+
+def latlon_to_mercator(lat: float, lon: float) -> tuple[float, float]:
     """
-    Кластеризует переданные точки.
-    points: список словарей, каждый должен содержать lat, lon, rub_per_km, bid_count
-    Возвращает структуру с данными по кластерам и их центроидам/полигонам.
+    Конвертирует (lat, lon) в Web Mercator (EPSG:3857), единицы — метры.
+    Тот же алгоритм, что использует OpenLayers.
     """
-    if not points:
-        return {"clusters": [], "k": 0}
-
-    # Оставляем только те точки, у которых есть координаты
-    valid_points = [p for p in points if p.get("lat") is not None and p.get("lon") is not None]
-    if not valid_points:
-        return {"clusters": [], "k": 0}
-
-    # Если уникальных точек (по координатам) меньше, чем min_k, уменьшаем min_k/max_k
-    unique_coords = {(p["lat"], p["lon"]) for p in valid_points}
-    if len(unique_coords) < 3:
-        # Недостаточно точек для кластеризации и полигонов
-        return _fallback_single_cluster(valid_points)
-
-    actual_max_k = min(max_k, len(unique_coords) - 1)
-    actual_min_k = min(min_k, actual_max_k)
-    
-    if actual_max_k < 2:
-         return _fallback_single_cluster(valid_points)
-
-    # Подготовка данных
-    # Фичи: lat, lon, rub_per_km
-    X_raw = []
-    weights = []
-    for p in valid_points:
-        X_raw.append([p["lat"], p["lon"], p.get("rub_per_km", 0)])
-        weights.append(p.get("bid_count", 1) or 1)
-        
-    X_raw = np.array(X_raw)
-    weights = np.array(weights)
-    
-    # Нормализация
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X_raw)
-    
-    # Увеличим вес координат, чтобы кластеры были более географически компактными
-    # Индексы: 0=lat, 1=lon, 2=rub_per_km
-    X_scaled[:, 0] *= 2.0
-    X_scaled[:, 1] *= 2.0
-
-    best_k = 2
-    best_labels = None
-    best_kmeans = None
-
-    if str(k).lower() == "auto":
-        best_score = -1
-        # Перебор K
-        for test_k in range(actual_min_k, actual_max_k + 1):
-            kmeans = KMeans(n_clusters=test_k, random_state=42, n_init=10)
-            labels = kmeans.fit_predict(X_scaled, sample_weight=weights)
-            
-            # Считаем силуэт (без учета весов для стабильности метрики)
-            try:
-                score = silhouette_score(X_scaled, labels)
-                if score > best_score:
-                    best_score = score
-                    best_k = test_k
-                    best_labels = labels
-                    best_kmeans = kmeans
-            except ValueError:
-                pass
-                
-        if best_labels is None:
-             # Fallback если силуэт не посчитался
-             best_k = actual_min_k
-             best_kmeans = KMeans(n_clusters=best_k, random_state=42, n_init=10)
-             best_labels = best_kmeans.fit_predict(X_scaled, sample_weight=weights)
-    else:
-        best_k = min(int(k), actual_max_k)
-        if best_k < 2:
-            return _fallback_single_cluster(valid_points)
-        best_kmeans = KMeans(n_clusters=best_k, random_state=42, n_init=10)
-        best_labels = best_kmeans.fit_predict(X_scaled, sample_weight=weights)
-
-    # Формирование ответа
-    clusters_data = {}
-    for i in range(best_k):
-        clusters_data[i] = {
-            "points": [],
-            "total_bids": 0,
-            "sum_price_weighted": 0.0,
-        }
-        
-    for i, p in enumerate(valid_points):
-        c_id = best_labels[i]
-        clusters_data[c_id]["points"].append(p)
-        bids = p.get("bid_count", 1) or 1
-        clusters_data[c_id]["total_bids"] += bids
-        
-        clusters_data[c_id]["sum_price_weighted"] += p.get("rub_per_km", 0) * bids
-
-    result_clusters = []
-    for c_id, c_data in clusters_data.items():
-        if not c_data["points"]:
-            continue
-            
-        pts = c_data["points"]
-        total_bids = c_data["total_bids"]
-        avg_rub_km = c_data["sum_price_weighted"] / total_bids if total_bids > 0 else 0
-        
-        # Считаем полигон (ConvexHull)
-        coords = np.array([[p["lat"], p["lon"]] for p in pts])
-        hull_polygon = []
-        
-        unique_coords_in_cluster = len(set((c[0], c[1]) for c in coords))
-        
-        if unique_coords_in_cluster >= 3:
-            # Чтобы не падало если все точки на одной прямой
-            try:
-                hull = ConvexHull(coords)
-                # hull.vertices содержит индексы точек, образующих границу в порядке обхода
-                hull_polygon = [[coords[v][0], coords[v][1]] for v in hull.vertices]
-            except Exception:
-                hull_polygon = _make_bounding_box(coords)
-        elif unique_coords_in_cluster == 2:
-            hull_polygon = _make_bounding_box(coords)
-        else:
-            # 1 точка
-            p_coord = coords[0]
-            hull_polygon = [
-                [p_coord[0]-0.05, p_coord[1]-0.05], [p_coord[0]-0.05, p_coord[1]+0.05], 
-                [p_coord[0]+0.05, p_coord[1]+0.05], [p_coord[0]+0.05, p_coord[1]-0.05]
-            ]
-
-        # Вычисляем центроид полигона для размещения таблички с ценой
-        center_lat = sum(p[0] for p in coords) / len(coords)
-        center_lon = sum(p[1] for p in coords) / len(coords)
-
-        result_clusters.append({
-            "id": int(c_id),
-            "points": pts,
-            "avg_rub_km": round(avg_rub_km, 1),
-            "total_bids": int(total_bids),
-            "points_count": len(pts),
-            "polygon": hull_polygon,
-            "center": [center_lat, center_lon]
-        })
-        
-    return {"clusters": result_clusters, "k": best_k}
+    x = lon * 20037508.34 / 180.0
+    lat_rad = max(-1.4835, min(1.4835, math.radians(lat)))
+    y = math.log(math.tan(math.pi / 4 + lat_rad / 2)) * 20037508.34 / math.pi
+    return x, y
 
 
-def _make_bounding_box(coords):
-    """Делает прямоугольник из списка точек (например, если их 2)"""
-    min_lat = min(c[0] for c in coords)
-    max_lat = max(c[0] for c in coords)
-    min_lon = min(c[1] for c in coords)
-    max_lon = max(c[1] for c in coords)
-    
-    # Добавляем небольшой padding
+def mercator_to_latlon(x: float, y: float) -> tuple[float, float]:
+    """Обратная конвертация из Web Mercator в (lat, lon)."""
+    lon = x * 180.0 / 20037508.34
+    lat = math.degrees(2 * math.atan(math.exp(y * math.pi / 20037508.34)) - math.pi / 2)
+    return lat, lon
+
+
+# ── Voronoi-тесселяция территории ─────────────────────────────────────────────
+
+def build_voronoi_polygons(
+    centroids_xy: np.ndarray,
+    all_xy: np.ndarray,
+    padding_fraction: float = 0.25,
+) -> list[list[list[float]] | None]:
+    """
+    Строит Voronoi-полигоны для k центроидов, обрезанные по bbox всех точек.
+
+    Алгоритм:
+      1. Расширяем bbox на padding_fraction, чтобы граничные зоны выглядели разумно.
+      2. Добавляем 4 "зеркальных" точки далеко за пределами bbox — это закрывает
+         бесконечные рёбра Voronoi.
+      3. Строим Voronoi-диаграмму.
+      4. Для каждого исходного центроида извлекаем его регион и обрезаем по bbox.
+      5. Конвертируем обратно в (lat, lon).
+
+    Returns:
+        Список длиной k. Каждый элемент — список [[lat, lon], ...] или None.
+    """
+    try:
+        from scipy.spatial import Voronoi
+        from shapely.geometry import Polygon, box
+        from shapely.ops import unary_union
+
+        k = len(centroids_xy)
+
+        # Bounding box всех точек + паддинг
+        min_x = all_xy[:, 0].min()
+        max_x = all_xy[:, 0].max()
+        min_y = all_xy[:, 1].min()
+        max_y = all_xy[:, 1].max()
+
+        dx = max((max_x - min_x) * padding_fraction, 50_000)   # минимум 50 км паддинг
+        dy = max((max_y - min_y) * padding_fraction, 50_000)
+
+        clip = box(min_x - dx, min_y - dy, max_x + dx, max_y + dy)
+
+        # Зеркальные точки для закрытия бесконечных рёбер
+        far = max(dx, dy) * 8
+        cx, cy = (min_x + max_x) / 2, (min_y + max_y) / 2
+        mirrors = np.array([
+            [cx - far, cy - far],
+            [cx + far, cy - far],
+            [cx + far, cy + far],
+            [cx - far, cy + far],
+        ])
+
+        pts = np.vstack([centroids_xy, mirrors])
+        vor = Voronoi(pts)
+
+        polygons: list[list[list[float]] | None] = []
+        for i in range(k):
+            region_idx = vor.point_region[i]
+            region = vor.regions[region_idx]
+
+            if not region or -1 in region:
+                # Бесконечный регион — используем весь bbox
+                clipped = clip
+            else:
+                verts = [vor.vertices[v] for v in region]
+                poly = Polygon(verts)
+                clipped = poly.intersection(clip)
+
+            if clipped.is_empty:
+                polygons.append(None)
+                continue
+
+            # Берём внешний контур (игнорируем дыры)
+            if clipped.geom_type == "MultiPolygon":
+                clipped = max(clipped.geoms, key=lambda g: g.area)
+
+            coords_latlon = []
+            for x, y in clipped.exterior.coords:
+                lat, lon = mercator_to_latlon(x, y)
+                coords_latlon.append([lat, lon])
+
+            polygons.append(coords_latlon if len(coords_latlon) >= 3 else None)
+
+        return polygons
+
+    except Exception as e:
+        logger.warning(f"Voronoi failed: {e}")
+        return [None] * len(centroids_xy)
+
+
+# ── Вспомогательные геометрии (fallback) ──────────────────────────────────────
+
+def _bounding_box(coords_latlon: list[list[float]]) -> list[list[float]]:
+    arr = np.array(coords_latlon)
+    min_lat, min_lon = arr.min(axis=0)
+    max_lat, max_lon = arr.max(axis=0)
     pad_lat = max((max_lat - min_lat) * 0.2, 0.05)
     pad_lon = max((max_lon - min_lon) * 0.2, 0.05)
-    
     return [
         [min_lat - pad_lat, min_lon - pad_lon],
         [min_lat - pad_lat, max_lon + pad_lon],
         [max_lat + pad_lat, max_lon + pad_lon],
-        [max_lat + pad_lat, min_lon - pad_lon]
+        [max_lat + pad_lat, min_lon - pad_lon],
     ]
 
-def _fallback_single_cluster(points):
+
+def _point_circle(lat: float, lon: float, radius_deg: float = 0.08) -> list[list[float]]:
+    n = 16
+    return [
+        [lat + radius_deg * math.cos(2 * math.pi * i / n),
+         lon + radius_deg * math.sin(2 * math.pi * i / n)]
+        for i in range(n)
+    ]
+
+
+# ── Основная функция ──────────────────────────────────────────────────────────
+
+def cluster_points(
+    points: list[dict],
+    min_k: int = 2,
+    max_k: int = 10,
+    k: int | str = "auto",
+) -> dict:
+    """
+    Кластеризует переданные точки.
+
+    Args:
+        points:  Список словарей с ключами: lat, lon, rub_per_km, bid_count, town
+        min_k:   Минимальное число кластеров при auto-режиме
+        max_k:   Максимальное число кластеров при auto-режиме
+        k:       Конкретное число кластеров (int) или "auto"
+
+    Returns:
+        {
+          "clusters": [...],
+          "k": int,
+        }
+    """
     if not points:
         return {"clusters": [], "k": 0}
-        
-    total_bids = 0
-    sum_price = 0
-    coords = []
+
+    # ── 1. Фильтрация: только точки с координатами ───────────────────────────
+    valid = [p for p in points if p.get("lat") is not None and p.get("lon") is not None]
+    if not valid:
+        return {"clusters": [], "k": 0}
+
+    unique_coords = {(p["lat"], p["lon"]) for p in valid}
+    n_unique = len(unique_coords)
+
+    if n_unique < 3:
+        return _fallback_single_cluster(valid)
+
+    # ── 2. Конвертация в Web Mercator (метры) ────────────────────────────────
+    xy_mercator = np.array([latlon_to_mercator(p["lat"], p["lon"]) for p in valid])
+    rub_per_km  = np.array([p.get("rub_per_km", 0) or 0 for p in valid])
+    weights     = np.array([p.get("bid_count", 1) or 1 for p in valid], dtype=float)
+
+    # ── 3. Нормализация признаков ────────────────────────────────────────────
+    X_raw = np.column_stack([xy_mercator, rub_per_km])
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X_raw)
+
+    # ── 4. Определение числа кластеров ───────────────────────────────────────
+    actual_max_k = min(max_k, n_unique - 1)
+    actual_min_k = min(min_k, actual_max_k)
+
+    if actual_max_k < 2:
+        return _fallback_single_cluster(valid)
+
+    best_k      = actual_min_k
+    best_labels = None
+    best_score  = -1.0
+    best_km     = None
+
+    if str(k).lower() == "auto":
+        silhouette_sample = min(300, len(valid))
+
+        for test_k in range(actual_min_k, actual_max_k + 1):
+            km = KMeans(n_clusters=test_k, random_state=42, n_init=10)
+            labels = km.fit_predict(X_scaled, sample_weight=weights)
+
+            try:
+                score = silhouette_score(
+                    X_scaled, labels,
+                    sample_size=silhouette_sample,
+                    random_state=42,
+                )
+                logger.debug(f"k={test_k}: silhouette={score:.4f}")
+                if score > best_score:
+                    best_score  = score
+                    best_k      = test_k
+                    best_labels = labels
+                    best_km     = km
+            except ValueError as e:
+                logger.debug(f"silhouette_score failed for k={test_k}: {e}")
+
+        if best_labels is None:
+            best_k = actual_min_k
+            best_km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
+            best_labels = best_km.fit_predict(X_scaled, sample_weight=weights)
+
+    else:
+        # Ручной режим: уважаем запрошенное k (ограничиваем сверху actual_max_k)
+        best_k = min(int(k), actual_max_k)
+        if best_k < 2:
+            return _fallback_single_cluster(valid)
+        best_km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
+        best_labels = best_km.fit_predict(X_scaled, sample_weight=weights)
+
+    # ── 5. Агрегация данных по кластерам ─────────────────────────────────────
+    clusters_raw: dict[int, dict] = {
+        i: {
+            "points": [],
+            "total_bids": 0.0,
+            "sum_price_weighted": 0.0,
+            "sum_lat_weighted": 0.0,
+            "sum_lon_weighted": 0.0,
+        }
+        for i in range(best_k)
+    }
+
+    for i, p in enumerate(valid):
+        cid  = int(best_labels[i])
+        bids = weights[i]
+        clusters_raw[cid]["points"].append(p)
+        clusters_raw[cid]["total_bids"]         += bids
+        clusters_raw[cid]["sum_price_weighted"] += (p.get("rub_per_km", 0) or 0) * bids
+        clusters_raw[cid]["sum_lat_weighted"]   += p["lat"] * bids
+        clusters_raw[cid]["sum_lon_weighted"]   += p["lon"] * bids
+
+    # ── 6. Voronoi-полигоны из центроидов KMeans ─────────────────────────────
+    # Центроиды в пространстве Mercator (берём из модели KMeans, обратно через scaler)
+    centroids_scaled = best_km.cluster_centers_
+    # Обратное преобразование scaler только для x_merc, y_merc (первые 2 признака)
+    centroids_raw = scaler.inverse_transform(centroids_scaled)
+    centroids_xy  = centroids_raw[:, :2]   # x_merc, y_merc
+
+    voronoi_polygons = build_voronoi_polygons(centroids_xy, xy_mercator)
+
+    # ── 7. Формирование ответа ────────────────────────────────────────────────
+    result_clusters = []
+
+    for cid in range(best_k):
+        cdata = clusters_raw[cid]
+        pts   = cdata["points"]
+
+        # Пустые кластеры (KMeans иногда даёт) — пропускаем
+        if not pts:
+            continue
+
+        total_bids = cdata["total_bids"]
+        avg_rub_km = (
+            cdata["sum_price_weighted"] / total_bids
+            if total_bids > 0 else 0
+        )
+
+        # Взвешенный центроид (центр масс по bid_count)
+        center_lat = cdata["sum_lat_weighted"] / total_bids
+        center_lon = cdata["sum_lon_weighted"] / total_bids
+
+        # Voronoi-полигон; если не построился — fallback на bbox точек кластера
+        polygon = voronoi_polygons[cid]
+        if polygon is None:
+            coords_latlon = [[p["lat"], p["lon"]] for p in pts]
+            polygon = (
+                _bounding_box(coords_latlon)
+                if len({(c[0], c[1]) for c in coords_latlon}) > 1
+                else _point_circle(coords_latlon[0][0], coords_latlon[0][1])
+            )
+
+        result_clusters.append({
+            "id":           cid,
+            "points":       pts,
+            "avg_rub_km":   round(avg_rub_km, 1),
+            "total_bids":   int(total_bids),
+            "points_count": len(pts),
+            "polygon":      polygon,
+            "center":       [center_lat, center_lon],
+        })
+
+    logger.info(
+        f"Результат: k={best_k}, непустых={len(result_clusters)}, "
+        f"silhouette={best_score:.3f}"
+    )
+
+    return {"clusters": result_clusters, "k": best_k}
+
+
+# ── Fallback ──────────────────────────────────────────────────────────────────
+
+def _fallback_single_cluster(points: list[dict]) -> dict:
+    """Один кластер на все точки (n_unique < 3)."""
+    if not points:
+        return {"clusters": [], "k": 0}
+
+    total_bids = 0.0
+    sum_price  = 0.0
+    sum_lat    = 0.0
+    sum_lon    = 0.0
+    coords_latlon = []
+
     for p in points:
-        bids = p.get("bid_count", 1) or 1
+        bids = float(p.get("bid_count", 1) or 1)
         total_bids += bids
-        sum_price += p.get("rub_per_km", 0) * bids
-        coords.append([p["lat"], p["lon"]])
-        
+        sum_price  += (p.get("rub_per_km", 0) or 0) * bids
+        sum_lat    += p["lat"] * bids
+        sum_lon    += p["lon"] * bids
+        coords_latlon.append([p["lat"], p["lon"]])
+
     avg_rub_km = sum_price / total_bids if total_bids > 0 else 0
-    center_lat = sum(p[0] for p in coords) / len(coords)
-    center_lon = sum(p[1] for p in coords) / len(coords)
-    
-    polygon = _make_bounding_box(coords) if len(set((c[0], c[1]) for c in coords)) > 1 else [
-        [center_lat-0.05, center_lon-0.05], [center_lat-0.05, center_lon+0.05], 
-        [center_lat+0.05, center_lon+0.05], [center_lat+0.05, center_lon-0.05]
-    ]
-    
+    center_lat = sum_lat / total_bids
+    center_lon = sum_lon / total_bids
+
+    unique = {(c[0], c[1]) for c in coords_latlon}
+    polygon = (
+        _bounding_box(coords_latlon)
+        if len(unique) > 1
+        else _point_circle(coords_latlon[0][0], coords_latlon[0][1])
+    )
+
     return {
         "clusters": [{
-            "id": 0,
-            "points": points,
-            "avg_rub_km": round(avg_rub_km, 1),
-            "total_bids": total_bids,
+            "id":           0,
+            "points":       points,
+            "avg_rub_km":   round(avg_rub_km, 1),
+            "total_bids":   int(total_bids),
             "points_count": len(points),
-            "polygon": polygon,
-            "center": [center_lat, center_lon]
+            "polygon":      polygon,
+            "center":       [center_lat, center_lon],
         }],
-        "k": 1
+        "k": 1,
     }

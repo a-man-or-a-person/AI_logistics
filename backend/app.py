@@ -267,6 +267,9 @@ def api_ml_cluster():
       town_type (shipment/delivery)
       k (число кластеров или "auto")
       period_types, price_types
+
+    Включает ВСЕ геокодированные города региона, а не только те,
+    у которых есть ценовые данные по текущему фильтру.
     """
     try:
         region = request.args.get("region", "")
@@ -284,45 +287,62 @@ def api_ml_cluster():
         from backend.ml_clustering import cluster_points
         from backend.geocoder import geocode_town
 
-        # Извлекаем все города нужного региона
         data = load_data()
-        
-        points_to_cluster = []
         towns_dict = data["shipment_towns"] if town_type == "shipment" else data["delivery_towns"]
-        
+
+        points_to_cluster = []
+
         for key, town_data in towns_dict.items():
-            if town_data["region"] == region:
-                # Фильтруем записи
-                records = town_data["records"]
-                filtered = [
-                    r for r in records
-                    if (not period_types or r["period_type"] in period_types)
-                    and (not price_types or r["price_type"] in price_types)
-                ]
-                if not filtered:
-                    continue
-                
-                prices = [r["price"] for r in filtered if r["price"] > 0]
+            if town_data["region"] != region:
+                continue
+
+            # Без координат точку показать нельзя
+            coords = geocode_town(town_data["town"], region, offline_only=True)
+            if not coords:
+                continue
+
+            records = town_data["records"]
+
+            # Сначала пробуем данные по текущему фильтру
+            filtered = [
+                r for r in records
+                if (not period_types or r["period_type"] in period_types)
+                and (not price_types or r["price_type"] in price_types)
+            ]
+
+            rub_per_km = 0.0
+            bids = 1
+            has_data = False
+
+            if filtered:
+                prices  = [r["price"] for r in filtered if r["price"] > 0]
                 lengths = [r["route_length"] for r in filtered if r["route_length"] > 0]
-                bids = sum(r["bid_count"] for r in filtered)
-                
-                if not prices or not lengths:
-                    continue
-                    
-                avg_price = sum(prices) / len(prices)
-                avg_length = sum(lengths) / len(lengths)
-                rub_per_km = avg_price / avg_length if avg_length > 0 else 0
-                
-                # Координаты
-                coords = geocode_town(town_data["town"], region, offline_only=True)
-                if coords:
-                    points_to_cluster.append({
-                        "town": town_data["town"],
-                        "lat": coords[0],
-                        "lon": coords[1],
-                        "rub_per_km": rub_per_km,
-                        "bid_count": bids
-                    })
+                bids    = max(sum(r["bid_count"] for r in filtered), 1)
+                if prices and lengths:
+                    rub_per_km = (sum(prices) / len(prices)) / (sum(lengths) / len(lengths))
+                    has_data = True
+            else:
+                # Фильтр не дал результатов — берём все записи города,
+                # чтобы точка всё равно попала в кластер с каким-то весом
+                all_prices  = [r["price"] for r in records if r["price"] > 0]
+                all_lengths = [r["route_length"] for r in records if r["route_length"] > 0]
+                all_bids    = sum(r["bid_count"] for r in records)
+                if all_prices and all_lengths:
+                    rub_per_km = (sum(all_prices) / len(all_prices)) / (sum(all_lengths) / len(all_lengths))
+                    bids = max(all_bids, 1)
+
+            points_to_cluster.append({
+                "town":       town_data["town"],
+                "lat":        coords[0],
+                "lon":        coords[1],
+                "rub_per_km": round(rub_per_km, 2),
+                "bid_count":  bids,
+                "has_data":   has_data,
+            })
+
+        logger.info(
+            f"ML: регион={region}, тип={town_type}, точек={len(points_to_cluster)}, k={k_val}"
+        )
 
         result = cluster_points(points_to_cluster, min_k=2, max_k=10, k=k_val)
         return jsonify({"ok": True, **result})

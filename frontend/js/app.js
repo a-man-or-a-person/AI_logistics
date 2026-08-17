@@ -4,7 +4,7 @@
 
 import { fetchRegions, fetchStats, fetchPoints, fetchRecords, fetchGeocodeStatus, regeocodeTown, fetchMlClusters } from './api.js';
 import { initFilters, getFilters, resetFilters } from './filters.js';
-import { initMap, renderPoints, clearMarkers, setThemeLayer, renderMlClusters } from './map.js';
+import { initMap, renderPoints, clearMarkers, clearMlClusters, setThemeLayer, renderMlClusters } from './map.js';
 
 // ── DOM refs ──────────────────────────────────────────────────
 
@@ -35,6 +35,7 @@ const mlTypeSelect   = $('ml-type-select');
 const mlKInput       = $('ml-k-input');
 const mlAutoK        = $('ml-auto-k');
 const btnRunMl       = $('btn-run-ml');
+const btnResetMl     = $('btn-reset-ml');
 
 // DOM Refs (Modal)
 const recordsModal   = $('records-modal');
@@ -223,17 +224,35 @@ async function main() {
         const res = await fetchMlClusters({ region, type, k, filters });
         
         renderMlClusters(res.clusters);
-        showToast(`✅ ML кластеризация завершена. Найдено кластеров: ${res.k}`, 'success', 5000);
-        
+
+        const totalCities = res.clusters.reduce((s, c) => s + c.points_count, 0);
+        showToast(
+          `✅ ML: ${res.k} кластера, ${totalCities} городов`,
+          'success', 5000
+        );
+
         if (emptyState) emptyState.classList.add('hidden');
         infoShip.textContent = 'ML';
-        infoDel.textContent = 'Зоны';
+        infoDel.textContent  = `${res.k} зоны`;
+        // Показываем кнопку сброса ML
+        if (btnResetMl) btnResetMl.classList.remove('hidden');
       } catch (err) {
         console.error(err);
         setError(`Ошибка ML: ${err.message}`);
       } finally {
         setLoading(false); // убираем оверлей в любом случае
       }
+    });
+  }
+
+  // Кнопка сброса ML — возвращаемся к обычным маркерам
+  if (btnResetMl) {
+    btnResetMl.addEventListener('click', async () => {
+      clearMlClusters();
+      btnResetMl.classList.add('hidden');
+      infoShip.textContent = '—';
+      infoDel.textContent  = '—';
+      await loadAndRenderPoints();
     });
   }
 
@@ -303,6 +322,37 @@ async function main() {
     } catch (err) {
       console.error(err);
       alert(`Ошибка при пересчете: ${err.message}`);
+    }
+  });
+
+  window.addEventListener('regeocode-all-points', async (e) => {
+    const { points } = e.detail;
+    try {
+      const toastEl = document.getElementById('toast');
+      if (toastEl) {
+        toastEl.textContent = `⏳ Пересчет ${points.length} точек...`;
+        toastEl.className = 'toast show';
+      }
+      
+      // Пересчитываем точки последовательно
+      for (const pt of points) {
+        try {
+          await regeocodeTown(pt.town, pt.region);
+        } catch (err) {
+          console.error(`Ошибка пересчета для ${pt.town}:`, err);
+        }
+      }
+      
+      await loadAndRenderPoints(); // Перезагружаем точки после пересчета всех
+      
+      if (toastEl) {
+        toastEl.textContent = `✅ ${points.length} точек пересчитаны!`;
+        toastEl.className = 'toast success show';
+        setTimeout(() => toastEl.classList.remove('show'), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(`Ошибка при массовом пересчете: ${err.message}`);
     }
   });
 
