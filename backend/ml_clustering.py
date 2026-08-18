@@ -13,8 +13,9 @@ ml_clustering.py — ML кластеризация точек для логис�
   5. Вырожденные кластеры (0 точек) фильтруются из ответа.
 """
 
-import math
 import logging
+import math
+
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -67,7 +68,6 @@ def build_voronoi_polygons(
     try:
         from scipy.spatial import Voronoi
         from shapely.geometry import Polygon, box
-        from shapely.ops import unary_union
 
         k = len(centroids_xy)
 
@@ -182,20 +182,50 @@ def cluster_points(
         return {"clusters": [], "k": 0}
 
     # ── 1. Фильтрация: только точки с координатами ───────────────────────────
-    valid = [p for p in points if p.get("lat") is not None and p.get("lon") is not None]
+    # Работаем с копиями: кластеризация не должна менять данные вызывающей стороны.
+    valid = [dict(p) for p in points if p.get("lat") is not None and p.get("lon") is not None]
     if not valid:
         return {"clusters": [], "k": 0}
 
-    unique_coords = {(p["lat"], p["lon"]) for p in valid}
+    # Слегка "раздвигаем" точки с абсолютно одинаковыми координатами (джиттер).
+    # Это спасает KMeans и Voronoi от схлопывания уникальных точек (например,
+    # если 50 деревень не были геокодированы и упали в центр региона).
+    seen_coords = {}
+    jittered_coordinates: list[tuple[float, float]] = []
+    for p in valid:
+        coord = (p["lat"], p["lon"])
+        if coord in seen_coords:
+            count = seen_coords[coord]
+            seen_coords[coord] += 1
+            # Спиральное смещение: шаг около 5 км (0.05 градуса)
+            # чтобы они визуально не слипались на мелком масштабе
+            radius = 0.05 * math.sqrt(count)
+            angle = count * 2.4
+            jittered_coordinates.append((
+                p["lat"] + radius * math.cos(angle),
+                p["lon"] + radius * math.sin(angle),
+            ))
+        else:
+            seen_coords[coord] = 1
+            jittered_coordinates.append(coord)
+
+    unique_coords = set(jittered_coordinates)
     n_unique = len(unique_coords)
 
     if n_unique < 3:
         return _fallback_single_cluster(valid)
 
     # ── 2. Конвертация в Web Mercator (метры) ────────────────────────────────
-    xy_mercator = np.array([latlon_to_mercator(p["lat"], p["lon"]) for p in valid])
-    rub_per_km  = np.array([p.get("rub_per_km", 0) or 0 for p in valid])
-    weights     = np.array([p.get("bid_count", 1) or 1 for p in valid], dtype=float)
+    xy_mercator = np.array([latlon_to_mercator(lat, lon) for lat, lon in jittered_coordinates])
+    rub_per_km = np.array([
+        p.get("cluster_rub_per_km", p.get("rub_per_km", 0)) or 0
+        for p in valid
+    ])
+    bid_counts = np.array([max(float(p.get("bid_count", 0) or 0), 0) for p in valid])
+    cluster_weights = np.array([
+        max(float(p.get("cluster_weight", bid_counts[i] or 1) or 1), 1)
+        for i, p in enumerate(valid)
+    ])
 
     # ── 3. Нормализация признаков ────────────────────────────────────────────
     X_raw = np.column_stack([xy_mercator, rub_per_km])
@@ -203,7 +233,8 @@ def cluster_points(
     X_scaled = scaler.fit_transform(X_raw)
 
     # ── 4. Определение числа кластеров ───────────────────────────────────────
-    actual_max_k = min(max_k, n_unique - 1)
+    # Для ручного режима KMeans может сделать до n_unique кластеров
+    actual_max_k = min(max_k, n_unique)
     actual_min_k = min(min_k, actual_max_k)
 
     if actual_max_k < 2:
@@ -216,30 +247,38 @@ def cluster_points(
 
     if str(k).lower() == "auto":
         silhouette_sample = min(300, len(valid))
+        # Для silhouette_score нужно как минимум 2 кластера, и максимум n_unique - 1
+        actual_max_k_auto = min(max_k, n_unique - 1)
 
-        for test_k in range(actual_min_k, actual_max_k + 1):
-            km = KMeans(n_clusters=test_k, random_state=42, n_init=10)
-            labels = km.fit_predict(X_scaled, sample_weight=weights)
-
-            try:
-                score = silhouette_score(
-                    X_scaled, labels,
-                    sample_size=silhouette_sample,
-                    random_state=42,
-                )
-                logger.debug(f"k={test_k}: silhouette={score:.4f}")
-                if score > best_score:
-                    best_score  = score
-                    best_k      = test_k
-                    best_labels = labels
-                    best_km     = km
-            except ValueError as e:
-                logger.debug(f"silhouette_score failed for k={test_k}: {e}")
-
-        if best_labels is None:
+        if actual_max_k_auto < 2:
+            # Невозможно подобрать через силуэт, используем минимум
             best_k = actual_min_k
             best_km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
-            best_labels = best_km.fit_predict(X_scaled, sample_weight=weights)
+            best_labels = best_km.fit_predict(X_scaled, sample_weight=cluster_weights)
+        else:
+            for test_k in range(actual_min_k, actual_max_k_auto + 1):
+                km = KMeans(n_clusters=test_k, random_state=42, n_init=10)
+                labels = km.fit_predict(X_scaled, sample_weight=cluster_weights)
+
+                try:
+                    score = silhouette_score(
+                        X_scaled, labels,
+                        sample_size=silhouette_sample,
+                        random_state=42,
+                    )
+                    logger.debug(f"k={test_k}: silhouette={score:.4f}")
+                    if score > best_score:
+                        best_score  = score
+                        best_k      = test_k
+                        best_labels = labels
+                        best_km     = km
+                except ValueError as e:
+                    logger.debug(f"silhouette_score failed for k={test_k}: {e}")
+
+            if best_labels is None:
+                best_k = actual_min_k
+                best_km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
+                best_labels = best_km.fit_predict(X_scaled, sample_weight=cluster_weights)
 
     else:
         # Ручной режим: уважаем запрошенное k (ограничиваем сверху actual_max_k)
@@ -247,7 +286,7 @@ def cluster_points(
         if best_k < 2:
             return _fallback_single_cluster(valid)
         best_km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
-        best_labels = best_km.fit_predict(X_scaled, sample_weight=weights)
+        best_labels = best_km.fit_predict(X_scaled, sample_weight=cluster_weights)
 
     # ── 5. Агрегация данных по кластерам ─────────────────────────────────────
     clusters_raw: dict[int, dict] = {
@@ -257,18 +296,21 @@ def cluster_points(
             "sum_price_weighted": 0.0,
             "sum_lat_weighted": 0.0,
             "sum_lon_weighted": 0.0,
+            "center_weight": 0.0,
         }
         for i in range(best_k)
     }
 
     for i, p in enumerate(valid):
         cid  = int(best_labels[i])
-        bids = weights[i]
+        bids = bid_counts[i]
+        center_weight = cluster_weights[i]
         clusters_raw[cid]["points"].append(p)
         clusters_raw[cid]["total_bids"]         += bids
         clusters_raw[cid]["sum_price_weighted"] += (p.get("rub_per_km", 0) or 0) * bids
-        clusters_raw[cid]["sum_lat_weighted"]   += p["lat"] * bids
-        clusters_raw[cid]["sum_lon_weighted"]   += p["lon"] * bids
+        clusters_raw[cid]["sum_lat_weighted"]   += p["lat"] * center_weight
+        clusters_raw[cid]["sum_lon_weighted"]   += p["lon"] * center_weight
+        clusters_raw[cid]["center_weight"]      += center_weight
 
     # ── 6. Voronoi-полигоны из центроидов KMeans ─────────────────────────────
     # Центроиды в пространстве Mercator (берём из модели KMeans, обратно через scaler)
@@ -297,8 +339,9 @@ def cluster_points(
         )
 
         # Взвешенный центроид (центр масс по bid_count)
-        center_lat = cdata["sum_lat_weighted"] / total_bids
-        center_lon = cdata["sum_lon_weighted"] / total_bids
+        center_weight = cdata["center_weight"]
+        center_lat = cdata["sum_lat_weighted"] / center_weight
+        center_lon = cdata["sum_lon_weighted"] / center_weight
 
         # Voronoi-полигон; если не построился — fallback на bbox точек кластера
         polygon = voronoi_polygons[cid]
@@ -336,22 +379,25 @@ def _fallback_single_cluster(points: list[dict]) -> dict:
         return {"clusters": [], "k": 0}
 
     total_bids = 0.0
-    sum_price  = 0.0
-    sum_lat    = 0.0
-    sum_lon    = 0.0
+    sum_price = 0.0
+    sum_lat = 0.0
+    sum_lon = 0.0
+    center_weight_total = 0.0
     coords_latlon = []
 
     for p in points:
-        bids = float(p.get("bid_count", 1) or 1)
+        bids = max(float(p.get("bid_count", 0) or 0), 0)
+        center_weight = max(float(p.get("cluster_weight", bids or 1) or 1), 1)
         total_bids += bids
         sum_price  += (p.get("rub_per_km", 0) or 0) * bids
-        sum_lat    += p["lat"] * bids
-        sum_lon    += p["lon"] * bids
+        sum_lat    += p["lat"] * center_weight
+        sum_lon    += p["lon"] * center_weight
+        center_weight_total += center_weight
         coords_latlon.append([p["lat"], p["lon"]])
 
     avg_rub_km = sum_price / total_bids if total_bids > 0 else 0
-    center_lat = sum_lat / total_bids
-    center_lon = sum_lon / total_bids
+    center_lat = sum_lat / center_weight_total
+    center_lon = sum_lon / center_weight_total
 
     unique = {(c[0], c[1]) for c in coords_latlon}
     polygon = (

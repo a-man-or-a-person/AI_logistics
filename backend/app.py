@@ -10,9 +10,9 @@ Flask API сервер для карты логистики.
   GET /api/geocode-status        → статус фонового геокодирования
 """
 
+import logging
 import os
 import sys
-import logging
 import threading
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -21,8 +21,20 @@ from flask_cors import CORS
 # Добавляем директорию проекта в путь
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from backend.data_processor import get_map_points, get_regions, get_stats, load_data, get_raw_records
-from backend.geocoder import geocode_batch, geocode_all_towns_background, get_geocode_status, geocode_town
+from backend.data_processor import (
+    calculate_rub_per_km,
+    get_map_points,
+    get_raw_records,
+    get_regions,
+    get_stats,
+    load_data,
+)
+from backend.geocoder import (
+    geocode_all_towns_background,
+    geocode_batch,
+    geocode_town,
+    get_geocode_status,
+)
 
 # ─── Настройка логирования ────────────────────────────────────────────────────
 logging.basicConfig(
@@ -40,23 +52,53 @@ app = Flask(
     static_folder=FRONTEND_DIR,
     static_url_path="/static",
 )
-CORS(app)  # Разрешаем CORS для разработки
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("LOGISTICS_CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if CORS_ORIGINS:
+    CORS(app, resources={r"/api/*": {"origins": CORS_ORIGINS}})
 
 _bg_geocode_started = False
+_bg_geocode_start_lock = threading.Lock()
+
+ALLOWED_PERIOD_TYPES = {"retro", "current", "forecast"}
+ALLOWED_PRICE_TYPES = {"spot", "tender"}
+ALLOWED_TOWN_TYPES = {"shipment", "delivery"}
+
+
+def _parse_csv_arg(name: str) -> list[str]:
+    return [value.strip() for value in request.args.get(name, "").split(",") if value.strip()]
+
+
+def _filter_validation_error(period_types: list[str], price_types: list[str]) -> str | None:
+    invalid_periods = sorted(set(period_types) - ALLOWED_PERIOD_TYPES)
+    if invalid_periods:
+        return f"Неизвестные period_types: {', '.join(invalid_periods)}"
+    invalid_prices = sorted(set(price_types) - ALLOWED_PRICE_TYPES)
+    if invalid_prices:
+        return f"Неизвестные price_types: {', '.join(invalid_prices)}"
+    return None
+
+
+def _internal_error():
+    return jsonify({"ok": False, "error": "Внутренняя ошибка сервера"}), 500
 
 
 def _start_background_geocoding():
     """Запускает фоновое геокодирование всех городов при первом запросе."""
     global _bg_geocode_started
-    if _bg_geocode_started:
-        return
-    _bg_geocode_started = True
+    with _bg_geocode_start_lock:
+        if _bg_geocode_started:
+            return
+        _bg_geocode_started = True
 
     data = load_data()
     all_towns = set()
-    for k, v in data["shipment_towns"].items():
+    for v in data["shipment_towns"].values():
         all_towns.add((v["town"], v["region"]))
-    for k, v in data["delivery_towns"].items():
+    for v in data["delivery_towns"].values():
         all_towns.add((v["town"], v["region"]))
 
     logger.info(f"🌍 Запускаем фоновое геокодирование {len(all_towns)} городов...")
@@ -93,9 +135,9 @@ def api_regions():
     try:
         regions = get_regions()
         return jsonify({"ok": True, **regions})
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка в /api/regions")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return _internal_error()
 
 
 @app.route("/api/stats")
@@ -104,9 +146,9 @@ def api_stats():
     try:
         stats = get_stats()
         return jsonify({"ok": True, **stats})
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка в /api/stats")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return _internal_error()
 
 
 @app.route("/api/points")
@@ -121,15 +163,13 @@ def api_points():
       price_types   — через запятую: spot,tender
     """
     try:
-        from_regions_str  = request.args.get("from_regions", "")
-        to_regions_str    = request.args.get("to_regions", "")
-        period_types_str  = request.args.get("period_types", "")
-        price_types_str   = request.args.get("price_types", "")
-
-        from_regions = [r.strip() for r in from_regions_str.split(",") if r.strip()]
-        to_regions   = [r.strip() for r in to_regions_str.split(",") if r.strip()]
-        period_types = [p.strip() for p in period_types_str.split(",") if p.strip()]
-        price_types  = [p.strip() for p in price_types_str.split(",") if p.strip()]
+        from_regions = _parse_csv_arg("from_regions")
+        to_regions = _parse_csv_arg("to_regions")
+        period_types = _parse_csv_arg("period_types")
+        price_types = _parse_csv_arg("price_types")
+        validation_error = _filter_validation_error(period_types, price_types)
+        if validation_error:
+            return jsonify({"ok": False, "error": validation_error}), 400
 
         result = get_map_points(
             from_regions=from_regions or None,
@@ -181,9 +221,9 @@ def api_points():
             "towns_total": len(all_towns),
         })
 
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка в /api/points")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return _internal_error()
 
 
 @app.route("/api/records", methods=["GET"])
@@ -193,18 +233,16 @@ def get_records():
         town = request.args.get("town", "")
         region = request.args.get("region", "")
         town_type = request.args.get("type", "")
-        from_regions_str  = request.args.get("from_regions", "")
-        to_regions_str    = request.args.get("to_regions", "")
-        period_types_str  = request.args.get("period_types", "")
-        price_types_str   = request.args.get("price_types", "")
-
-        from_regions = [r.strip() for r in from_regions_str.split(",") if r.strip()]
-        to_regions   = [r.strip() for r in to_regions_str.split(",") if r.strip()]
-        period_types = [p.strip() for p in period_types_str.split(",") if p.strip()]
-        price_types  = [p.strip() for p in price_types_str.split(",") if p.strip()]
+        from_regions = _parse_csv_arg("from_regions")
+        to_regions = _parse_csv_arg("to_regions")
+        period_types = _parse_csv_arg("period_types")
+        price_types = _parse_csv_arg("price_types")
 
         if not town or not region or town_type not in ["shipment", "delivery"]:
             return jsonify({"ok": False, "error": "Неверные параметры town, region или type"}), 400
+        validation_error = _filter_validation_error(period_types, price_types)
+        if validation_error:
+            return jsonify({"ok": False, "error": validation_error}), 400
 
         records = get_raw_records(
             town=town,
@@ -221,30 +259,36 @@ def get_records():
             "count": len(records),
             "records": records,
         })
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка в /api/records")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return _internal_error()
 
 
 @app.route("/api/regeocode", methods=["POST"])
 def api_regeocode():
     """Принудительно пересчитывает координаты города."""
     try:
-        data = request.json or {}
+        data = request.get_json(silent=True) or {}
         town = data.get("town", "")
         region = data.get("region", "")
-        
+
+        if not isinstance(town, str) or not isinstance(region, str):
+            return jsonify({"ok": False, "error": "town и region должны быть строками"}), 400
+        town = town.strip()
+        region = region.strip()
         if not town:
             return jsonify({"ok": False, "error": "Не указан town"}), 400
+        if len(town) > 200 or len(region) > 200:
+            return jsonify({"ok": False, "error": "Слишком длинное название города или региона"}), 400
 
         coords = geocode_town(town, region, offline_only=False, force_recalc=True)
         if coords:
             return jsonify({"ok": True, "lat": coords[0], "lon": coords[1]})
         else:
             return jsonify({"ok": False, "error": "Не удалось определить координаты"}), 404
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка в /api/regeocode")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return _internal_error()
 
 
 @app.route("/api/geocode-status")
@@ -253,9 +297,9 @@ def api_geocode_status():
     try:
         status = get_geocode_status()
         return jsonify({"ok": True, **status})
-    except Exception as e:
+    except Exception:
         logger.exception("Ошибка в /api/geocode-status")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return _internal_error()
 
 
 @app.route("/api/ml-cluster")
@@ -275,30 +319,32 @@ def api_ml_cluster():
         region = request.args.get("region", "")
         town_type = request.args.get("town_type", "")
         k_val = request.args.get("k", "auto")
-        period_types_str = request.args.get("period_types", "")
-        price_types_str = request.args.get("price_types", "")
+        period_types = _parse_csv_arg("period_types")
+        price_types = _parse_csv_arg("price_types")
 
-        if not region or not town_type:
-            return jsonify({"ok": False, "error": "Необходимы region и town_type"}), 400
-
-        period_types = [p.strip() for p in period_types_str.split(",") if p.strip()]
-        price_types = [p.strip() for p in price_types_str.split(",") if p.strip()]
+        if not region or town_type not in ALLOWED_TOWN_TYPES:
+            return jsonify({"ok": False, "error": "town_type должен быть shipment или delivery"}), 400
+        validation_error = _filter_validation_error(period_types, price_types)
+        if validation_error:
+            return jsonify({"ok": False, "error": validation_error}), 400
+        if str(k_val).lower() != "auto":
+            try:
+                parsed_k = int(k_val)
+            except (TypeError, ValueError):
+                return jsonify({"ok": False, "error": "k должен быть auto или целым числом"}), 400
+            if not 2 <= parsed_k <= 10:
+                return jsonify({"ok": False, "error": "k должен быть от 2 до 10"}), 400
+            k_val = parsed_k
 
         from backend.ml_clustering import cluster_points
-        from backend.geocoder import geocode_town
-
         data = load_data()
         towns_dict = data["shipment_towns"] if town_type == "shipment" else data["delivery_towns"]
 
         points_to_cluster = []
+        region_total_bids = 0
 
-        for key, town_data in towns_dict.items():
+        for town_data in towns_dict.values():
             if town_data["region"] != region:
-                continue
-
-            # Без координат точку показать нельзя
-            coords = geocode_town(town_data["town"], region, offline_only=True)
-            if not coords:
                 continue
 
             records = town_data["records"]
@@ -310,33 +356,30 @@ def api_ml_cluster():
                 and (not price_types or r["price_type"] in price_types)
             ]
 
-            rub_per_km = 0.0
-            bids = 1
-            has_data = False
+            rub_per_km = calculate_rub_per_km(filtered)
+            bids = sum(r["bid_count"] for r in filtered)
+            region_total_bids += bids
+            has_data = rub_per_km > 0
+            cluster_rub_per_km = rub_per_km
 
-            if filtered:
-                prices  = [r["price"] for r in filtered if r["price"] > 0]
-                lengths = [r["route_length"] for r in filtered if r["route_length"] > 0]
-                bids    = max(sum(r["bid_count"] for r in filtered), 1)
-                if prices and lengths:
-                    rub_per_km = (sum(prices) / len(prices)) / (sum(lengths) / len(lengths))
-                    has_data = True
-            else:
-                # Фильтр не дал результатов — берём все записи города,
-                # чтобы точка всё равно попала в кластер с каким-то весом
-                all_prices  = [r["price"] for r in records if r["price"] > 0]
-                all_lengths = [r["route_length"] for r in records if r["route_length"] > 0]
-                all_bids    = sum(r["bid_count"] for r in records)
-                if all_prices and all_lengths:
-                    rub_per_km = (sum(all_prices) / len(all_prices)) / (sum(all_lengths) / len(all_lengths))
-                    bids = max(all_bids, 1)
+            # Итог региона включает все записи, даже если город нельзя показать.
+            coords = geocode_town(town_data["town"], region, offline_only=True)
+            if not coords:
+                continue
+
+            if not has_data:
+                # Город остаётся на карте, но данные других периодов используются
+                # только как нейтральный ML-признак, а не как фактические заявки.
+                cluster_rub_per_km = calculate_rub_per_km(records)
 
             points_to_cluster.append({
                 "town":       town_data["town"],
                 "lat":        coords[0],
                 "lon":        coords[1],
                 "rub_per_km": round(rub_per_km, 2),
+                "cluster_rub_per_km": round(cluster_rub_per_km, 2),
                 "bid_count":  bids,
+                "cluster_weight": max(bids, 1),
                 "has_data":   has_data,
             })
 
@@ -345,13 +388,17 @@ def api_ml_cluster():
         )
 
         result = cluster_points(points_to_cluster, min_k=2, max_k=10, k=k_val)
-        return jsonify({"ok": True, **result})
-    except Exception as e:
+        return jsonify({"ok": True, "region_total_bids": region_total_bids, **result})
+    except Exception:
         logger.exception("Ошибка в /api/ml-cluster")
-        return jsonify({"ok": False, "error": str(e)}), 500
+        return _internal_error()
 
 
 # ─── Запуск ───────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000, host="0.0.0.0")
+    app.run(
+        debug=os.environ.get("LOGISTICS_DEBUG") == "1",
+        port=int(os.environ.get("LOGISTICS_PORT", "5000")),
+        host=os.environ.get("LOGISTICS_HOST", "127.0.0.1"),
+    )

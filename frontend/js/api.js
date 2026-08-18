@@ -3,16 +3,40 @@
  */
 
 const API_BASE = window.location.origin;
+const REQUEST_TIMEOUT_MS = 30_000;
+
+async function requestJson(url, options = {}) {
+  const { signal: externalSignal, ...fetchOptions } = options;
+  const controller = new AbortController();
+  const abortFromCaller = () => controller.abort();
+  externalSignal?.addEventListener('abort', abortFromCaller, { once: true });
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const resp = await fetch(url, { ...fetchOptions, signal: controller.signal });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok) {
+      throw new Error(data?.error || `HTTP ${resp.status}`);
+    }
+    if (!data?.ok) throw new Error(data?.error || 'Некорректный ответ сервера');
+    return data;
+  } catch (error) {
+    if (error.name === 'AbortError' && !externalSignal?.aborted) {
+      throw new Error('Превышено время ожидания ответа сервера');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+    externalSignal?.removeEventListener('abort', abortFromCaller);
+  }
+}
 
 /**
  * Загружает списки регионов.
  * @returns {Promise<{ship_regions: string[], del_regions: string[]}>}
  */
 export async function fetchRegions() {
-  const resp = await fetch(`${API_BASE}/api/regions`);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.ok) throw new Error(data.error || 'Unknown error');
+  const data = await requestJson(`${API_BASE}/api/regions`);
   return { ship_regions: data.ship_regions, del_regions: data.del_regions };
 }
 
@@ -21,11 +45,7 @@ export async function fetchRegions() {
  * @returns {Promise<Object>}
  */
 export async function fetchStats() {
-  const resp = await fetch(`${API_BASE}/api/stats`);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.ok) throw new Error(data.error || 'Unknown error');
-  return data;
+  return requestJson(`${API_BASE}/api/stats`);
 }
 
 /**
@@ -37,7 +57,10 @@ export async function fetchStats() {
  * @param {string[]} params.priceTypes   — spot, tender
  * @returns {Promise<Object>}
  */
-export async function fetchPoints({ fromRegions = [], toRegions = [], periodTypes = [], priceTypes = [] }) {
+export async function fetchPoints(
+  { fromRegions = [], toRegions = [], periodTypes = [], priceTypes = [] },
+  { signal } = {},
+) {
   const params = new URLSearchParams();
   if (fromRegions.length)  params.set('from_regions',  fromRegions.join(','));
   if (toRegions.length)    params.set('to_regions',    toRegions.join(','));
@@ -45,11 +68,7 @@ export async function fetchPoints({ fromRegions = [], toRegions = [], periodType
   if (priceTypes.length)   params.set('price_types',   priceTypes.join(','));
 
   const url = `${API_BASE}/api/points?${params.toString()}`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.ok) throw new Error(data.error || 'Unknown error');
-  return data;
+  return requestJson(url, { signal });
 }
 
 /**
@@ -67,37 +86,25 @@ export async function fetchRecords(town, region, type, filters = {}) {
   params.append('type', type);
   
   const url = `${API_BASE}/api/records?${params.toString()}`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.ok) throw new Error(data.error || 'Unknown error');
-  return data;
+  return requestJson(url);
 }
 
 /**
  * Запрашивает статус фонового геокодирования.
  */
 export async function fetchGeocodeStatus() {
-  const resp = await fetch(`${API_BASE}/api/geocode-status`);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.ok) throw new Error(data.error || 'Unknown error');
-  return data;
+  return requestJson(`${API_BASE}/api/geocode-status`);
 }
 
 /**
  * Принудительно пересчитывает координаты для города.
  */
 export async function regeocodeTown(town, region) {
-  const resp = await fetch(`${API_BASE}/api/regeocode`, {
+  return requestJson(`${API_BASE}/api/regeocode`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ town, region })
   });
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.ok) throw new Error(data.error || 'Unknown error');
-  return data;
 }
 
 /**
@@ -113,10 +120,5 @@ export async function fetchMlClusters({ region, type, k, filters = {} }) {
   if (filters.priceTypes?.length)  params.set('price_types', filters.priceTypes.join(','));
 
   const url = `${API_BASE}/api/ml-cluster?${params.toString()}`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.ok) throw new Error(data.error || 'Unknown error');
-  return data;
+  return requestJson(url);
 }
-

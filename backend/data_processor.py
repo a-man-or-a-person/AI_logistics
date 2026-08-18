@@ -8,14 +8,19 @@
 """
 
 import csv
-import os
 import logging
+import os
+import threading
 from collections import defaultdict
+from functools import lru_cache
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-CSV_FILE = os.path.join(os.path.dirname(__file__), "..", "v_pulse_prices.csv")
+CSV_FILE = os.environ.get(
+    "LOGISTICS_CSV_FILE",
+    os.path.join(os.path.dirname(__file__), "..", "v_pulse_prices.csv"),
+)
 CSV_ENCODING = "utf-8-sig"
 CSV_ENCODING_ERRORS = "replace"
 
@@ -64,6 +69,7 @@ MONTH_NAMES = {
 
 # Глобальный кэш загруженных данных
 _data: dict[str, Any] | None = None
+_data_lock = threading.Lock()
 
 
 def _format_period(period_id: str, period_type: str) -> str:
@@ -88,7 +94,22 @@ def _safe_int(val: str) -> int:
         return 0
 
 
-def load_data() -> dict[str, Any]:
+def calculate_rub_per_km(records: list[dict]) -> float:
+    """Возвращает отношение суммарной цены к суммарной длине валидных маршрутов.
+
+    Цена и длина берутся из одной и той же записи. Это не позволяет случайно
+    сопоставить цену маршрута без длины с длиной другого маршрута без цены.
+    """
+    paired = [
+        r for r in records
+        if r.get("price", 0) > 0 and r.get("route_length", 0) > 0
+    ]
+    if not paired:
+        return 0.0
+    return sum(r["price"] for r in paired) / sum(r["route_length"] for r in paired)
+
+
+def _load_data_uncached() -> dict[str, Any]:
     """
     Загружает CSV и строит структуры данных.
     Возвращает словарь с:
@@ -120,7 +141,13 @@ def load_data() -> dict[str, Any]:
     del_regions: set[str] = set()
     total_rows = 0
 
-    with open(csv_path, "r", encoding=CSV_ENCODING, errors=CSV_ENCODING_ERRORS) as f:
+    with open(
+        csv_path,
+        encoding=CSV_ENCODING,
+        errors=CSV_ENCODING_ERRORS,
+        newline="",
+        buffering=1024 * 1024,
+    ) as f:
         reader = csv.reader(f)
         next(reader)  # пропуск заголовка
 
@@ -203,6 +230,16 @@ def load_data() -> dict[str, Any]:
     return _data
 
 
+def load_data() -> dict[str, Any]:
+    """Потокобезопасно загружает данные один раз на процесс."""
+    if _data is not None:
+        return _data
+    with _data_lock:
+        if _data is not None:
+            return _data
+        return _load_data_uncached()
+
+
 def _aggregate_records(records: list[dict], period_types: set[str], price_types: set[str]) -> dict | None:
     """Агрегирует набор записей для одного города — расширенная версия."""
     filtered = [
@@ -220,7 +257,7 @@ def _aggregate_records(records: list[dict], period_types: set[str], price_types:
     avg_price = sum(prices) / len(prices) if prices else 0
     avg_length = sum(lengths) / len(lengths) if lengths else 0
     avg_bids = sum(bids) / len(bids) if bids else 0
-    rub_per_km = avg_price / avg_length if avg_length > 0 else 0
+    rub_per_km = calculate_rub_per_km(filtered)
 
     period_types_found = sorted({r["period_type"] for r in filtered})
     price_types_found = sorted({r["price_type"] for r in filtered})
@@ -242,9 +279,7 @@ def _aggregate_records(records: list[dict], period_types: set[str], price_types:
                 "count": len(pt_recs),
                 "avg_price": round(sum(pt_prices) / len(pt_prices), 0) if pt_prices else 0,
                 "avg_length": round(sum(pt_lengths) / len(pt_lengths), 1) if pt_lengths else 0,
-                "rub_per_km": round(
-                    (sum(pt_prices) / len(pt_prices)) / (sum(pt_lengths) / len(pt_lengths)), 1
-                ) if pt_prices and pt_lengths else 0,
+                "rub_per_km": round(calculate_rub_per_km(pt_recs), 1),
             }
 
     # Разбивка по price_type (spot / tender)
@@ -304,10 +339,29 @@ def get_map_points(
     period_types: list[str] | None = None,
     price_types: list[str] | None = None,
 ) -> dict[str, Any]:
+    """Возвращает точки и переиспользует последние комбинации фильтров."""
+    return _get_map_points_cached(
+        tuple(sorted(from_regions or [])),
+        tuple(sorted(to_regions or [])),
+        tuple(sorted(period_types or [])),
+        tuple(sorted(price_types or [])),
+    )
+
+
+@lru_cache(maxsize=64)
+def _get_map_points_cached(
+    from_regions: tuple[str, ...],
+    to_regions: tuple[str, ...],
+    period_types: tuple[str, ...],
+    price_types: tuple[str, ...],
+) -> dict[str, Any]:
     """
     Возвращает данные для карты с учётом фильтров.
 
     Если from_regions/to_regions пусты — возвращаем все регионы.
+
+    Результат считается неизменяемым внутри backend: API добавляет координаты в
+    новые словари, поэтому безопасно хранить агрегаты в небольшом LRU-кэше.
     """
     data = load_data()
 
@@ -320,7 +374,7 @@ def get_map_points(
     del_points = []
 
     # Точки отгрузки
-    for town_key, info in data["shipment_towns"].items():
+    for info in data["shipment_towns"].values():
         if from_set and info["region"] not in from_set:
             continue
 
@@ -341,7 +395,7 @@ def get_map_points(
         })
 
     # Точки доставки
-    for town_key, info in data["delivery_towns"].items():
+    for info in data["delivery_towns"].values():
         if to_set and info["region"] not in to_set:
             continue
 

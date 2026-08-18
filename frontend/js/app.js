@@ -20,6 +20,8 @@ const statusText     = $('status-text');
 const infoShip       = $('info-ship');
 const infoDel        = $('info-del');
 const infoGeocoded   = $('info-geocoded');
+const mlTotalRow     = $('ml-total-row');
+const infoMlTotal    = $('info-ml-total');
 const emptyState     = $('empty-state');
 const toast          = $('toast');
 const statRows       = $('stat-total-rows');
@@ -45,6 +47,16 @@ const modalTitle     = $('modal-title');
 const modalLoading   = $('modal-loading');
 const modalError     = $('modal-error');
 const recordsTbody   = $('records-tbody');
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  })[char]);
+}
 
 // ── Toast ─────────────────────────────────────────────────────
 
@@ -88,8 +100,13 @@ function setError(msg) {
 
 // ── Load & Render ─────────────────────────────────────────────
 
+let _pointsRequestController = null;
+
 async function loadAndRenderPoints() {
   const filters = getFilters();
+  _pointsRequestController?.abort();
+  _pointsRequestController = null;
+  mlTotalRow?.classList.add('hidden');
 
   // Если не выбран ни один регион (отгрузки или доставки), оставляем карту пустой
   if ((!filters.fromRegions || filters.fromRegions.length === 0) &&
@@ -102,15 +119,22 @@ async function loadAndRenderPoints() {
     return;
   }
 
+  const requestController = new AbortController();
+  _pointsRequestController = requestController;
   setLoading(true, 'Запрос данных...', 'Загрузка точек по выбранным регионам...');
 
   try {
-    const data = await fetchPoints({
-      fromRegions:  filters.fromRegions,
-      toRegions:    filters.toRegions,
-      periodTypes:  filters.periodTypes,
-      priceTypes:   filters.priceTypes,
-    });
+    const data = await fetchPoints(
+      {
+        fromRegions:  filters.fromRegions,
+        toRegions:    filters.toRegions,
+        periodTypes:  filters.periodTypes,
+        priceTypes:   filters.priceTypes,
+      },
+      { signal: requestController.signal },
+    );
+
+    if (_pointsRequestController !== requestController) return;
 
     renderPoints(data.shipment_points, data.delivery_points);
 
@@ -129,8 +153,13 @@ async function loadAndRenderPoints() {
       'success'
     );
   } catch (err) {
+    if (err.name === 'AbortError') return;
     console.error(err);
     setError(`Ошибка загрузки: ${err.message}`);
+  } finally {
+    if (_pointsRequestController === requestController) {
+      _pointsRequestController = null;
+    }
   }
 }
 
@@ -226,14 +255,17 @@ async function main() {
         renderMlClusters(res.clusters);
 
         const totalCities = res.clusters.reduce((s, c) => s + c.points_count, 0);
+        const totalBids = Number(res.region_total_bids || 0);
         showToast(
-          `✅ ML: ${res.k} кластера, ${totalCities} городов`,
+          `✅ ML: ${res.k} кластера, ${totalCities} городов, ${totalBids.toLocaleString('ru-RU')} заявок`,
           'success', 5000
         );
 
         if (emptyState) emptyState.classList.add('hidden');
         infoShip.textContent = 'ML';
         infoDel.textContent  = `${res.k} зоны`;
+        if (infoMlTotal) infoMlTotal.textContent = totalBids.toLocaleString('ru-RU');
+        mlTotalRow?.classList.remove('hidden');
         // Показываем кнопку сброса ML
         if (btnResetMl) btnResetMl.classList.remove('hidden');
       } catch (err) {
@@ -252,6 +284,7 @@ async function main() {
       btnResetMl.classList.add('hidden');
       infoShip.textContent = '—';
       infoDel.textContent  = '—';
+      mlTotalRow?.classList.add('hidden');
       await loadAndRenderPoints();
     });
   }
@@ -390,15 +423,15 @@ async function main() {
         const periodColor = r.period_type === 'retro' ? '#a78bfa' : r.period_type === 'current' ? '#38bdf8' : '#fbbf24';
         return `
           <tr>
-            <td style="font-family: monospace; color: #3dd68c;">${p}</td>
-            <td>${km}</td>
-            <td>${rkm}</td>
-            <td>${r.bid_count}</td>
-            <td style="color:${periodColor}">${r.period_label || r.period_type}</td>
+            <td style="font-family: monospace; color: #3dd68c;">${escapeHtml(p)}</td>
+            <td>${escapeHtml(km)}</td>
+            <td>${escapeHtml(rkm)}</td>
+            <td>${escapeHtml(r.bid_count)}</td>
+            <td style="color:${periodColor}">${escapeHtml(r.period_label || r.period_type)}</td>
             <td>${r.price_type === 'spot' ? 'Спот' : 'Тендер'}</td>
-            <td>${r.confidence || '—'}</td>
-            <td>${r.ship_region}</td>
-            <td>${r.del_region}</td>
+            <td>${escapeHtml(r.confidence || '—')}</td>
+            <td>${escapeHtml(r.ship_region)}</td>
+            <td>${escapeHtml(r.del_region)}</td>
           </tr>
         `;
       }).join('');
@@ -459,4 +492,3 @@ if (document.readyState === 'loading') {
 } else {
   main();
 }
-

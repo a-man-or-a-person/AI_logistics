@@ -127,10 +127,12 @@ function _makeChip(kind, region) {
 
   if (set.has(region)) chip.classList.add(activeClass);
 
-  chip.innerHTML = `
-    <div class="chip-check">${set.has(region) ? '✓' : ''}</div>
-    <span>${region}</span>
-  `;
+  const check = document.createElement('div');
+  check.className = 'chip-check';
+  check.textContent = set.has(region) ? '✓' : '';
+  const label = document.createElement('span');
+  label.textContent = region;
+  chip.append(check, label);
 
   chip.addEventListener('click', () => {
     if (set.has(region)) {
@@ -173,8 +175,13 @@ function _refreshTags(kind) {
   for (const region of set) {
     const tag = document.createElement('div');
     tag.className = `tag tag-${kind}`;
-    tag.innerHTML = `<span>${_shortRegionName(region)}</span><span class="tag-remove">×</span>`;
-    tag.querySelector('.tag-remove').addEventListener('click', () => {
+    const label = document.createElement('span');
+    label.textContent = _shortRegionName(region);
+    const removeButton = document.createElement('span');
+    removeButton.className = 'tag-remove';
+    removeButton.textContent = '×';
+    tag.append(label, removeButton);
+    removeButton.addEventListener('click', () => {
       set.delete(region);
       _refreshTags(kind);
       // Обновить чипы

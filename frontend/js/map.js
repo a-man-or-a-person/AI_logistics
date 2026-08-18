@@ -125,6 +125,33 @@ export function initMap(containerId) {
     });
 
     if (feature) {
+      // ML-точки не являются обычными OpenLayers-кластерами.
+      if (feature.get('isMlPoint')) {
+        const town    = feature.get('ptTown');
+        const rubKm   = feature.get('ptRubKm');
+        const bids    = feature.get('ptBids');
+        const hasData = feature.get('ptHasData');
+        const color   = feature.get('strokeColor');
+        const coords  = feature.getGeometry().getCoordinates();
+
+        const priceHtml = hasData
+          ? `<div style="font-size:13px;color:${color};font-weight:700;margin-top:4px">${Number(rubKm).toFixed(1)} ₽/км</div>
+             <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${Number(bids).toLocaleString('ru-RU')} заявок</div>`
+          : `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Цены по текущему фильтру недоступны</div>`;
+
+        _popupContent.innerHTML = `
+          <div class="popup-container" style="min-width:160px;padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
+              <div style="font-weight:700;font-size:13px;color:var(--text-main)">${_escapeHtml(town)}</div>
+            </div>
+            ${priceHtml}
+          </div>`;
+        _popupContainer.classList.remove('hidden');
+        _overlay.setPosition(coords);
+        return;
+      }
+
       const clusterFeatures = feature.get('features');
       
       // Если это кластер из нескольких точек
@@ -258,33 +285,9 @@ export function initMap(containerId) {
             btnRegeocode.style.cursor = 'wait';
           });
         }
+      } else {
+        _overlay.setPosition(undefined);
       }
-
-      // ── Клик по ML-точке (город внутри кластера) ─────────────────
-    } else if (feature.get('isMlPoint')) {
-      const town    = feature.get('ptTown');
-      const rubKm   = feature.get('ptRubKm');
-      const bids    = feature.get('ptBids');
-      const hasData = feature.get('ptHasData');
-      const color   = feature.get('strokeColor');
-      const coords  = feature.getGeometry().getCoordinates();
-
-      const priceHtml = hasData
-        ? `<div style="font-size:13px;color:${color};font-weight:700;margin-top:4px">${Number(rubKm).toFixed(1)} ₽/км</div>
-           <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${Number(bids).toLocaleString('ru-RU')} заявок</div>`
-        : `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Цены по текущему фильтру недоступны</div>`;
-
-      _popupContent.innerHTML = `
-        <div class="popup-container" style="min-width:160px;padding:12px 14px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
-            <div style="font-weight:700;font-size:13px;color:var(--text-main)">${town}</div>
-          </div>
-          ${priceHtml}
-        </div>`;
-      _popupContainer.classList.remove('hidden');
-      _overlay.setPosition(coords);
-
     } else {
       _overlay.setPosition(undefined);
     }
@@ -613,6 +616,16 @@ function _fmt(val, fractionDigits = 0) {
   });
 }
 
+function _escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;',
+  })[char]);
+}
+
 function _makePopupContent(pt, kind) {
   const typeName  = kind === 'ship' ? 'Отгрузка' : 'Доставка';
   const typeEmoji = kind === 'ship' ? '📦' : '📍';
@@ -672,8 +685,8 @@ function _makePopupContent(pt, kind) {
       <div class="popup-header">
         <span class="popup-type-icon">${typeEmoji}</span>
         <div>
-          <div class="popup-title">${pt.town}</div>
-          <div class="popup-subtitle">${pt.region || 'Регион не указан'} • ${typeName}</div>
+          <div class="popup-title">${_escapeHtml(pt.town)}</div>
+          <div class="popup-subtitle">${_escapeHtml(pt.region || 'Регион не указан')} • ${typeName}</div>
         </div>
       </div>
 
@@ -723,14 +736,14 @@ function _makeClusterPopupContent(features) {
     return `
       <div class="cluster-popup-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
         <div style="flex:1; min-width: 0;">
-          <div style="font-weight: 600; font-size: 13px; color: var(--text-main); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${typeEmoji} ${pt.town}</div>
+          <div style="font-weight: 600; font-size: 13px; color: var(--text-main); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${typeEmoji} ${_escapeHtml(pt.town)}</div>
           <div style="font-size: 11px; color: var(--text-muted);">${priceFormatted} • ${pt.count} заяв.</div>
         </div>
         <div style="display: flex; gap: 4px;">
-          <button class="popup-btn-regeocode-small" data-town="${pt.town}" data-region="${pt.region}" title="Пересчитать координаты" style="background: rgba(255,255,255,0.1); color: var(--text-main); border: 1px solid var(--border); padding: 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+          <button class="popup-btn-regeocode-small" data-town="${_escapeHtml(pt.town)}" data-region="${_escapeHtml(pt.region)}" title="Пересчитать координаты" style="background: rgba(255,255,255,0.1); color: var(--text-main); border: 1px solid var(--border); padding: 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
             🔄
           </button>
-          <button class="popup-btn-details-small" data-town="${pt.town}" data-region="${pt.region}" data-type="${kind === 'ship' ? 'shipment' : 'delivery'}" style="background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; transition: background 0.2s;">
+          <button class="popup-btn-details-small" data-town="${_escapeHtml(pt.town)}" data-region="${_escapeHtml(pt.region)}" data-type="${kind === 'ship' ? 'shipment' : 'delivery'}" style="background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; transition: background 0.2s;">
             Детали
           </button>
         </div>

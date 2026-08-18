@@ -8,11 +8,10 @@
 """
 
 import json
-import os
-import re
-import time
 import logging
+import os
 import threading
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +138,7 @@ def _normalize_town(name: str) -> str:
 def _load_cache() -> dict:
     if os.path.exists(CACHE_FILE):
         try:
-            with open(CACHE_FILE, "r", encoding="utf-8") as f:
+            with open(CACHE_FILE, encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             return {}
@@ -168,7 +167,15 @@ def _save_cache(cache: dict) -> None:
 
 _cache: dict = _load_cache()
 _cache_lock = threading.Lock()
-_geolocator = None
+_cache_file_lock = threading.Lock()
+
+
+def _persist_cache() -> None:
+    """Атомарно сохраняет согласованный снимок кэша без удержания основного lock."""
+    with _cache_lock:
+        snapshot = dict(_cache)
+    with _cache_file_lock:
+        _save_cache(snapshot)
 
 # ── Состояние фонового геокодирования ─────────────────────────────────────────
 _bg_status = {
@@ -194,7 +201,7 @@ def _get_geolocators():
     if _geolocators is None:
         _geolocators = []
         try:
-            from geopy.geocoders import Nominatim, Photon, ArcGIS
+            from geopy.geocoders import ArcGIS, Nominatim, Photon
             _geolocators.append(Nominatim(user_agent="logistics_ai_map_v2", timeout=10))
             _geolocators.append(Photon(timeout=10))
             _geolocators.append(ArcGIS(timeout=10))
@@ -271,7 +278,7 @@ def geocode_town(town_name: str, region: str = "", offline_only: bool = True, fo
                         coords = [location.latitude, location.longitude]
                         with _cache_lock:
                             _cache[cache_key] = coords
-                            _save_cache(_cache)
+                        _persist_cache()
                         return tuple(coords)
                 except Exception as e:
                     logger.warning(f"Геокодирование '{search_query}' не удалось: {e}")
@@ -279,7 +286,7 @@ def geocode_town(town_name: str, region: str = "", offline_only: bool = True, fo
             # Не найден через Nominatim — кэшируем как None
             with _cache_lock:
                 _cache[cache_key] = None
-                _save_cache(_cache)
+            _persist_cache()
 
     # 4. Fallback — координаты центра региона
     if region and region in REGION_CENTERS:
@@ -385,7 +392,6 @@ def geocode_all_towns_background(towns: list[tuple[str, str]]) -> None:
 
         with _cache_lock:
             _cache[cache_key] = coords
-            _save_cache(_cache)
 
         return (region, coords)
 
@@ -408,11 +414,16 @@ def geocode_all_towns_background(towns: list[tuple[str, str]]) -> None:
                 _bg_status["found"] = geocoded
                 _bg_status["failed"] = failed
 
+            if (i + 1) % 25 == 0:
+                _persist_cache()
+
             if (i + 1) % 50 == 0:
                 logger.info(
                     f"  Геокодирование: {i + 1}/{len(missing)} "
                     f"(найдено: {geocoded}, не найдено: {failed})"
                 )
+
+    _persist_cache()
 
     with _bg_lock:
         _bg_status["running"] = False

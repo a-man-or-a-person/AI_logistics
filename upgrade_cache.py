@@ -1,8 +1,9 @@
-import os
 import json
 import logging
+import os
+
 from backend.data_processor import load_data
-from backend.geocoder import _normalize_town, _clean_town_name
+from backend.geocoder import _clean_town_name, _normalize_town
 
 logging.basicConfig(level=logging.INFO)
 
@@ -12,7 +13,7 @@ def upgrade_cache():
         print("Cache not found.")
         return
         
-    with open(cache_path, 'r', encoding='utf-8') as f:
+    with open(cache_path, encoding='utf-8') as f:
         cache = json.load(f)
         
     data = load_data()

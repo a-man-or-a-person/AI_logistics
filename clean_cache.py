@@ -1,6 +1,8 @@
-import os
 import json
-from backend.geocoder import KNOWN_COORDS
+import os
+
+from backend.geocoder import REGION_CENTERS
+
 
 def clean_cache():
     cache_path = os.path.join(os.path.dirname(__file__), 'backend', 'cache', 'coords_cache.json')
@@ -8,13 +10,11 @@ def clean_cache():
         print("Cache not found.")
         return
         
-    with open(cache_path, 'r', encoding='utf-8') as f:
+    with open(cache_path, encoding='utf-8') as f:
         cache = json.load(f)
         
-    # Собераем все координаты больших городов из словаря
-    known_values = set()
-    for coords in KNOWN_COORDS.values():
-        known_values.add(tuple(coords))
+    # Fallback-координаты центра региона не должны сохраняться как координаты села.
+    region_center_values = {tuple(coords) for coords in REGION_CENTERS.values()}
 
     rural_prefixes = ("д ", "с ", "п ", "пос ", "х ", "ст ", "рп ", "с/с ", "пгт ")
     
@@ -30,7 +30,7 @@ def clean_cache():
         
         if is_rural:
             # Если координаты этой деревни полностью совпадают с координатами крупного города
-            if tuple(coords) in known_values:
+            if tuple(coords) in region_center_values:
                 keys_to_delete.append(key)
                 
     for k in keys_to_delete:

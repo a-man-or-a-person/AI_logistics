@@ -8,13 +8,13 @@
     python run.py --debug
 """
 
-import sys
-import os
 import argparse
 import logging
+import os
+import sys
 import threading
-import webbrowser
 import time
+import webbrowser
 
 # Добавляем директорию проекта в путь
 sys.path.insert(0, os.path.dirname(__file__))
