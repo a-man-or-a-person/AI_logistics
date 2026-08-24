@@ -179,13 +179,13 @@ def cluster_points(
         }
     """
     if not points:
-        return {"clusters": [], "k": 0}
+        return {"clusters": [], "k": 0, "metrics": {"silhouette": None}}
 
     # ── 1. Фильтрация: только точки с координатами ───────────────────────────
     # Работаем с копиями: кластеризация не должна менять данные вызывающей стороны.
     valid = [dict(p) for p in points if p.get("lat") is not None and p.get("lon") is not None]
     if not valid:
-        return {"clusters": [], "k": 0}
+        return {"clusters": [], "k": 0, "metrics": {"silhouette": None}}
 
     # Слегка "раздвигаем" точки с абсолютно одинаковыми координатами (джиттер).
     # Это спасает KMeans и Voronoi от схлопывания уникальных точек (например,
@@ -288,6 +288,19 @@ def cluster_points(
         best_km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
         best_labels = best_km.fit_predict(X_scaled, sample_weight=cluster_weights)
 
+    # В ручном режиме метрика раньше не рассчитывалась, хотя UI должен уметь
+    # одинаково объяснять результат Auto K и фиксированного K.
+    if best_score < 0 and len(set(best_labels)) > 1 and len(valid) > len(set(best_labels)):
+        try:
+            best_score = silhouette_score(
+                X_scaled,
+                best_labels,
+                sample_size=min(300, len(valid)),
+                random_state=42,
+            )
+        except ValueError:
+            best_score = -1.0
+
     # ── 5. Агрегация данных по кластерам ─────────────────────────────────────
     clusters_raw: dict[int, dict] = {
         i: {
@@ -368,7 +381,13 @@ def cluster_points(
         f"silhouette={best_score:.3f}"
     )
 
-    return {"clusters": result_clusters, "k": best_k}
+    return {
+        "clusters": result_clusters,
+        "k": best_k,
+        "metrics": {
+            "silhouette": round(float(best_score), 4) if best_score >= -1 and best_score != -1.0 else None,
+        },
+    }
 
 
 # ── Fallback ──────────────────────────────────────────────────────────────────
@@ -376,7 +395,7 @@ def cluster_points(
 def _fallback_single_cluster(points: list[dict]) -> dict:
     """Один кластер на все точки (n_unique < 3)."""
     if not points:
-        return {"clusters": [], "k": 0}
+        return {"clusters": [], "k": 0, "metrics": {"silhouette": None}}
 
     total_bids = 0.0
     sum_price = 0.0
@@ -417,4 +436,5 @@ def _fallback_single_cluster(points: list[dict]) -> dict:
             "center":       [center_lat, center_lon],
         }],
         "k": 1,
+        "metrics": {"silhouette": None},
     }

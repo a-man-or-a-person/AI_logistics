@@ -110,11 +110,12 @@ export async function regeocodeTown(town, region) {
 /**
  * ML-кластеризация для региона
  */
-export async function fetchMlClusters({ region, type, k, filters = {} }) {
+export async function fetchMlClusters({ region, type, k, weightMode = 'trip_count', filters = {} }) {
   const params = new URLSearchParams();
   params.append('region', region);
   params.append('town_type', type);
   params.append('k', k);
+  params.append('weight_mode', weightMode);
   
   if (filters.periodTypes?.length) params.set('period_types', filters.periodTypes.join(','));
   if (filters.priceTypes?.length)  params.set('price_types', filters.priceTypes.join(','));

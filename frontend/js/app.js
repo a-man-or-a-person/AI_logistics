@@ -1,494 +1,485 @@
 /**
- * app.js — точка входа, связывает map ↔ filters ↔ api
+ * app.js — состояние двух рабочих режимов и синхронизация UI с картой.
  */
 
-import { fetchRegions, fetchStats, fetchPoints, fetchRecords, fetchGeocodeStatus, regeocodeTown, fetchMlClusters } from './api.js';
-import { initFilters, getFilters, resetFilters } from './filters.js';
-import { initMap, renderPoints, clearMarkers, clearMlClusters, setThemeLayer, renderMlClusters } from './map.js';
-
-// ── DOM refs ──────────────────────────────────────────────────
+import {
+  fetchGeocodeStatus,
+  fetchMlClusters,
+  fetchPoints,
+  fetchRecords,
+  fetchRegions,
+  fetchStats,
+  regeocodeTown,
+} from './api.js';
+import { getFilters, initFilters, resetFilters } from './filters.js';
+import {
+  clearMarkers,
+  clearMlClusters,
+  focusMlZone,
+  initMap,
+  renderMlClusters,
+  renderPoints,
+  selectMlZone,
+  setMlLayerVisibility,
+  setMlResultStale,
+  setThemeLayer,
+} from './map.js';
 
 const $ = id => document.getElementById(id);
+const fmt = value => Number(value || 0).toLocaleString('ru-RU');
+const ZONE_COLORS = ['#d84f4f', '#3478c5', '#198a68', '#d28a18', '#7a5ac8', '#c54a88', '#1d9690', '#d5662a', '#5a61c5', '#75a62c'];
+const PERIOD_LABELS = { retro: 'Архив', current: 'Текущий', forecast: 'Прогноз' };
+const PRICE_LABELS = { spot: 'Спот', tender: 'Тендер' };
+const TYPE_LABELS = { shipment: 'Отгрузка', delivery: 'Доставка' };
 
-const loadingOverlay = $('loading-overlay');
-const loadingText    = $('loading-text');
-const loadingSub     = $('loading-sub');
-const btnApply       = $('btn-apply');
-const btnReset       = $('btn-reset');
-const statusDot      = $('status-dot');
-const statusText     = $('status-text');
-const infoShip       = $('info-ship');
-const infoDel        = $('info-del');
-const infoGeocoded   = $('info-geocoded');
-const mlTotalRow     = $('ml-total-row');
-const infoMlTotal    = $('info-ml-total');
-const emptyState     = $('empty-state');
-const toast          = $('toast');
-const statRows       = $('stat-total-rows');
-const statShipTowns  = $('stat-ship-towns');
-const statDelTowns   = $('stat-del-towns');
-const geocodeStatus     = $('geocode-status');
-const geocodeStatusText = $('geocode-status-text');
-const geocodeProgressFill = $('geocode-progress-fill');
+const state = {
+  mode: 'cluster',
+  validRegions: new Set(),
+  lastData: null,
+  mlResult: null,
+  resultParams: null,
+  resultSignature: null,
+  selectedZoneId: null,
+};
 
-// DOM Refs (ML)
-const mlRegionSelect = $('ml-region-select');
-const mlTypeSelect   = $('ml-type-select');
-const mlKInput       = $('ml-k-input');
-const mlAutoK        = $('ml-auto-k');
-const btnRunMl       = $('btn-run-ml');
-const btnResetMl     = $('btn-reset-ml');
-
-// DOM Refs (Modal)
-const recordsModal   = $('records-modal');
-const modalOverlay   = $('modal-overlay');
-const modalClose     = $('modal-close');
-const modalTitle     = $('modal-title');
-const modalLoading   = $('modal-loading');
-const modalError     = $('modal-error');
-const recordsTbody   = $('records-tbody');
+let toastTimer = null;
+let pointsController = null;
+let geocodeInterval = null;
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;',
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
   })[char]);
 }
 
-// ── Toast ─────────────────────────────────────────────────────
-
-let _toastTimer = null;
-
-function showToast(msg, type = 'success', duration = 3500) {
-  toast.textContent = msg;
+function showToast(message, type = 'success', duration = 3600) {
+  const toast = $('toast');
+  toast.textContent = message;
   toast.className = `show toast-${type}`;
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => { toast.className = ''; }, duration);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.className = ''; }, duration);
 }
 
-// ── Loading state ─────────────────────────────────────────────
+function setSystemStatus(kind, text) {
+  $('status-dot').className = `status-dot${kind ? ` ${kind}` : ''}`;
+  $('status-text').textContent = text;
+}
 
-function setLoading(active, text = 'Загрузка данных...', sub = '') {
-  if (active) {
-    loadingOverlay.classList.remove('hidden');
-    loadingText.textContent = text;
-    loadingSub.textContent = sub;
-    statusDot.className = 'status-dot loading';
-    statusText.textContent = text;
-    btnApply.classList.add('loading');
-    btnApply.textContent = '⏳ Загрузка...';
-  } else {
-    loadingOverlay.classList.add('hidden');
-    statusDot.className = 'status-dot';
-    statusText.textContent = 'Готово';
-    btnApply.classList.remove('loading');
-    btnApply.textContent = '🔍 Показать на карте';
+function setMapLoading(active, title = 'Загружаем данные…', detail = '') {
+  $('loading-overlay').classList.toggle('hidden', !active);
+  $('loading-text').textContent = title;
+  $('loading-sub').textContent = detail;
+  const button = state.mode === 'cluster' ? $('btn-run-ml') : $('btn-apply');
+  button?.classList.toggle('loading', active);
+  if (button) button.disabled = active;
+}
+
+function setMapEmpty(title, subtitle, showSteps = state.mode === 'cluster') {
+  const empty = $('empty-state');
+  empty.querySelector('.empty-title').textContent = title;
+  empty.querySelector('.empty-sub').textContent = subtitle;
+  empty.querySelector('ol').style.display = showSteps ? '' : 'none';
+  empty.classList.remove('hidden');
+}
+
+function hideMapEmpty() {
+  $('empty-state').classList.add('hidden');
+}
+
+function checkedValue(name) {
+  return document.querySelector(`input[name="${name}"]:checked`)?.value;
+}
+
+function getClusterParams() {
+  const kMode = checkedValue('ml-k-mode') || 'auto';
+  return {
+    region: $('ml-region-input').value.trim(),
+    type: checkedValue('ml-type') || 'delivery',
+    period: checkedValue('ml-period') || 'current',
+    price: checkedValue('ml-price') || 'spot',
+    kMode,
+    k: kMode === 'auto' ? 'auto' : Number($('ml-k-value').value || $('ml-k-value').textContent || 5),
+    weightMode: checkedValue('ml-weight') || 'trip_count',
+  };
+}
+
+function paramsSignature(params) {
+  return JSON.stringify({
+    region: params.region,
+    type: params.type,
+    period: params.period,
+    price: params.price,
+    k: params.k,
+    weightMode: params.weightMode,
+  });
+}
+
+function updateClusterPreview() {
+  const params = getClusterParams();
+  $('preview-region').textContent = params.region || 'Регион не выбран';
+  $('preview-type').textContent = TYPE_LABELS[params.type];
+  $('preview-period').textContent = PERIOD_LABELS[params.period];
+  $('preview-price').textContent = PRICE_LABELS[params.price];
+  $('run-caption').textContent = `K-Means · ${params.kMode === 'auto' ? 'Auto K' : `K = ${params.k}`}`;
+
+  const stale = Boolean(state.mlResult && paramsSignature(params) !== state.resultSignature);
+  $('analysis-stale').classList.toggle('hidden', !stale);
+  if (stale) {
+    const old = state.resultParams;
+    $('stale-description').textContent = `На карте: ${PERIOD_LABELS[old.period]} · ${PRICE_LABELS[old.price]}. Пересчитайте зоны.`;
   }
+  setMlResultStale(stale);
 }
 
-function setError(msg) {
-  loadingOverlay.classList.add('hidden');
-  statusDot.className = 'status-dot error';
-  statusText.textContent = 'Ошибка';
-  btnApply.classList.remove('loading');
-  btnApply.textContent = '🔍 Показать на карте';
-  showToast(msg, 'error', 6000);
+function switchMode(mode) {
+  if (!['data', 'cluster'].includes(mode) || state.mode === mode) return;
+  state.mode = mode;
+  const clusterMode = mode === 'cluster';
+  $('workspace').classList.toggle('mode-cluster', clusterMode);
+  $('workspace').classList.toggle('mode-data', !clusterMode);
+  $('cluster-controls').classList.toggle('hidden', !clusterMode);
+  $('data-controls').classList.toggle('hidden', clusterMode);
+  $('controls-eyebrow').textContent = clusterMode ? 'Настройка анализа' : 'Фильтры карты';
+  $('controls-title').textContent = clusterMode ? 'Территориальные зоны' : 'Исходные данные';
+  document.querySelectorAll('.mode-tab').forEach(button => {
+    const active = button.dataset.mode === mode;
+    button.classList.toggle('active', active);
+    active ? button.setAttribute('aria-current', 'page') : button.removeAttribute('aria-current');
+  });
+  $('map-info').classList.toggle('hidden', clusterMode || !state.lastData);
+  $('map-legend').classList.toggle('hidden', clusterMode || !state.lastData);
+  $('experimental-badge').classList.toggle('hidden', !clusterMode || !state.mlResult);
+
+  if (clusterMode) {
+    if (state.mlResult) {
+      renderMlClusters(state.mlResult.clusters);
+      hideMapEmpty();
+      if (state.selectedZoneId != null) selectMlZone(state.selectedZoneId, false);
+    } else {
+      clearMarkers();
+      setMapEmpty('Создайте первое разбиение региона', 'Выберите территорию и параметры анализа, затем рассчитайте зоны.', true);
+    }
+  } else if (state.lastData) {
+    renderPoints(state.lastData.shipment_points, state.lastData.delivery_points);
+    const total = state.lastData.total_ship + state.lastData.total_del;
+    total ? hideMapEmpty() : setMapEmpty('По выбранным параметрам данных нет', 'Измените период, тип цены или регионы.', false);
+  } else {
+    clearMarkers();
+    setMapEmpty('Выберите направление или регион', 'Настройте фильтры слева и покажите исходные точки на карте.', false);
+  }
+  window.setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
 }
-
-// ── Load & Render ─────────────────────────────────────────────
-
-let _pointsRequestController = null;
 
 async function loadAndRenderPoints() {
   const filters = getFilters();
-  _pointsRequestController?.abort();
-  _pointsRequestController = null;
-  mlTotalRow?.classList.add('hidden');
-
-  // Если не выбран ни один регион (отгрузки или доставки), оставляем карту пустой
-  if ((!filters.fromRegions || filters.fromRegions.length === 0) &&
-      (!filters.toRegions || filters.toRegions.length === 0)) {
+  pointsController?.abort();
+  if (!filters.fromRegions.length && !filters.toRegions.length) {
+    state.lastData = null;
     clearMarkers();
-    infoShip.textContent = '—';
-    infoDel.textContent  = '—';
-    if (emptyState) emptyState.classList.remove('hidden');
-    setLoading(false);
+    $('map-info').classList.add('hidden');
+    $('map-legend').classList.add('hidden');
+    setMapEmpty('Выберите направление или регион', 'Настройте фильтры слева и покажите исходные точки на карте.', false);
     return;
   }
 
-  const requestController = new AbortController();
-  _pointsRequestController = requestController;
-  setLoading(true, 'Запрос данных...', 'Загрузка точек по выбранным регионам...');
-
+  pointsController = new AbortController();
+  setMapLoading(true, 'Обновляем карту…', 'Старые параметры сохранятся до завершения запроса');
   try {
-    const data = await fetchPoints(
-      {
-        fromRegions:  filters.fromRegions,
-        toRegions:    filters.toRegions,
-        periodTypes:  filters.periodTypes,
-        priceTypes:   filters.priceTypes,
-      },
-      { signal: requestController.signal },
-    );
-
-    if (_pointsRequestController !== requestController) return;
-
-    renderPoints(data.shipment_points, data.delivery_points);
-
-    // Обновить info panel
-    infoShip.textContent      = data.total_ship.toLocaleString('ru-RU');
-    infoDel.textContent       = data.total_del.toLocaleString('ru-RU');
-    if (infoGeocoded) infoGeocoded.textContent = data.geocoded?.toLocaleString('ru-RU') || '—';
-
-    // Показать/скрыть пустое состояние
+    const data = await fetchPoints({
+      fromRegions: filters.fromRegions,
+      toRegions: filters.toRegions,
+      periodTypes: filters.periodTypes,
+      priceTypes: filters.priceTypes,
+    }, { signal: pointsController.signal });
+    state.lastData = data;
+    if (state.mode === 'data') renderPoints(data.shipment_points, data.delivery_points);
+    $('info-ship').textContent = fmt(data.total_ship);
+    $('info-del').textContent = fmt(data.total_del);
+    $('info-geocoded').textContent = fmt(data.geocoded);
+    $('map-info').classList.remove('hidden');
+    $('map-legend').classList.remove('hidden');
     const total = data.total_ship + data.total_del;
-    if (emptyState) emptyState.classList.toggle('hidden', total > 0);
-
-    setLoading(false);
-    showToast(
-      `Загружено: ${data.total_ship} точек отгрузки, ${data.total_del} точек доставки`,
-      'success'
-    );
-  } catch (err) {
-    if (err.name === 'AbortError') return;
-    console.error(err);
-    setError(`Ошибка загрузки: ${err.message}`);
-  } finally {
-    if (_pointsRequestController === requestController) {
-      _pointsRequestController = null;
+    total ? hideMapEmpty() : setMapEmpty('По выбранным параметрам данных нет', 'Измените период, тип цены или регионы.', false);
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      setMapEmpty('Не удалось загрузить данные региона', error.message, false);
+      showToast(`Не удалось обновить карту: ${error.message}`, 'error', 6000);
     }
+  } finally {
+    setMapLoading(false);
   }
 }
 
-// ── Main ──────────────────────────────────────────────────────
+function renderInspector(result, params) {
+  const clusters = result.clusters || [];
+  const totalCities = clusters.reduce((sum, cluster) => sum + Number(cluster.points_count || 0), 0);
+  const totalBids = Number(result.region_total_bids ?? clusters.reduce((sum, cluster) => sum + Number(cluster.total_bids || 0), 0));
+  $('inspector-empty').classList.add('hidden');
+  $('inspector-result').classList.remove('hidden');
+  $('result-k').textContent = result.k;
+  $('result-mode').textContent = params.kMode === 'auto' ? 'Auto K' : `K = ${params.k}`;
+  $('result-cities').textContent = fmt(totalCities);
+  $('result-bids').textContent = fmt(totalBids);
+  $('result-region').textContent = params.region;
+  $('result-type').textContent = TYPE_LABELS[params.type];
+  $('result-data').textContent = `Pulse · ${PERIOD_LABELS[params.period]} · ${PRICE_LABELS[params.price]}`;
+  $('result-k-detail').textContent = params.kMode === 'auto' ? `Auto → ${result.k}` : String(result.k);
 
-async function main() {
-  try {
-    // 1. Инициализируем карту
-    initMap('map');
-  } catch (e) {
-    console.error('Ошибка инициализации карты:', e);
-    setError(` Ошибка карты: ${e.message}`);
+  const silhouette = Number(result.metrics?.silhouette ?? result.silhouette);
+  const hasSilhouette = Number.isFinite(silhouette) && silhouette >= -1;
+  $('metrics-section').classList.toggle('hidden', !hasSilhouette);
+  if (hasSilhouette) $('result-silhouette').textContent = silhouette.toFixed(2);
+
+  const quality = result.data_quality || {};
+  const used = Number(quality.used_points ?? totalCities);
+  const total = Number(quality.total_points ?? used);
+  const excluded = Math.max(0, Number(quality.excluded_no_coordinates ?? total - used));
+  const ratio = total ? Math.round((used / total) * 100) : 0;
+  $('quality-used').textContent = `${fmt(used)} / ${fmt(total)}`;
+  $('quality-ratio').textContent = `${ratio}%`;
+  $('quality-fill').style.width = `${ratio}%`;
+  $('quality-note').textContent = excluded
+    ? `${fmt(excluded)} ${excluded === 1 ? 'точка исключена' : 'точки исключены'}: координаты недоступны.`
+    : 'Все найденные точки имеют координаты.';
+
+  $('zones-count').textContent = `${clusters.length}`;
+  const zoneList = $('zone-list');
+  zoneList.innerHTML = '';
+  clusters.forEach((cluster, index) => {
+    const id = Number(cluster.id);
+    const color = ZONE_COLORS[index % ZONE_COLORS.length];
+    const share = totalBids ? Math.round((Number(cluster.total_bids || 0) / totalBids) * 100) : 0;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'zone-card';
+    button.dataset.zoneId = String(id);
+    button.style.setProperty('--zone-color', color);
+    button.innerHTML = `<span class="zone-card-swatch"></span><span class="zone-card-main"><strong>Z${id + 1}</strong><span>${fmt(cluster.points_count)} городов</span></span><span class="zone-card-bids"><strong>${fmt(cluster.total_bids)}</strong><span>${share}% перевозок</span></span>`;
+    button.addEventListener('mouseenter', () => selectMlZone(id, false));
+    button.addEventListener('mouseleave', () => selectMlZone(state.selectedZoneId, false));
+    button.addEventListener('click', () => chooseZone(id, true));
+    zoneList.appendChild(button);
+  });
+}
+
+function chooseZone(zoneId, focus = false) {
+  if (!state.mlResult) return;
+  const cluster = state.mlResult.clusters.find(item => Number(item.id) === Number(zoneId));
+  if (!cluster) return;
+  state.selectedZoneId = Number(zoneId);
+  document.querySelectorAll('.zone-card').forEach(card => card.classList.toggle('selected', Number(card.dataset.zoneId) === state.selectedZoneId));
+  selectMlZone(state.selectedZoneId, false);
+  if (focus) focusMlZone(state.selectedZoneId);
+
+  const clusterIndex = state.mlResult.clusters.indexOf(cluster);
+  const color = ZONE_COLORS[clusterIndex % ZONE_COLORS.length];
+  $('zone-details').classList.remove('hidden');
+  $('zone-details-swatch').style.background = color;
+  $('zone-details-title').textContent = `Зона Z${Number(cluster.id) + 1}`;
+  $('zone-details-cities').textContent = fmt(cluster.points_count);
+  $('zone-details-bids').textContent = fmt(cluster.total_bids);
+  $('zone-details-towns').innerHTML = (cluster.points || [])
+    .slice().sort((a, b) => String(a.town).localeCompare(String(b.town), 'ru'))
+    .map(point => `<li>${escapeHtml(point.town || 'Без названия')}</li>`).join('');
+}
+
+function clearZoneSelection() {
+  state.selectedZoneId = null;
+  selectMlZone(null, false);
+  document.querySelectorAll('.zone-card').forEach(card => card.classList.remove('selected'));
+  $('zone-details').classList.add('hidden');
+}
+
+async function runClustering() {
+  const params = getClusterParams();
+  $('analysis-form-error').classList.add('hidden');
+  if (!params.region || !state.validRegions.has(params.region)) {
+    $('analysis-form-error').textContent = 'Выберите регион из списка доступных значений.';
+    $('analysis-form-error').classList.remove('hidden');
+    $('ml-region-input').focus();
     return;
   }
 
-  // 2. Загружаем регионы и статистику
-  setLoading(true, 'Инициализация...', 'Загружаем список регионов и статистику');
-
+  setMapLoading(true, 'Рассчитываем зоны…', `K-Means · ${params.kMode === 'auto' ? 'автоподбор количества зон' : `K = ${params.k}`}`);
   try {
-    const [regionsData, statsData] = await Promise.all([
-      fetchRegions(),
-      fetchStats(),
-    ]);
-
-    // Заполняем статистику в хедере
-    if (statRows)      statRows.textContent      = statsData.total_rows?.toLocaleString('ru-RU') ?? '—';
-    if (statShipTowns) statShipTowns.textContent = statsData.ship_towns_count?.toLocaleString('ru-RU') ?? '—';
-    if (statDelTowns)  statDelTowns.textContent  = statsData.del_towns_count?.toLocaleString('ru-RU') ?? '—';
-
-    // Инициализируем фильтры
-    initFilters(regionsData.ship_regions, regionsData.del_regions, () => {});
-
-    // Заполняем селект регионов для ML
-    if (mlRegionSelect) {
-      const allRegions = [...new Set([...regionsData.ship_regions, ...regionsData.del_regions])].sort();
-      allRegions.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r;
-        opt.textContent = r;
-        mlRegionSelect.appendChild(opt);
-      });
+    const result = await fetchMlClusters({
+      region: params.region,
+      type: params.type,
+      k: params.k,
+      weightMode: params.weightMode,
+      filters: { periodTypes: [params.period], priceTypes: [params.price] },
+    });
+    if (!result.clusters?.length) {
+      throw new Error('Недостаточно географических точек для кластеризации. Попробуйте другой период или тип цены.');
     }
-
-    setLoading(false);
-
-    // Сразу загружаем начальные данные
-    await loadAndRenderPoints();
-
-    // Запускаем polling статуса геокодирования
-    startGeocodeStatusPolling();
-
-  } catch (err) {
-    console.error(err);
-    setError(` Ошибка инициализации: ${err.message}`);
+    state.mlResult = result;
+    state.resultParams = params;
+    state.resultSignature = paramsSignature(params);
+    state.selectedZoneId = null;
+    renderMlClusters(result.clusters);
+    renderInspector(result, params);
+    hideMapEmpty();
+    $('experimental-badge').classList.remove('hidden');
+    $('btn-reset-ml').classList.remove('hidden');
+    $('analysis-stale').classList.add('hidden');
+    setMlResultStale(false);
+    showToast(`Рассчитано ${result.k} зон для ${params.region}`, 'success');
+  } catch (error) {
+    $('analysis-form-error').textContent = error.message;
+    $('analysis-form-error').classList.remove('hidden');
+    setMapEmpty('Не удалось выполнить кластеризацию', error.message, false);
+    showToast(`Расчёт не выполнен: ${error.message}`, 'error', 6000);
+  } finally {
+    setMapLoading(false);
   }
+}
 
-  // Кнопка "Применить"
-  btnApply.addEventListener('click', loadAndRenderPoints);
+function resetClustering() {
+  state.mlResult = null;
+  state.resultParams = null;
+  state.resultSignature = null;
+  state.selectedZoneId = null;
+  clearMlClusters();
+  $('inspector-result').classList.add('hidden');
+  $('inspector-empty').classList.remove('hidden');
+  $('btn-reset-ml').classList.add('hidden');
+  $('experimental-badge').classList.add('hidden');
+  $('analysis-stale').classList.add('hidden');
+  $('analysis-form-error').classList.add('hidden');
+  setMapEmpty('Создайте первое разбиение региона', 'Выберите территорию и параметры анализа, затем рассчитайте зоны.', true);
+}
 
-  // Кнопка "Сбросить"
-  btnReset.addEventListener('click', async () => {
-    resetFilters();
-    clearMarkers();
-    if (emptyState) emptyState.classList.remove('hidden');
-    infoShip.textContent = '—';
-    infoDel.textContent  = '—';
+function initTheme() {
+  let theme = localStorage.getItem('app-theme') || 'light';
+  const apply = next => {
+    theme = next;
+    document.documentElement.toggleAttribute('data-theme', next === 'dark');
+    if (next === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('app-theme', next);
+    setThemeLayer(next);
+    $('theme-toggle-header').title = next === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему';
+  };
+  apply(theme);
+  $('theme-toggle-header').addEventListener('click', () => apply(theme === 'dark' ? 'light' : 'dark'));
+}
+
+function initInteractions() {
+  document.querySelectorAll('.mode-tab').forEach(button => button.addEventListener('click', () => switchMode(button.dataset.mode)));
+  $('btn-apply').addEventListener('click', loadAndRenderPoints);
+  $('btn-reset').addEventListener('click', () => { resetFilters(); state.lastData = null; clearMarkers(); $('map-info').classList.add('hidden'); $('map-legend').classList.add('hidden'); setMapEmpty('Выберите направление или регион', 'Настройте фильтры слева и покажите исходные точки на карте.', false); });
+  $('cluster-controls').addEventListener('submit', event => { event.preventDefault(); runClustering(); });
+  $('cluster-controls').addEventListener('change', updateClusterPreview);
+  $('ml-region-input').addEventListener('input', updateClusterPreview);
+  document.querySelectorAll('input[name="ml-k-mode"]').forEach(input => input.addEventListener('change', () => { $('ml-k-stepper').classList.toggle('hidden', input.value !== 'manual' || !input.checked); updateClusterPreview(); }));
+  const changeK = delta => { const output = $('ml-k-value'); output.value = Math.min(10, Math.max(2, Number(output.value || output.textContent) + delta)); output.textContent = output.value; updateClusterPreview(); };
+  $('ml-k-minus').addEventListener('click', () => changeK(-1));
+  $('ml-k-plus').addEventListener('click', () => changeK(1));
+  $('btn-reset-ml').addEventListener('click', resetClustering);
+  $('zone-details-close').addEventListener('click', clearZoneSelection);
+  document.querySelectorAll('[data-ml-layer]').forEach(input => input.addEventListener('change', () => setMlLayerVisibility(input.dataset.mlLayer, input.checked)));
+
+  window.addEventListener('ml-zone-select', event => chooseZone(event.detail.clusterId, false));
+  window.addEventListener('ml-zone-hover', event => {
+    const id = event.detail.clusterId;
+    document.querySelectorAll('.zone-card').forEach(card => card.classList.toggle('map-hover', id != null && Number(card.dataset.zoneId) === Number(id)));
   });
 
-  // Логика ML интерфейса
-  if (mlAutoK && mlKInput) {
-    mlAutoK.addEventListener('change', (e) => {
-      mlKInput.disabled = e.target.checked;
-      if (e.target.checked) mlKInput.value = '';
-    });
-  }
-
-  if (btnRunMl) {
-    btnRunMl.addEventListener('click', async () => {
-      const region = mlRegionSelect.value;
-      if (!region) {
-        showToast('Выберите регион для ML кластеризации', 'error');
-        return;
-      }
-      const type = mlTypeSelect.value;
-      const k = mlAutoK.checked ? 'auto' : (mlKInput.value || 2);
-      
-      setLoading(true, 'Анализ данных (ML)...', 'Запущен алгоритм машинного обучения');
-      
-      try {
-        const filters = getFilters();
-        const res = await fetchMlClusters({ region, type, k, filters });
-        
-        renderMlClusters(res.clusters);
-
-        const totalCities = res.clusters.reduce((s, c) => s + c.points_count, 0);
-        const totalBids = Number(res.region_total_bids || 0);
-        showToast(
-          `✅ ML: ${res.k} кластера, ${totalCities} городов, ${totalBids.toLocaleString('ru-RU')} заявок`,
-          'success', 5000
-        );
-
-        if (emptyState) emptyState.classList.add('hidden');
-        infoShip.textContent = 'ML';
-        infoDel.textContent  = `${res.k} зоны`;
-        if (infoMlTotal) infoMlTotal.textContent = totalBids.toLocaleString('ru-RU');
-        mlTotalRow?.classList.remove('hidden');
-        // Показываем кнопку сброса ML
-        if (btnResetMl) btnResetMl.classList.remove('hidden');
-      } catch (err) {
-        console.error(err);
-        setError(`Ошибка ML: ${err.message}`);
-      } finally {
-        setLoading(false); // убираем оверлей в любом случае
-      }
-    });
-  }
-
-  // Кнопка сброса ML — возвращаемся к обычным маркерам
-  if (btnResetMl) {
-    btnResetMl.addEventListener('click', async () => {
-      clearMlClusters();
-      btnResetMl.classList.add('hidden');
-      infoShip.textContent = '—';
-      infoDel.textContent  = '—';
-      mlTotalRow?.classList.add('hidden');
-      await loadAndRenderPoints();
-    });
-  }
-
-  // Логика переключения темы (синхронизация кнопок + localStorage)
-  const savedTheme = localStorage.getItem('app-theme') || 'dark';
-  let currentTheme = savedTheme;
-
-  function applyTheme(theme) {
-    currentTheme = theme;
-    const isLight = theme === 'light';
-
-    if (isLight) {
-      document.documentElement.setAttribute('data-theme', 'light');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
-
-    localStorage.setItem('app-theme', theme);
-    setThemeLayer(theme);
-
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
-      const icon = btn.querySelector('.theme-icon');
-      const label = btn.querySelector('.theme-label');
-      if (isLight) {
-        if (icon) icon.textContent = '🌙';
-        if (label) label.textContent = 'Тёмная тема';
-        btn.setAttribute('title', 'Переключить на тёмную тему');
-      } else {
-        if (icon) icon.textContent = '☀️';
-        if (label) label.textContent = 'Светлая тема';
-        btn.setAttribute('title', 'Переключить на светлую тему');
-      }
-    });
-  }
-
-  // Применяем сохраненную или начальную тему
-  applyTheme(currentTheme);
-
-  document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
-      applyTheme(nextTheme);
-    });
-  });
-
-  // Логика модального окна
-  function closeModal() {
-    recordsModal.classList.add('hidden');
-  }
-
-  modalClose.addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', closeModal);
-
-  window.addEventListener('regeocode-point', async (e) => {
-    const { town, region } = e.detail;
-    try {
-      await regeocodeTown(town, region);
-      await loadAndRenderPoints(); // Перезагружаем точки после пересчета
-      
-      // Показываем тост об успехе
-      const toastEl = document.getElementById('toast');
-      if (toastEl) {
-        toastEl.textContent = `📍 Координаты для ${town} пересчитаны!`;
-        toastEl.className = 'toast success show';
-        setTimeout(() => toastEl.classList.remove('show'), 3000);
-      }
-    } catch (err) {
-      console.error(err);
-      alert(`Ошибка при пересчете: ${err.message}`);
-    }
-  });
-
-  window.addEventListener('regeocode-all-points', async (e) => {
-    const { points } = e.detail;
-    try {
-      const toastEl = document.getElementById('toast');
-      if (toastEl) {
-        toastEl.textContent = `⏳ Пересчет ${points.length} точек...`;
-        toastEl.className = 'toast show';
-      }
-      
-      // Пересчитываем точки последовательно
-      for (const pt of points) {
-        try {
-          await regeocodeTown(pt.town, pt.region);
-        } catch (err) {
-          console.error(`Ошибка пересчета для ${pt.town}:`, err);
-        }
-      }
-      
-      await loadAndRenderPoints(); // Перезагружаем точки после пересчета всех
-      
-      if (toastEl) {
-        toastEl.textContent = `✅ ${points.length} точек пересчитаны!`;
-        toastEl.className = 'toast success show';
-        setTimeout(() => toastEl.classList.remove('show'), 3000);
-      }
-    } catch (err) {
-      console.error(err);
-      alert(`Ошибка при массовом пересчете: ${err.message}`);
-    }
-  });
-
-  window.addEventListener('show-records-modal', async (e) => {
-    const { town, region, type } = e.detail;
-    recordsModal.classList.remove('hidden');
-    modalTitle.textContent = `${type === 'shipment' ? 'Отгрузки из:' : 'Доставки в:'} ${town}`;
-    recordsTbody.innerHTML = '';
-    modalLoading.classList.remove('hidden');
-    modalError.classList.add('hidden');
-
-    try {
-      const filters = getFilters();
-      const res = await fetchRecords(town, region, type, {
-        fromRegions: filters.fromRegions,
-        toRegions: filters.toRegions,
-        periodTypes: filters.periodTypes,
-        priceTypes: filters.priceTypes
-      });
-
-      modalLoading.classList.add('hidden');
-
-      if (!res.ok) throw new Error(res.error);
-
-      if (res.records.length === 0) {
-        recordsTbody.innerHTML = '<tr><td colspan="9" style="text-align:center">Нет данных</td></tr>';
-        return;
-      }
-
-      // Отрисовка строк
-      const rowsHtml = res.records.map(r => {
-        const p = Number(r.price).toLocaleString('ru-RU');
-        const km = Number(r.route_length).toLocaleString('ru-RU');
-        const rkm = (r.price / (r.route_length || 1)).toLocaleString('ru-RU', {maximumFractionDigits: 1});
-        const periodColor = r.period_type === 'retro' ? '#a78bfa' : r.period_type === 'current' ? '#38bdf8' : '#fbbf24';
-        return `
-          <tr>
-            <td style="font-family: monospace; color: #3dd68c;">${escapeHtml(p)}</td>
-            <td>${escapeHtml(km)}</td>
-            <td>${escapeHtml(rkm)}</td>
-            <td>${escapeHtml(r.bid_count)}</td>
-            <td style="color:${periodColor}">${escapeHtml(r.period_label || r.period_type)}</td>
-            <td>${r.price_type === 'spot' ? 'Спот' : 'Тендер'}</td>
-            <td>${escapeHtml(r.confidence || '—')}</td>
-            <td>${escapeHtml(r.ship_region)}</td>
-            <td>${escapeHtml(r.del_region)}</td>
-          </tr>
-        `;
-      }).join('');
-      recordsTbody.innerHTML = rowsHtml;
-    } catch (err) {
-      modalLoading.classList.add('hidden');
-      modalError.classList.remove('hidden');
-      modalError.textContent = 'Ошибка загрузки: ' + err.message;
-    }
+  $('mobile-controls-btn').addEventListener('click', () => $('sidebar').classList.add('open'));
+  $('mobile-inspector-btn').addEventListener('click', () => $('analysis-inspector').classList.add('open'));
+  document.querySelectorAll('[data-close-panel]').forEach(button => button.addEventListener('click', () => button.closest('aside').classList.remove('open')));
+  $('modal-close').addEventListener('click', closeModal);
+  $('modal-overlay').addEventListener('click', closeModal);
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    closeModal();
+    $('sidebar').classList.remove('open');
+    $('analysis-inspector').classList.remove('open');
   });
 }
 
-// ── Geocode Status Polling ─────────────────────────────────────────
+function closeModal() {
+  $('records-modal').classList.add('hidden');
+}
 
-let _geocodeInterval = null;
+async function showRecords({ town, region, type }) {
+  $('records-modal').classList.remove('hidden');
+  $('modal-title').textContent = `${type === 'shipment' ? 'Отгрузки из' : 'Доставки в'}: ${town}`;
+  $('records-tbody').innerHTML = '';
+  $('modal-loading').classList.remove('hidden');
+  $('modal-error').classList.add('hidden');
+  try {
+    const filters = getFilters();
+    const result = await fetchRecords(town, region, type, filters);
+    $('modal-loading').classList.add('hidden');
+    $('records-tbody').innerHTML = result.records.length ? result.records.map(record => {
+      const price = Number(record.price || 0);
+      const distance = Number(record.route_length || 0);
+      return `<tr><td>${escapeHtml(fmt(price))}</td><td>${escapeHtml(fmt(distance))}</td><td>${escapeHtml((price / (distance || 1)).toLocaleString('ru-RU', { maximumFractionDigits: 1 }))}</td><td>${escapeHtml(record.bid_count)}</td><td>${escapeHtml(record.period_label || record.period_type)}</td><td>${record.price_type === 'spot' ? 'Спот' : 'Тендер'}</td><td>${escapeHtml(record.confidence || '—')}</td><td>${escapeHtml(record.ship_region)}</td><td>${escapeHtml(record.del_region)}</td></tr>`;
+    }).join('') : '<tr><td colspan="9">По выбранным параметрам записей нет.</td></tr>';
+  } catch (error) {
+    $('modal-loading').classList.add('hidden');
+    $('modal-error').classList.remove('hidden');
+    $('modal-error').textContent = `Не удалось загрузить исходные данные: ${error.message}`;
+  }
+}
 
-function startGeocodeStatusPolling() {
-  // Поллим каждые 5 секунд
-  _geocodeInterval = setInterval(async () => {
+function initMapEvents() {
+  window.addEventListener('show-records-modal', event => showRecords(event.detail));
+  window.addEventListener('regeocode-point', async event => {
+    try {
+      await regeocodeTown(event.detail.town, event.detail.region);
+      if (state.mode === 'data') await loadAndRenderPoints();
+      showToast(`Координаты для ${event.detail.town} обновлены`);
+    } catch (error) { showToast(`Не удалось обновить координаты: ${error.message}`, 'error'); }
+  });
+  window.addEventListener('regeocode-all-points', async event => {
+    for (const point of event.detail.points) {
+      try { await regeocodeTown(point.town, point.region); } catch (error) { console.warn(error); }
+    }
+    if (state.mode === 'data') await loadAndRenderPoints();
+  });
+}
+
+function startGeocodePolling() {
+  geocodeInterval = window.setInterval(async () => {
     try {
       const status = await fetchGeocodeStatus();
-
-      if (status.running && status.total > 0) {
-        // Показываем статус-бар
-        if (geocodeStatus) geocodeStatus.classList.remove('hidden');
-        const pct = Math.round((status.done / status.total) * 100);
-        if (geocodeStatusText) {
-          geocodeStatusText.textContent = `Геокодирование: ${status.done}/${status.total} (найдено: ${status.found})`;
-        }
-        if (geocodeProgressFill) {
-          geocodeProgressFill.style.width = `${pct}%`;
-        }
-      } else if (!status.running && status.total > 0) {
-        // Геокодирование завершено — скрываем и перезагружаем карту
-        if (geocodeStatus) geocodeStatus.classList.add('hidden');
-        clearInterval(_geocodeInterval);
-        _geocodeInterval = null;
-        showToast(
-          `✅ Геокодирование завершено: ${status.found} городов найдено. Обновляем карту...`,
-          'success', 5000
-        );
-        // Перезагружаем точки с новыми координатами
-        await loadAndRenderPoints();
-      } else {
-        // Нет активного геокодирования
-        if (geocodeStatus) geocodeStatus.classList.add('hidden');
+      const active = status.running && status.total > 0;
+      $('geocode-status').classList.toggle('hidden', !active);
+      if (active) {
+        const ratio = Math.round((status.done / status.total) * 100);
+        $('geocode-status-text').textContent = `Координаты: ${status.done}/${status.total}`;
+        $('geocode-progress-fill').style.width = `${ratio}%`;
       }
-    } catch (err) {
-      // Молча игнорируем ошибки поллинга
-      console.warn('Geocode status polling error:', err.message);
-    }
+    } catch (error) { console.warn('Geocode status:', error.message); }
   }, 5000);
 }
 
-// Запуск после загрузки DOM
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', main);
-} else {
-  main();
+async function main() {
+  setSystemStatus('loading', 'Инициализация');
+  try {
+    initMap('map');
+    initTheme();
+    initInteractions();
+    initMapEvents();
+    const [regions] = await Promise.all([fetchRegions(), fetchStats()]);
+    initFilters(regions.ship_regions, regions.del_regions, () => {});
+    const allRegions = [...new Set([...regions.ship_regions, ...regions.del_regions])].sort((a, b) => a.localeCompare(b, 'ru'));
+    state.validRegions = new Set(allRegions);
+    $('ml-region-options').replaceChildren(...allRegions.map(region => { const option = document.createElement('option'); option.value = region; return option; }));
+    updateClusterPreview();
+    setMapEmpty('Создайте первое разбиение региона', 'Выберите территорию и параметры анализа, затем рассчитайте зоны.', true);
+    setSystemStatus('', 'Данные готовы');
+    startGeocodePolling();
+  } catch (error) {
+    console.error(error);
+    setSystemStatus('error', 'Недоступно');
+    setMapEmpty('Не удалось запустить приложение', error.message, false);
+    showToast(`Ошибка инициализации: ${error.message}`, 'error', 7000);
+  } finally {
+    setMapLoading(false);
+  }
 }
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', main);
+else main();

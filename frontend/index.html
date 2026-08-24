@@ -3,384 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Логистика AI — Карта перевозок</title>
-  <meta name="description" content="Интерактивная карта логистических перевозок. Анализ цен, маршрутов и трендов по регионам России.">
-
-  <!-- OpenLayers CSS -->
+  <title>Логистика AI — территориальный анализ</title>
+  <meta name="description" content="Рабочее место для анализа логистических данных и расчёта территориальных зон.">
   <link rel="stylesheet" href="/css/ol.css">
-
-  <!-- App CSS -->
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
 <div id="app">
+  <header id="header" class="topbar">
+    <a class="brand" href="#" aria-label="Логистика AI">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>Логистика <strong>AI</strong></span>
+    </a>
 
-  <!-- ── Header ──────────────────────────────────────────────── -->
-  <header id="header">
-    <div class="header-logo">
-      <div class="logo-icon">🗺️</div>
-      <h1>Логистика <span>AI</span></h1>
-    </div>
+    <nav class="mode-nav" aria-label="Рабочий режим">
+      <button class="mode-tab" data-mode="data" type="button">Карта данных</button>
+      <button class="mode-tab active" data-mode="cluster" type="button" aria-current="page">Кластеризация</button>
+    </nav>
 
-    <div class="header-right">
-      <div class="header-stats">
-        <div class="stat-item">
-          <div class="stat-value" id="stat-total-rows">—</div>
-          <div class="stat-label">Всего записей</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="stat-ship-towns">—</div>
-          <div class="stat-label">Городов отгрузки</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="stat-del-towns">—</div>
-          <div class="stat-label">Городов доставки</div>
-        </div>
-      </div>
-
-      <div class="header-status">
-        <div class="status-dot" id="status-dot"></div>
-        <span id="status-text">Инициализация...</span>
-      </div>
-
-      <button id="theme-toggle-header" class="theme-toggle-btn" title="Переключить тему">
-        <span class="theme-icon">☀️</span>
-        <span class="theme-label">Светлая тема</span>
+    <div class="topbar-actions">
+      <span class="source-chip">Источник: <strong>Pulse</strong></span>
+      <span class="system-status"><span id="status-dot" class="status-dot loading"></span><span id="status-text">Инициализация</span></span>
+      <button id="theme-toggle-header" class="icon-button theme-toggle-btn" type="button" aria-label="Переключить тему" title="Переключить тему">
+        <span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Тема</span>
       </button>
     </div>
   </header>
 
-  <!-- ── Sidebar ─────────────────────────────────────────────── -->
-  <aside id="sidebar">
-    <div class="sidebar-scroll">
+  <section id="workspace" class="workspace mode-cluster">
+    <aside id="sidebar" class="control-panel" aria-label="Параметры анализа">
+      <div class="panel-heading">
+        <div><span class="eyebrow" id="controls-eyebrow">Настройка анализа</span><h1 id="controls-title">Территориальные зоны</h1></div>
+        <button class="panel-close mobile-only" data-close-panel="controls" type="button" aria-label="Закрыть настройки">×</button>
+      </div>
 
-      <!-- Тип периода -->
-      <div class="panel-section collapsed" id="section-period">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="section-icon">📅</span>
-            Тип данных
-          </div>
-          <span class="section-chevron">▾</span>
+      <div id="data-controls" class="controls-view hidden">
+        <p class="panel-intro">Отберите исходные точки для исследования рынка и проверки данных.</p>
+
+        <div class="panel-section" id="section-ship">
+          <button class="section-header" type="button" aria-expanded="true"><span><span class="section-index">01</span> Откуда</span><span class="section-chevron">⌄</span></button>
+          <div class="section-body"><div class="selected-tags" id="tags-ship"></div><label class="search-field"><span class="sr-only">Поиск региона отгрузки</span><input id="search-ship" type="search" placeholder="Найти регион…" autocomplete="off"></label><div class="region-list" id="region-list-ship"></div></div>
         </div>
-        <div class="section-body">
-          <div class="toggle-group" id="period-toggles">
-            <!-- Заполняется JS -->
-          </div>
+
+        <div class="panel-section collapsed" id="section-del">
+          <button class="section-header" type="button" aria-expanded="false"><span><span class="section-index">02</span> Куда</span><span class="section-chevron">⌄</span></button>
+          <div class="section-body"><div class="selected-tags" id="tags-del"></div><label class="search-field"><span class="sr-only">Поиск региона доставки</span><input id="search-del" type="search" placeholder="Найти регион…" autocomplete="off"></label><div class="region-list" id="region-list-del"></div></div>
         </div>
-      </div>
 
-      <!-- Тип цены -->
-      <div class="panel-section collapsed" id="section-ptype">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="section-icon">💰</span>
-            Тип цены
-          </div>
-          <span class="section-chevron">▾</span>
+        <div class="panel-section collapsed" id="section-period">
+          <button class="section-header" type="button" aria-expanded="false"><span><span class="section-index">03</span> Период</span><span class="section-chevron">⌄</span></button>
+          <div class="section-body"><div class="toggle-group" id="period-toggles"></div></div>
         </div>
-        <div class="section-body">
-          <div class="toggle-group" id="price-toggles">
-            <!-- Заполняется JS -->
-          </div>
+
+        <div class="panel-section collapsed" id="section-ptype">
+          <button class="section-header" type="button" aria-expanded="false"><span><span class="section-index">04</span> Тип цены</span><span class="section-chevron">⌄</span></button>
+          <div class="section-body"><div class="toggle-group" id="price-toggles"></div></div>
         </div>
+
+        <div class="panel-actions sticky-actions"><button id="btn-apply" class="primary-button" type="button">Показать на карте</button><button id="btn-reset" class="text-button" type="button">Сбросить фильтры</button></div>
       </div>
 
-      <!-- Регионы отгрузки -->
-      <div class="panel-section collapsed" id="section-ship">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="section-icon">📦</span>
-            Откуда (отгрузка)
-          </div>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div class="region-label">
-            <div class="dot dot-ship"></div>
-            Регионы отгрузки
-          </div>
+      <form id="cluster-controls" class="controls-view" novalidate>
+        <p class="panel-intro">Задайте полный набор параметров, по которым будет построено разбиение.</p>
 
-          <!-- Выбранные теги -->
-          <div class="selected-tags" id="tags-ship"></div>
+        <section class="form-section">
+          <div class="form-section-title"><span class="section-index">01</span> Территория</div>
+          <label class="field-label" for="ml-region-input">Регион анализа</label>
+          <input id="ml-region-input" class="select-input" list="ml-region-options" placeholder="Выберите регион…" autocomplete="off" required>
+          <datalist id="ml-region-options"></datalist>
+        </section>
 
-          <!-- Поиск -->
-          <div class="region-search">
-            <span class="search-icon">🔍</span>
-            <input
-              type="text"
-              id="search-ship"
-              placeholder="Поиск региона..."
-              autocomplete="off"
-            >
-          </div>
+        <section class="form-section">
+          <div class="form-section-title"><span class="section-index">02</span> Точки и данные</div>
+          <fieldset class="field-group"><legend>Какие точки анализировать?</legend><div class="segmented two-columns" id="ml-type-control"><label><input type="radio" name="ml-type" value="delivery" checked><span>Доставка</span></label><label><input type="radio" name="ml-type" value="shipment"><span>Отгрузка</span></label></div></fieldset>
+          <div class="source-row"><span>Источник данных</span><strong>Pulse</strong></div>
+          <fieldset class="field-group"><legend>Период</legend><div class="segmented three-columns" id="ml-period-control"><label><input type="radio" name="ml-period" value="retro"><span>Архив</span></label><label><input type="radio" name="ml-period" value="current" checked><span>Текущий</span></label><label><input type="radio" name="ml-period" value="forecast"><span>Прогноз</span></label></div></fieldset>
+          <fieldset class="field-group"><legend>Тип цены</legend><div class="segmented two-columns" id="ml-price-control"><label><input type="radio" name="ml-price" value="spot" checked><span>Спот</span></label><label><input type="radio" name="ml-price" value="tender"><span>Тендер</span></label></div></fieldset>
+        </section>
 
-          <!-- Список -->
-          <div class="region-list" id="region-list-ship">
-            <!-- Заполняется JS -->
-          </div>
-        </div>
+        <section class="form-section">
+          <div class="form-section-title"><span class="section-index">03</span> Алгоритм</div>
+          <label class="field-label" for="ml-algorithm">Алгоритм</label><select id="ml-algorithm" class="select-input"><option value="kmeans">K-Means</option></select>
+          <fieldset class="field-group k-mode-group"><legend>Количество зон</legend><label class="radio-row"><input type="radio" name="ml-k-mode" value="auto" checked><span><strong>Подобрать автоматически</strong><small>Лучший K по Silhouette score, диапазон 2–10</small></span></label><label class="radio-row"><input type="radio" name="ml-k-mode" value="manual"><span><strong>Указать вручную</strong><small>Зафиксировать число зон для эксперимента</small></span></label></fieldset>
+          <div id="ml-k-stepper" class="stepper hidden" aria-label="Количество зон"><button id="ml-k-minus" type="button" aria-label="Уменьшить количество зон">−</button><output id="ml-k-value">5</output><button id="ml-k-plus" type="button" aria-label="Увеличить количество зон">+</button></div>
+          <details class="advanced-settings"><summary>Расширенные настройки</summary><fieldset class="field-group"><legend>Вес точек</legend><label class="radio-row compact"><input type="radio" name="ml-weight" value="trip_count" checked><span>По количеству перевозок</span></label><label class="radio-row compact"><input type="radio" name="ml-weight" value="none"><span>Все города одинаково</span></label></fieldset><label class="field-label" for="ml-seed">Random seed</label><input id="ml-seed" class="select-input" type="number" value="42" readonly></details>
+        </section>
+
+        <section class="calculation-preview" aria-labelledby="preview-title"><div id="preview-title" class="preview-title">Будет рассчитано</div><div class="preview-route"><span id="preview-region">Регион не выбран</span><span id="preview-type">Доставка</span></div><div class="preview-chips"><span>Pulse</span><span id="preview-period">Текущий</span><span id="preview-price">Спот</span></div></section>
+        <div id="analysis-stale" class="state-banner warning hidden" role="status"><strong>Параметры анализа изменены</strong><span id="stale-description">Результат на карте рассчитан для других настроек.</span></div>
+        <div id="analysis-form-error" class="state-banner error hidden" role="alert"></div>
+        <div class="panel-actions sticky-actions"><button id="btn-run-ml" class="primary-button" type="submit">Рассчитать зоны</button><span id="run-caption" class="button-caption">K-Means · Auto K</span><button id="btn-reset-ml" class="text-button hidden" type="button">Очистить результат</button></div>
+      </form>
+    </aside>
+
+    <main id="map-container" aria-label="Карта">
+      <div id="map"></div>
+      <div id="layer-switcher" class="map-control base-layer-control"><label for="layer-select">Подложка</label><select id="layer-select"><option value="2gis">Карта</option><option value="hybrid">Спутник</option></select></div>
+      <div id="cluster-layer-control" class="map-control layer-control"><strong>Слои</strong><label><input type="checkbox" data-ml-layer="zones" checked> Зоны</label><label><input type="checkbox" data-ml-layer="cities" checked> Города</label><label><input type="checkbox" data-ml-layer="labels" checked> Названия зон</label><label><input type="checkbox" data-ml-layer="centers"> Центры</label></div>
+      <div id="experimental-badge" class="map-badge hidden" title="Полигоны построены по Voronoi и обрезаны по области данных, а не по административной границе.">Экспериментальные зоны <span aria-hidden="true">ⓘ</span></div>
+      <div id="popup" class="ol-popup hidden"><button id="popup-closer" class="ol-popup-closer" type="button" aria-label="Закрыть">×</button><div id="popup-content"></div></div>
+      <div id="empty-state" class="map-empty-state"><div class="empty-graphic" aria-hidden="true"><span></span><span></span><span></span></div><div class="empty-title">Создайте первое разбиение региона</div><div class="empty-sub">Выберите территорию и параметры анализа, затем рассчитайте зоны.</div><ol><li>Выберите регион</li><li>Проверьте параметры</li><li>Рассчитайте зоны</li></ol></div>
+      <section id="map-info" class="map-info hidden" aria-label="Данные на карте"><div class="map-info-title">Данные на карте</div><div class="info-row"><span>Точек отгрузки</span><strong id="info-ship">—</strong></div><div class="info-row"><span>Точек доставки</span><strong id="info-del">—</strong></div><div class="info-row"><span>С координатами</span><strong id="info-geocoded">—</strong></div></section>
+      <section id="map-legend" class="map-legend hidden" aria-label="Условные обозначения"><strong>Условные обозначения</strong><span><i class="legend-dot ship"></i> Отгрузка</span><span><i class="legend-dot del"></i> Доставка</span></section>
+      <div id="loading-overlay" class="loading-overlay hidden" aria-live="polite"><div class="loading-spinner"></div><strong id="loading-text">Загружаем данные…</strong><span id="loading-sub"></span></div>
+      <button id="mobile-controls-btn" class="mobile-sheet-button mobile-only" type="button">Настроить анализ</button><button id="mobile-inspector-btn" class="mobile-sheet-button secondary mobile-only" type="button">Результат</button>
+    </main>
+
+    <aside id="analysis-inspector" class="analysis-inspector" aria-label="Результат анализа">
+      <div class="panel-heading"><div><span class="eyebrow">Результат</span><h2>Анализ зон</h2></div><button class="panel-close mobile-only" data-close-panel="inspector" type="button" aria-label="Закрыть результат">×</button></div>
+      <div id="inspector-empty" class="inspector-empty"><div class="inspector-empty-mark">Z</div><strong>Результат появится здесь</strong><p>После расчёта вы увидите параметры эксперимента, метрики и состав каждой зоны.</p></div>
+      <div id="inspector-result" class="inspector-content hidden">
+        <section class="result-hero"><div><span class="algorithm-badge">K-Means</span><h3><span id="result-k">—</span> зон</h3></div><span id="result-mode" class="subtle-chip">Auto K</span></section>
+        <section class="summary-grid"><div><strong id="result-cities">—</strong><span>городов</span></div><div><strong id="result-bids">—</strong><span>перевозок</span></div></section>
+        <section class="inspector-section"><h4>Параметры</h4><dl class="parameter-list"><div><dt>Регион</dt><dd id="result-region">—</dd></div><div><dt>Точки</dt><dd id="result-type">—</dd></div><div><dt>Данные</dt><dd id="result-data">—</dd></div><div><dt>K</dt><dd id="result-k-detail">—</dd></div></dl></section>
+        <section id="metrics-section" class="inspector-section hidden"><h4>География <span class="help" title="Silhouette показывает разделимость кластеров и не является точностью модели.">ⓘ</span></h4><div class="metric-row"><span>Silhouette</span><strong id="result-silhouette">—</strong></div></section>
+        <section class="inspector-section data-quality-section"><h4>Качество данных</h4><div class="quality-line"><span><strong id="quality-used">—</strong> использовано</span><span id="quality-ratio">—</span></div><div class="quality-bar"><i id="quality-fill"></i></div><p id="quality-note">Проверяем доступность координат.</p></section>
+        <section class="inspector-section zones-section"><div class="section-row"><h4>Зоны</h4><span id="zones-count">—</span></div><div id="zone-list" class="zone-list"></div></section>
+        <section id="zone-details" class="zone-details hidden" aria-live="polite"><button id="zone-details-close" class="back-button" type="button">← Все зоны</button><div class="zone-details-heading"><span id="zone-details-swatch"></span><h4 id="zone-details-title">Зона</h4></div><div class="zone-detail-stats"><div><strong id="zone-details-cities">—</strong><span>городов</span></div><div><strong id="zone-details-bids">—</strong><span>перевозок</span></div></div><h5>Города</h5><ul id="zone-details-towns"></ul></section>
       </div>
-
-      <!-- Регионы доставки -->
-      <div class="panel-section collapsed" id="section-del">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="section-icon">📍</span>
-            Куда (доставка)
-          </div>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div class="region-label">
-            <div class="dot dot-del"></div>
-            Регионы доставки
-          </div>
-
-          <!-- Выбранные теги -->
-          <div class="selected-tags" id="tags-del"></div>
-
-          <!-- Поиск -->
-          <div class="region-search">
-            <span class="search-icon">🔍</span>
-            <input
-              type="text"
-              id="search-del"
-              placeholder="Поиск региона..."
-              autocomplete="off"
-            >
-          </div>
-
-          <!-- Список -->
-          <div class="region-list" id="region-list-del">
-            <!-- Заполняется JS -->
-          </div>
-        </div>
-      </div>
-
-      <!-- ML Кластеризация -->
-      <div class="panel-section collapsed" id="section-ml">
-        <div class="section-header">
-          <div class="section-title">
-            <span class="section-icon">🧠</span>
-            ML Кластеризация
-          </div>
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="section-body">
-          <div style="margin-bottom: 10px;">
-            <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-muted)">Регион для анализа</label>
-            <select id="ml-region-select" style="width:100%;padding:6px;border-radius:4px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main)">
-              <option value="">Выберите регион...</option>
-              <!-- Заполняется JS -->
-            </select>
-          </div>
-          <div style="margin-bottom: 10px;">
-            <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-muted)">Тип точек</label>
-            <select id="ml-type-select" style="width:100%;padding:6px;border-radius:4px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main)">
-              <option value="shipment">Отгрузка</option>
-              <option value="delivery">Доставка</option>
-            </select>
-          </div>
-          <div style="margin-bottom: 10px; display:flex; align-items:center; gap:8px">
-            <label style="font-size:12px;color:var(--text-muted)">Кол-во кластеров (K):</label>
-            <input type="number" id="ml-k-input" value="" min="2" max="10" placeholder="Auto" style="width:60px;padding:4px;border-radius:4px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-main)" disabled>
-            <label style="font-size:12px;color:var(--text-main);display:flex;align-items:center;gap:4px">
-              <input type="checkbox" id="ml-auto-k" checked> Auto
-            </label>
-          </div>
-          <button id="btn-run-ml" style="width:100%;background:var(--accent);color:#fff;border:none;padding:8px;border-radius:6px;cursor:pointer;font-weight:500;">
-            🚀 Запустить алгоритм
-          </button>
-          <button id="btn-reset-ml" class="hidden" style="width:100%;margin-top:6px;background:rgba(255,255,255,0.08);color:var(--text-muted);border:1px solid var(--border);padding:7px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:background 0.2s;">
-            ✖ Сбросить ML-зоны
-          </button>
-        </div>
-      </div>
-
-    </div><!-- /sidebar-scroll -->
-
-    <!-- Кнопки -->
-    <div class="sidebar-footer">
-      <button id="btn-apply">🔍 Показать на карте</button>
-      <button id="btn-reset">↺ Сбросить фильтры</button>
-    </div>
-  </aside>
-
-  <!-- ── Map ─────────────────────────────────────────────────── -->
-  <main id="map-container">
-
-    <!-- OpenLayers карта -->
-    <div id="map"></div>
-    
-    <!-- Переключатель слоев -->
-    <div id="layer-switcher" class="ol-layer-switcher">
-      <select id="layer-select">
-        <option value="2gis">Карта (2ГИС)</option>
-        <option value="hybrid">Спутник (Гибрид)</option>
-      </select>
-    </div>
-
-    <!-- Всплывающее окно для кластеров -->
-    <div id="popup" class="ol-popup hidden">
-      <a href="#" id="popup-closer" class="ol-popup-closer">✖</a>
-      <div id="popup-content"></div>
-    </div>
-
-    <!-- Плавающий прогресс-бар геокодирования -->
-    <div id="geocode-status" class="hidden" style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 16px 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); width: 350px; text-align: center;">
-      <div style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-        <div class="status-dot" style="background: #10b981; width: 10px; height: 10px; box-shadow: 0 0 10px #10b981; animation: pulse 1.5s infinite;"></div>
-        Идет фоновое геокодирование
-      </div>
-      <div id="geocode-status-text" style="font-size: 13px; color: #94a3b8; margin-bottom: 12px;">
-        Поиск координат для городов...
-      </div>
-      <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; position: relative;">
-        <div id="geocode-progress-fill" style="position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 4px; transition: width 0.3s ease; width: 0%;"></div>
-      </div>
-    </div>
-
-    <!-- Пустое состояние -->
-    <div id="empty-state">
-      <div class="empty-icon">🗺️</div>
-      <div class="empty-title">Выберите регион отгрузки или доставки</div>
-      <div class="empty-sub">Выберите нужные регионы в фильтрах слева и нажмите «Показать на карте»</div>
-    </div>
-
-    <!-- Info panel (верхний правый угол) -->
-    <div id="map-info">
-      <div class="map-info-top">
-        <span class="map-info-title">📊 Данные на карте</span>
-        <button id="theme-toggle-info" class="theme-toggle-btn" title="Переключить тему оформления">
-          <span class="theme-icon">☀️</span>
-          <span class="theme-label">Светлая тема</span>
-        </button>
-      </div>
-      <div class="map-info-divider"></div>
-      <div class="info-row">
-        <span class="info-label">📦 Точек отгрузки</span>
-        <span class="info-value ship" id="info-ship">—</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">📍 Точек доставки</span>
-        <span class="info-value del" id="info-del">—</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">🌐 Геокодировано</span>
-        <span class="info-value" id="info-geocoded">—</span>
-      </div>
-      <div class="info-row hidden" id="ml-total-row">
-        <span class="info-label">Σ Заявок по фильтру</span>
-        <span class="info-value" id="info-ml-total">—</span>
-      </div>
-    </div>
-
-    <!-- Легенда (нижний правый угол) -->
-    <div id="map-legend">
-      <div class="legend-title">Условные обозначения</div>
-      <div class="legend-item">
-        <div class="legend-dot ship"></div>
-        Точка отгрузки
-      </div>
-      <div class="legend-item">
-        <div class="legend-dot del"></div>
-        Точка доставки
-      </div>
-      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07)">
-        <div class="legend-title">Размер маркера = объём</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-          <div style="width:10px;height:10px;border-radius:50%;background:#3dd68c;opacity:0.5"></div>
-          <div style="width:14px;height:14px;border-radius:50%;background:#3dd68c;opacity:0.7"></div>
-          <div style="width:20px;height:20px;border-radius:50%;background:#3dd68c"></div>
-          <span style="font-size:11px;color:#4d5a73;margin-left:4px">мало → много</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:10px">
-          <div style="width:24px;height:24px;border-radius:50%;background:rgba(56, 189, 248, 0.9);border:2px solid rgba(255, 255, 255, 0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold">5</div>
-          <span style="font-size:11px;color:#4d5a73;margin-left:4px">Кластер (группа точек)</span>
-        </div>
-      </div>
-      <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07)">
-        <div class="legend-title">Типы данных</div>
-        <div class="legend-item" style="margin-top:6px">
-          <div class="legend-dot" style="background:#a78bfa;box-shadow:0 0 6px #a78bfa"></div>
-          Архив (retro)
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:#38bdf8;box-shadow:0 0 6px #38bdf8"></div>
-          Текущий (current)
-        </div>
-        <div class="legend-item">
-          <div class="legend-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div>
-          Прогноз (forecast)
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div id="loading-overlay" class="hidden">
-      <div class="loading-spinner"></div>
-      <div class="loading-text" id="loading-text">Загрузка данных...</div>
-      <div class="loading-sub" id="loading-sub">Подождите, идёт обработка</div>
-    </div>
-
-  </main><!-- /map-container -->
-
-</div><!-- /app -->
-
-<!-- Modal for Raw Records -->
-<div id="records-modal" class="modal hidden">
-  <div class="modal-overlay" id="modal-overlay"></div>
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2 id="modal-title">Записи для города</h2>
-      <button id="modal-close" class="modal-close">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div id="modal-loading" class="hidden">Загрузка...</div>
-      <div id="modal-error" class="hidden error-text"></div>
-      <div class="table-container">
-        <table id="records-table">
-          <thead>
-            <tr>
-              <th>Цена (₽)</th>
-              <th>Км</th>
-              <th>₽/км</th>
-              <th>Заявки</th>
-              <th>Тип данных</th>
-              <th>Тип цены</th>
-              <th>Достоверность</th>
-              <th>Отгрузка (рег.)</th>
-              <th>Доставка (рег.)</th>
-            </tr>
-          </thead>
-          <tbody id="records-tbody">
-            <!-- Data rows here -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+    </aside>
+  </section>
 </div>
 
-<!-- Geocode Status Bar -->
-<div id="geocode-status" class="hidden">
-  <div class="geocode-spinner"></div>
-  <span id="geocode-status-text">Геокодирование...</span>
-  <div class="geocode-progress-bar">
-    <div class="geocode-progress-fill" id="geocode-progress-fill" style="width: 0%"></div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast"></div>
-
-<!-- OpenLayers JS -->
-<script src="/js/ol.js"></script>
-
-<!-- App JS (ES modules) -->
-<script type="module" src="/js/app.js"></script>
-
+<div id="records-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-overlay" id="modal-overlay"></div><div class="modal-content"><div class="modal-header"><div><span class="eyebrow">Исходные данные</span><h2 id="modal-title">Данные города</h2></div><button id="modal-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><div class="modal-body"><div id="modal-loading" class="hidden">Загрузка…</div><div id="modal-error" class="hidden error-text"></div><div class="table-container"><table id="records-table"><thead><tr><th>Цена, ₽</th><th>Км</th><th>₽/км</th><th>Заявки</th><th>Период</th><th>Тип цены</th><th>Достоверность</th><th>Отгрузка</th><th>Доставка</th></tr></thead><tbody id="records-tbody"></tbody></table></div></div></div></div>
+<div id="geocode-status" class="geocode-status hidden"><div class="loading-spinner small"></div><span id="geocode-status-text">Обновляем координаты…</span><div class="geocode-progress-bar"><i id="geocode-progress-fill"></i></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="/js/ol.js"></script><script type="module" src="/js/app.js"></script>
 </body>
 </html>

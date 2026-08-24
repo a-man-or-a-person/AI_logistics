@@ -319,6 +319,7 @@ def api_ml_cluster():
         region = request.args.get("region", "")
         town_type = request.args.get("town_type", "")
         k_val = request.args.get("k", "auto")
+        weight_mode = request.args.get("weight_mode", "trip_count")
         period_types = _parse_csv_arg("period_types")
         price_types = _parse_csv_arg("price_types")
 
@@ -327,6 +328,8 @@ def api_ml_cluster():
         validation_error = _filter_validation_error(period_types, price_types)
         if validation_error:
             return jsonify({"ok": False, "error": validation_error}), 400
+        if weight_mode not in {"none", "trip_count"}:
+            return jsonify({"ok": False, "error": "weight_mode должен быть none или trip_count"}), 400
         if str(k_val).lower() != "auto":
             try:
                 parsed_k = int(k_val)
@@ -342,10 +345,13 @@ def api_ml_cluster():
 
         points_to_cluster = []
         region_total_bids = 0
+        region_points_total = 0
+        excluded_no_coordinates = 0
 
         for town_data in towns_dict.values():
             if town_data["region"] != region:
                 continue
+            region_points_total += 1
 
             records = town_data["records"]
 
@@ -365,6 +371,7 @@ def api_ml_cluster():
             # Итог региона включает все записи, даже если город нельзя показать.
             coords = geocode_town(town_data["town"], region, offline_only=True)
             if not coords:
+                excluded_no_coordinates += 1
                 continue
 
             if not has_data:
@@ -379,7 +386,7 @@ def api_ml_cluster():
                 "rub_per_km": round(rub_per_km, 2),
                 "cluster_rub_per_km": round(cluster_rub_per_km, 2),
                 "bid_count":  bids,
-                "cluster_weight": max(bids, 1),
+                "cluster_weight": max(bids, 1) if weight_mode == "trip_count" else 1,
                 "has_data":   has_data,
             })
 
@@ -388,7 +395,23 @@ def api_ml_cluster():
         )
 
         result = cluster_points(points_to_cluster, min_k=2, max_k=10, k=k_val)
-        return jsonify({"ok": True, "region_total_bids": region_total_bids, **result})
+        return jsonify({
+            "ok": True,
+            "region_total_bids": region_total_bids,
+            "parameters": {
+                "algorithm": "kmeans",
+                "weight_mode": weight_mode,
+                "requested_k": k_val,
+                "period_types": period_types,
+                "price_types": price_types,
+            },
+            "data_quality": {
+                "total_points": region_points_total,
+                "used_points": len(points_to_cluster),
+                "excluded_no_coordinates": excluded_no_coordinates,
+            },
+            **result,
+        })
     except Exception:
         logger.exception("Ошибка в /api/ml-cluster")
         return _internal_error()

@@ -14,6 +14,7 @@ def test_clustering_does_not_mutate_input_coordinates():
     result = cluster_points(points, k=2)
 
     assert result["k"] == 2
+    assert "silhouette" in result["metrics"]
     assert points == original
     returned = {point["town"]: point for cluster in result["clusters"] for point in cluster["points"]}
     assert returned["B"]["lat"] == 55.0

@@ -19,6 +19,10 @@ let _popupContent = null;
 let _popupCloser = null;
 let _defaultLayer = null;
 let _hybridLayer = null;
+let _selectedMlZoneId = null;
+let _hoveredMlZoneId = null;
+let _mlResultIsStale = false;
+const _mlLayerVisibility = { zones: true, cities: true, labels: true, centers: false };
 
 // ── Init ──────────────────────────────────────────────────────
 
@@ -125,6 +129,14 @@ export function initMap(containerId) {
     });
 
     if (feature) {
+      if (feature.get('isMlPolygon') || feature.get('isMlLabel') || feature.get('isMlCenter')) {
+        const clusterId = Number(feature.get('clusterId'));
+        selectMlZone(clusterId, false);
+        window.dispatchEvent(new CustomEvent('ml-zone-select', { detail: { clusterId } }));
+        _overlay.setPosition(undefined);
+        return;
+      }
+
       // ML-точки не являются обычными OpenLayers-кластерами.
       if (feature.get('isMlPoint')) {
         const town    = feature.get('ptTown');
@@ -293,11 +305,21 @@ export function initMap(containerId) {
     }
   });
 
-  // Изменение курсора при наведении на маркер
+  // Изменение курсора и синхронизация hover зоны с инспектором.
   _map.on('pointermove', function (e) {
     if (e.dragging) return;
     const pixel = _map.getEventPixel(e.originalEvent);
-    const hit = _map.hasFeatureAtPixel(pixel);
+    const feature = _map.forEachFeatureAtPixel(pixel, candidate => candidate);
+    const hit = Boolean(feature);
+    const zoneFeature = feature && (
+      feature.get('isMlPolygon') || feature.get('isMlLabel') || feature.get('isMlCenter')
+    );
+    const nextHover = zoneFeature ? Number(feature.get('clusterId')) : null;
+    if (_hoveredMlZoneId !== nextHover) {
+      _hoveredMlZoneId = nextHover;
+      _mlVectorLayer?.changed();
+      window.dispatchEvent(new CustomEvent('ml-zone-hover', { detail: { clusterId: nextHover } }));
+    }
     _map.getTargetElement().style.cursor = hit ? 'pointer' : '';
   });
 
@@ -350,22 +372,24 @@ export function clearMarkers() {
 export function clearMlClusters() {
   if (_mlVectorSource) _mlVectorSource.clear();
   if (_overlay)        _overlay.setPosition(undefined);
+  _selectedMlZoneId = null;
+  _hoveredMlZoneId = null;
 }
 
 // ── ML Clusters ───────────────────────────────────────────────
 
-// Палитра кластеров: HSL-цвета с высокой насыщенностью для чёткого разграничения
+// Цвет дополняет устойчивый идентификатор Z1/Z2/... и не несёт смысл сам по себе.
 const ML_PALETTE = [
-  { h: 0,   fill: 'rgba(239,68,68,0.18)',    stroke: '#ef4444', glow: 'rgba(239,68,68,0.55)' },   // red
-  { h: 217, fill: 'rgba(59,130,246,0.18)',   stroke: '#3b82f6', glow: 'rgba(59,130,246,0.55)' },   // blue
-  { h: 160, fill: 'rgba(16,185,129,0.18)',   stroke: '#10b981', glow: 'rgba(16,185,129,0.55)' },   // emerald
-  { h: 38,  fill: 'rgba(245,158,11,0.18)',   stroke: '#f59e0b', glow: 'rgba(245,158,11,0.55)' },   // amber
-  { h: 270, fill: 'rgba(139,92,246,0.18)',   stroke: '#8b5cf6', glow: 'rgba(139,92,246,0.55)' },   // violet
-  { h: 330, fill: 'rgba(236,72,153,0.18)',   stroke: '#ec4899', glow: 'rgba(236,72,153,0.55)' },   // pink
-  { h: 180, fill: 'rgba(20,184,166,0.18)',   stroke: '#14b8a6', glow: 'rgba(20,184,166,0.55)' },   // teal
-  { h: 25,  fill: 'rgba(249,115,22,0.18)',   stroke: '#f97316', glow: 'rgba(249,115,22,0.55)' },   // orange
-  { h: 240, fill: 'rgba(99,102,241,0.18)',   stroke: '#6366f1', glow: 'rgba(99,102,241,0.55)' },   // indigo
-  { h: 84,  fill: 'rgba(132,204,22,0.18)',   stroke: '#84cc16', glow: 'rgba(132,204,22,0.55)' },   // lime
+  { fill: 'rgba(216,79,79,.18)',  stroke: '#d84f4f' },
+  { fill: 'rgba(52,120,197,.18)', stroke: '#3478c5' },
+  { fill: 'rgba(25,138,104,.18)', stroke: '#198a68' },
+  { fill: 'rgba(210,138,24,.18)', stroke: '#d28a18' },
+  { fill: 'rgba(122,90,200,.18)', stroke: '#7a5ac8' },
+  { fill: 'rgba(197,74,136,.18)', stroke: '#c54a88' },
+  { fill: 'rgba(29,150,144,.18)', stroke: '#1d9690' },
+  { fill: 'rgba(213,102,42,.18)', stroke: '#d5662a' },
+  { fill: 'rgba(90,97,197,.18)',  stroke: '#5a61c5' },
+  { fill: 'rgba(117,166,44,.18)', stroke: '#75a62c' },
 ];
 
 export function renderMlClusters(clustersData) {
@@ -388,20 +412,14 @@ export function renderMlClusters(clustersData) {
         polygonCoords.push(polygonCoords[0]);
       }
 
-      // Внешний glow-слой (более толстый, полупрозрачный обводок)
-      const glowFeature = new ol.Feature({
-        geometry: new ol.geom.Polygon([polygonCoords]),
-        isMlGlow: true,
-        glowColor: pal.glow,
-      });
-      features.push(glowFeature);
-
       // Основной полигон
       const polyFeature = new ol.Feature({
         geometry: new ol.geom.Polygon([polygonCoords]),
         isMlPolygon: true,
         fillColor: pal.fill,
         strokeColor: pal.stroke,
+        clusterId: Number(c.id),
+        clusterData: c,
       });
       features.push(polyFeature);
     }
@@ -420,7 +438,7 @@ export function renderMlClusters(clustersData) {
           ptRubKm:     pt.rub_per_km || 0,
           ptBids:      pt.bid_count || 0,
           ptHasData:   pt.has_data ?? true,
-          clusterId:   c.id,
+          clusterId:   Number(c.id),
         });
         features.push(ptFeature);
       });
@@ -433,6 +451,8 @@ export function renderMlClusters(clustersData) {
       const labelFeature = new ol.Feature({
         geometry: new ol.geom.Point(centerCoords),
         isMlLabel: true,
+        clusterId:   Number(c.id),
+        zoneLabel:   `Z${Number(c.id) + 1}`,
         avgRubKm:    c.avg_rub_km,
         totalBids:   c.total_bids,
         citiesCount: c.points_count,
@@ -440,6 +460,14 @@ export function renderMlClusters(clustersData) {
         fillColor:   pal.fill,
       });
       features.push(labelFeature);
+
+      const centerFeature = new ol.Feature({
+        geometry: new ol.geom.Point(centerCoords),
+        isMlCenter: true,
+        clusterId: Number(c.id),
+        strokeColor: pal.stroke,
+      });
+      features.push(centerFeature);
     }
   });
 
@@ -458,76 +486,92 @@ export function renderMlClusters(clustersData) {
 }
 
 function mlClusterStyleFunction(feature) {
-  // ── Glow-обводка (внешнее свечение) ──────────────────────────
-  if (feature.get('isMlGlow')) {
-    return new ol.style.Style({
-      stroke: new ol.style.Stroke({
-        color: feature.get('glowColor'),
-        width: 8,
-      }),
-    });
-  }
-
-  // ── Основной полигон ─────────────────────────────────────────
   if (feature.get('isMlPolygon')) {
+    if (!_mlLayerVisibility.zones) return null;
+    const zoneId = Number(feature.get('clusterId'));
+    const active = zoneId === _selectedMlZoneId || zoneId === _hoveredMlZoneId;
+    const fillColor = feature.get('fillColor');
     return new ol.style.Style({
-      fill: new ol.style.Fill({ color: feature.get('fillColor') }),
+      fill: new ol.style.Fill({ color: _mlResultIsStale ? 'rgba(110,120,132,.10)' : fillColor }),
       stroke: new ol.style.Stroke({
         color: feature.get('strokeColor'),
-        width: 2.5,
-        lineDash: [8, 5],        // пунктирная граница
-        lineDashOffset: 0,
+        width: active ? 4 : 2,
+        lineDash: _mlResultIsStale ? [7, 6] : undefined,
       }),
     });
   }
 
-  // ── Точки городов внутри кластера ────────────────────────────
   if (feature.get('isMlPoint')) {
+    if (!_mlLayerVisibility.cities) return null;
+    const active = Number(feature.get('clusterId')) === _selectedMlZoneId;
     return new ol.style.Style({
       image: new ol.style.Circle({
-        radius: 5,
+        radius: active ? 6 : 4.5,
         fill: new ol.style.Fill({ color: feature.get('strokeColor') }),
-        stroke: new ol.style.Stroke({ color: 'rgba(255,255,255,0.85)', width: 1.5 }),
+        stroke: new ol.style.Stroke({ color: '#fff', width: active ? 2 : 1.2 }),
       }),
     });
   }
 
-  // ── Метка кластера ───────────────────────────────────────────
   if (feature.get('isMlLabel')) {
-    const avg    = feature.get('avgRubKm');
-    const bids   = Number(feature.get('totalBids')).toLocaleString('ru-RU');
-    const cities = feature.get('citiesCount');
+    if (!_mlLayerVisibility.labels) return null;
+    const zoneId = Number(feature.get('clusterId'));
+    const active = zoneId === _selectedMlZoneId || zoneId === _hoveredMlZoneId;
     const color  = feature.get('strokeColor');
-
-    // Двустрочная метка: цена + статистика
-    const labelText = `${avg} ₽/км\n${cities} гор. · ${bids} заяв.`;
-
-    return [
-      // Фон-подложка (тёмный прямоугольник)
-      new ol.style.Style({
-        text: new ol.style.Text({
-          text: labelText,
-          font: 'bold 12px/1.5 "Inter", "Segoe UI", sans-serif',
-          fill: new ol.style.Fill({ color: '#ffffff' }),
-          backgroundFill: new ol.style.Fill({ color: 'rgba(15,18,28,0.88)' }),
-          backgroundStroke: new ol.style.Stroke({ color, width: 1.5 }),
-          padding: [5, 9, 5, 9],
-          offsetY: -22,
-          textAlign: 'center',
-        }),
+    return new ol.style.Style({
+      text: new ol.style.Text({
+        text: feature.get('zoneLabel'),
+        font: `${active ? '700 14px' : '700 12px'} "Inter", "Segoe UI", sans-serif`,
+        fill: new ol.style.Fill({ color: '#ffffff' }),
+        backgroundFill: new ol.style.Fill({ color }),
+        backgroundStroke: new ol.style.Stroke({ color: '#ffffff', width: active ? 2 : 1 }),
+        padding: active ? [6, 9, 6, 9] : [5, 7, 5, 7],
       }),
-      // Маленький кружок-пин в центре масс
-      new ol.style.Style({
-        image: new ol.style.Circle({
-          radius: 6,
-          fill: new ol.style.Fill({ color }),
-          stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
-        }),
+    });
+  }
+
+  if (feature.get('isMlCenter')) {
+    if (!_mlLayerVisibility.centers) return null;
+    return new ol.style.Style({
+      image: new ol.style.RegularShape({
+        points: 4,
+        radius: 7,
+        angle: Math.PI / 4,
+        fill: new ol.style.Fill({ color: '#ffffff' }),
+        stroke: new ol.style.Stroke({ color: feature.get('strokeColor'), width: 2 }),
       }),
-    ];
+    });
   }
 
   return null;
+}
+
+export function selectMlZone(clusterId, fit = false) {
+  _selectedMlZoneId = clusterId == null ? null : Number(clusterId);
+  _mlVectorLayer?.changed();
+  if (fit && clusterId != null) focusMlZone(clusterId);
+}
+
+export function focusMlZone(clusterId) {
+  if (!_map || !_mlVectorSource) return;
+  const polygon = _mlVectorSource.getFeatures().find(feature =>
+    feature.get('isMlPolygon') && Number(feature.get('clusterId')) === Number(clusterId)
+  );
+  if (!polygon) return;
+  _map.getView().fit(polygon.getGeometry().getExtent(), {
+    padding: [70, 70, 70, 70], maxZoom: 11, duration: 450,
+  });
+}
+
+export function setMlLayerVisibility(layer, visible) {
+  if (!(layer in _mlLayerVisibility)) return;
+  _mlLayerVisibility[layer] = Boolean(visible);
+  _mlVectorLayer?.changed();
+}
+
+export function setMlResultStale(stale) {
+  _mlResultIsStale = Boolean(stale);
+  _mlVectorLayer?.changed();
 }
 
 // ── Marker creation ───────────────────────────────────────────

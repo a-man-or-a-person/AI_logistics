@@ -24,6 +24,14 @@ def test_ml_rejects_unknown_town_type(client):
     assert response.status_code == 400
 
 
+def test_ml_rejects_unknown_weight_mode(client):
+    response = client.get(
+        "/api/ml-cluster?region=Москва&town_type=shipment&weight_mode=price"
+    )
+
+    assert response.status_code == 400
+
+
 @pytest.mark.parametrize("value", ["invalid", "1", "11"])
 def test_ml_rejects_invalid_k(client, value):
     response = client.get(
@@ -79,6 +87,11 @@ def test_ml_does_not_mix_other_periods_into_filtered_bid_count(client, monkeypat
 
     assert response.status_code == 200
     assert payload["region_total_bids"] == 5
+    assert payload["data_quality"] == {
+        "total_points": 2,
+        "used_points": 2,
+        "excluded_no_coordinates": 0,
+    }
     assert payload["clusters"][0]["total_bids"] == 5
     assert {point["town"]: point["bid_count"] for point in captured_points} == {"A": 5, "B": 0}
     assert {point["town"]: point["cluster_weight"] for point in captured_points} == {"A": 5, "B": 1}

@@ -117,7 +117,8 @@ function _buildRegionList(kind, regions) {
 }
 
 function _makeChip(kind, region) {
-  const chip = document.createElement('div');
+  const chip = document.createElement('button');
+  chip.type = 'button';
   chip.className = 'region-chip';
   chip.dataset.region = region;
   chip.dataset.kind = kind;
@@ -215,6 +216,7 @@ function _wireCollapseSections() {
     header.addEventListener('click', () => {
       const section = header.closest('.panel-section');
       section.classList.toggle('collapsed');
+      header.setAttribute('aria-expanded', String(!section.classList.contains('collapsed')));
     });
   });
 }
