@@ -1,0 +1,379 @@
+{
+  "generated_at_utc": "2026-08-23T13:47:35.020254+00:00",
+  "source": "pulse",
+  "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\v_pulse_prices.csv",
+  "source_size_bytes": 308775183,
+  "rows": {
+    "total": 543101,
+    "unique": 543101,
+    "duplicates": 0,
+    "duplicate_pct": 0.0
+  },
+  "entities": {
+    "unique_origin_fias": 108,
+    "unique_destination_fias": 3166
+  },
+  "periods": {
+    "range": {
+      "min": "202605",
+      "max": "202611"
+    },
+    "types": {
+      "current": 133798,
+      "forecast": 401394,
+      "retro": 7909
+    }
+  },
+  "price_types": {
+    "spot": 7909,
+    "tender": 535192
+  },
+  "nulls": {
+    "destination_name": {
+      "count": 168,
+      "pct": 0.0309
+    },
+    "destination_region": {
+      "count": 168,
+      "pct": 0.0309
+    },
+    "latitude": {
+      "count": 543101,
+      "pct": 100.0
+    },
+    "longitude": {
+      "count": 543101,
+      "pct": 100.0
+    }
+  },
+  "invalid_values": {},
+  "rub_per_km": {
+    "count": 543101,
+    "min": 13.5194,
+    "p25": 65.9212,
+    "median": 82.7761,
+    "p75": 98.2531,
+    "p95": 152.8025,
+    "max": 14290.0,
+    "mean": 93.7516
+  },
+  "destination_regions": {
+    "Московская область": {
+      "rows": 36032,
+      "unique_destinations": 236
+    },
+    "Республика Татарстан": {
+      "rows": 28258,
+      "unique_destinations": 112
+    },
+    "Ленинградская область": {
+      "rows": 25309,
+      "unique_destinations": 163
+    },
+    "Краснодарский край": {
+      "rows": 24471,
+      "unique_destinations": 144
+    },
+    "Свердловская область": {
+      "rows": 24023,
+      "unique_destinations": 98
+    },
+    "Нижегородская область": {
+      "rows": 23895,
+      "unique_destinations": 92
+    },
+    "Самарская область": {
+      "rows": 23796,
+      "unique_destinations": 72
+    },
+    "Республика Башкортостан": {
+      "rows": 22074,
+      "unique_destinations": 102
+    },
+    "Ростовская область": {
+      "rows": 21432,
+      "unique_destinations": 111
+    },
+    "Тульская область": {
+      "rows": 19579,
+      "unique_destinations": 86
+    },
+    "Воронежская область": {
+      "rows": 18416,
+      "unique_destinations": 81
+    },
+    "Калужская область": {
+      "rows": 16921,
+      "unique_destinations": 66
+    },
+    "Владимирская область": {
+      "rows": 16546,
+      "unique_destinations": 70
+    },
+    "Челябинская область": {
+      "rows": 13974,
+      "unique_destinations": 80
+    },
+    "Саратовская область": {
+      "rows": 13514,
+      "unique_destinations": 68
+    },
+    "Пермский край": {
+      "rows": 13229,
+      "unique_destinations": 59
+    },
+    "Волгоградская область": {
+      "rows": 11927,
+      "unique_destinations": 56
+    },
+    "Новосибирская область": {
+      "rows": 10672,
+      "unique_destinations": 56
+    },
+    "Белгородская область": {
+      "rows": 10281,
+      "unique_destinations": 49
+    },
+    "Москва": {
+      "rows": 9328,
+      "unique_destinations": 39
+    },
+    "Ярославская область": {
+      "rows": 9089,
+      "unique_destinations": 35
+    },
+    "Тверская область": {
+      "rows": 9061,
+      "unique_destinations": 47
+    },
+    "Кировская область": {
+      "rows": 8625,
+      "unique_destinations": 41
+    },
+    "Брянская область": {
+      "rows": 7647,
+      "unique_destinations": 49
+    },
+    "Курская область": {
+      "rows": 7529,
+      "unique_destinations": 32
+    },
+    "Ставропольский край": {
+      "rows": 7289,
+      "unique_destinations": 47
+    },
+    "Санкт-Петербург": {
+      "rows": 7061,
+      "unique_destinations": 23
+    },
+    "Рязанская область": {
+      "rows": 6921,
+      "unique_destinations": 38
+    },
+    "Липецкая область": {
+      "rows": 6331,
+      "unique_destinations": 36
+    },
+    "Смоленская область": {
+      "rows": 5779,
+      "unique_destinations": 34
+    },
+    "Оренбургская область": {
+      "rows": 5630,
+      "unique_destinations": 37
+    },
+    "Новгородская область": {
+      "rows": 5596,
+      "unique_destinations": 35
+    },
+    "Тюменская область": {
+      "rows": 5415,
+      "unique_destinations": 32
+    },
+    "Удмуртская Республика": {
+      "rows": 4996,
+      "unique_destinations": 31
+    },
+    "Ивановская область": {
+      "rows": 4712,
+      "unique_destinations": 35
+    },
+    "Ульяновская область": {
+      "rows": 4597,
+      "unique_destinations": 26
+    },
+    "Республика Адыгея": {
+      "rows": 4306,
+      "unique_destinations": 25
+    },
+    "Тамбовская область": {
+      "rows": 4146,
+      "unique_destinations": 37
+    },
+    "Республика Мордовия": {
+      "rows": 3959,
+      "unique_destinations": 32
+    },
+    "Красноярский край": {
+      "rows": 3890,
+      "unique_destinations": 42
+    },
+    "Орловская область": {
+      "rows": 3539,
+      "unique_destinations": 27
+    },
+    "Вологодская область": {
+      "rows": 3362,
+      "unique_destinations": 34
+    },
+    "Кемеровская область": {
+      "rows": 2924,
+      "unique_destinations": 38
+    },
+    "Чувашская Республика": {
+      "rows": 2736,
+      "unique_destinations": 27
+    },
+    "Алтайский край": {
+      "rows": 2726,
+      "unique_destinations": 29
+    },
+    "Пензенская область": {
+      "rows": 2661,
+      "unique_destinations": 39
+    },
+    "Республика Марий Эл": {
+      "rows": 2312,
+      "unique_destinations": 23
+    },
+    "Омская область": {
+      "rows": 2168,
+      "unique_destinations": 11
+    },
+    "Томская область": {
+      "rows": 1466,
+      "unique_destinations": 10
+    },
+    "Астраханская область": {
+      "rows": 1359,
+      "unique_destinations": 23
+    },
+    "Кабардино-Балкарская Республика": {
+      "rows": 1326,
+      "unique_destinations": 15
+    },
+    "Иркутская область": {
+      "rows": 1265,
+      "unique_destinations": 34
+    },
+    "Республика Дагестан": {
+      "rows": 1147,
+      "unique_destinations": 16
+    },
+    "Псковская область": {
+      "rows": 1021,
+      "unique_destinations": 13
+    },
+    "Курганская область": {
+      "rows": 1011,
+      "unique_destinations": 17
+    },
+    "Мурманская область": {
+      "rows": 895,
+      "unique_destinations": 19
+    },
+    "Костромская область": {
+      "rows": 818,
+      "unique_destinations": 14
+    },
+    "Карачаево-Черкесская Республика": {
+      "rows": 645,
+      "unique_destinations": 8
+    },
+    "Ханты-Мансийский автономный округ — Югра": {
+      "rows": 593,
+      "unique_destinations": 41
+    },
+    "Архангельская область": {
+      "rows": 586,
+      "unique_destinations": 16
+    },
+    "Республика Северная Осетия — Алания": {
+      "rows": 392,
+      "unique_destinations": 6
+    },
+    "Республика Ингушетия": {
+      "rows": 353,
+      "unique_destinations": 4
+    },
+    "Чеченская Республика": {
+      "rows": 348,
+      "unique_destinations": 8
+    },
+    "Приморский край": {
+      "rows": 230,
+      "unique_destinations": 10
+    },
+    "Амурская область": {
+      "rows": 201,
+      "unique_destinations": 15
+    },
+    "Республика Коми": {
+      "rows": 200,
+      "unique_destinations": 12
+    },
+    "Хабаровский край": {
+      "rows": 170,
+      "unique_destinations": 6
+    },
+    "<missing>": {
+      "rows": 168,
+      "unique_destinations": 77
+    },
+    "Республика Хакасия": {
+      "rows": 166,
+      "unique_destinations": 10
+    },
+    "Республика Бурятия": {
+      "rows": 19,
+      "unique_destinations": 4
+    },
+    "Республика Карелия": {
+      "rows": 16,
+      "unique_destinations": 2
+    },
+    "Забайкальский край": {
+      "rows": 12,
+      "unique_destinations": 3
+    },
+    "Еврейская автономная область": {
+      "rows": 10,
+      "unique_destinations": 1
+    }
+  },
+  "trips_per_destination": {
+    "count": 3166,
+    "min": 1.0,
+    "p25": 4690.0,
+    "median": 11143.5,
+    "p75": 19556.0,
+    "p95": 34316.25,
+    "max": 151446.0,
+    "mean": 13604.8654
+  },
+  "rows_per_destination": {
+    "count": 3166,
+    "min": 1.0,
+    "p25": 104.0,
+    "median": 200.0,
+    "p75": 236.0,
+    "p95": 321.5,
+    "max": 401.0,
+    "mean": 171.5417
+  },
+  "contract": {
+    "rub_per_km_formula": "price / route_length for price > 0 and route_length > 0",
+    "coordinate_status": "optional; expected to be joined by FIAS when absent",
+    "duplicate_definition": "identical normalized business fields"
+  }
+}

@@ -1,0 +1,2354 @@
+{
+  "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\v_pulse_prices.csv",
+  "filters": {
+    "destination_region": "Ленинградская область",
+    "origin_fias": null,
+    "period_types": [],
+    "price_types": []
+  },
+  "methodology": {
+    "backend_compatible_rub_per_km": "sum(price) / sum(route_length)",
+    "trip_weighted_rub_per_km": "sum(price * trip_count) / sum(route_length * trip_count)",
+    "valid_row": "price > 0 and route_length > 0"
+  },
+  "overall": {
+    "record_count": 25309,
+    "trip_count": 2679136,
+    "backend_compatible_rub_per_km": 72.5023,
+    "trip_weighted_rub_per_km": 68.0618,
+    "mean_price": 102273.0863,
+    "mean_route_length": 1410.6189
+  },
+  "by_period": {
+    "202605": {
+      "record_count": 69,
+      "trip_count": 1757,
+      "backend_compatible_rub_per_km": 69.282,
+      "trip_weighted_rub_per_km": 61.0994,
+      "mean_price": 102244.2029,
+      "mean_route_length": 1475.7681
+    },
+    "202606": {
+      "record_count": 67,
+      "trip_count": 2638,
+      "backend_compatible_rub_per_km": 76.1812,
+      "trip_weighted_rub_per_km": 64.2553,
+      "mean_price": 97754.1791,
+      "mean_route_length": 1283.1791
+    },
+    "202607": {
+      "record_count": 81,
+      "trip_count": 2853,
+      "backend_compatible_rub_per_km": 78.1235,
+      "trip_weighted_rub_per_km": 70.5331,
+      "mean_price": 103363.2099,
+      "mean_route_length": 1323.0741
+    },
+    "202608": {
+      "record_count": 6273,
+      "trip_count": 667972,
+      "backend_compatible_rub_per_km": 71.4304,
+      "trip_weighted_rub_per_km": 67.0734,
+      "mean_price": 100792.7834,
+      "mean_route_length": 1411.0626
+    },
+    "202609": {
+      "record_count": 6273,
+      "trip_count": 667972,
+      "backend_compatible_rub_per_km": 72.66,
+      "trip_weighted_rub_per_km": 68.2281,
+      "mean_price": 102527.8511,
+      "mean_route_length": 1411.0626
+    },
+    "202610": {
+      "record_count": 6273,
+      "trip_count": 667972,
+      "backend_compatible_rub_per_km": 73.1083,
+      "trip_weighted_rub_per_km": 68.6494,
+      "mean_price": 103160.3539,
+      "mean_route_length": 1411.0626
+    },
+    "202611": {
+      "record_count": 6273,
+      "trip_count": 667972,
+      "backend_compatible_rub_per_km": 72.7437,
+      "trip_weighted_rub_per_km": 68.307,
+      "mean_price": 102645.8632,
+      "mean_route_length": 1411.0626
+    }
+  },
+  "by_origin": [
+    {
+      "origin_fias": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+      "origin_name": "Санкт-Петербург",
+      "record_count": 446,
+      "trip_count": 13773,
+      "backend_compatible_rub_per_km": 245.3328,
+      "trip_weighted_rub_per_km": 218.7218,
+      "mean_price": 22691.6368,
+      "mean_route_length": 92.4933
+    },
+    {
+      "origin_fias": "bb035cc3-1dc2-4627-9d25-a1bf2d4b936b",
+      "origin_name": "Самара",
+      "record_count": 421,
+      "trip_count": 18319,
+      "backend_compatible_rub_per_km": 63.6349,
+      "trip_weighted_rub_per_km": 60.6406,
+      "mean_price": 118732.9691,
+      "mean_route_length": 1865.848
+    },
+    {
+      "origin_fias": "6d7c3e9e-8d6d-490a-a650-8257dbf5ec36",
+      "origin_name": "Тобольск",
+      "record_count": 419,
+      "trip_count": 14872,
+      "backend_compatible_rub_per_km": 60.6752,
+      "trip_weighted_rub_per_km": 60.362,
+      "mean_price": 187056.8019,
+      "mean_route_length": 3082.9212
+    },
+    {
+      "origin_fias": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+      "origin_name": "Казань",
+      "record_count": 419,
+      "trip_count": 7239,
+      "backend_compatible_rub_per_km": 65.6112,
+      "trip_weighted_rub_per_km": 65.304,
+      "mean_price": 102051.9809,
+      "mean_route_length": 1555.4057
+    },
+    {
+      "origin_fias": "0c5b2444-70a0-4932-980c-b4dc0d3f02b5",
+      "origin_name": "Москва",
+      "record_count": 411,
+      "trip_count": 36147,
+      "backend_compatible_rub_per_km": 104.3647,
+      "trip_weighted_rub_per_km": 103.0639,
+      "mean_price": 79102.3114,
+      "mean_route_length": 757.9416
+    },
+    {
+      "origin_fias": "f8804f2e-f6c7-43cb-8642-7d4f5394d60c",
+      "origin_name": "Малино",
+      "record_count": 411,
+      "trip_count": 50715,
+      "backend_compatible_rub_per_km": 99.5298,
+      "trip_weighted_rub_per_km": 94.8594,
+      "mean_price": 84618.4915,
+      "mean_route_length": 850.1825
+    },
+    {
+      "origin_fias": "da7ef573-cdbe-458e-a790-b29ad3a3d140",
+      "origin_name": "Благовещенск",
+      "record_count": 410,
+      "trip_count": 37517,
+      "backend_compatible_rub_per_km": 63.5753,
+      "trip_weighted_rub_per_km": 61.5635,
+      "mean_price": 130764.878,
+      "mean_route_length": 2056.8512
+    },
+    {
+      "origin_fias": "c52ea942-555e-45c6-9751-58897717b02f",
+      "origin_name": "Тверь",
+      "record_count": 409,
+      "trip_count": 28130,
+      "backend_compatible_rub_per_km": 113.6364,
+      "trip_weighted_rub_per_km": 114.2637,
+      "mean_price": 64067.8729,
+      "mean_route_length": 563.7971
+    },
+    {
+      "origin_fias": "efc02a6a-273b-4a49-aef9-a5606ef8591c",
+      "origin_name": "Серпухов",
+      "record_count": 408,
+      "trip_count": 31949,
+      "backend_compatible_rub_per_km": 103.1681,
+      "trip_weighted_rub_per_km": 101.4823,
+      "mean_price": 87492.1078,
+      "mean_route_length": 848.0539
+    },
+    {
+      "origin_fias": "061cd8e0-b7bd-4a31-944e-a6e3da93631d",
+      "origin_name": "Верхняя Пышма",
+      "record_count": 407,
+      "trip_count": 96281,
+      "backend_compatible_rub_per_km": 62.3061,
+      "trip_weighted_rub_per_km": 54.4172,
+      "mean_price": 153827.027,
+      "mean_route_length": 2468.8919
+    },
+    {
+      "origin_fias": "1e90ec38-0f85-442b-ac1b-ca687fa91d88",
+      "origin_name": "Зеленодольск",
+      "record_count": 407,
+      "trip_count": 72037,
+      "backend_compatible_rub_per_km": 69.3588,
+      "trip_weighted_rub_per_km": 69.3249,
+      "mean_price": 105969.3857,
+      "mean_route_length": 1527.8428
+    },
+    {
+      "origin_fias": "555e7d61-d9a7-4ba6-9770-6caa8198c483",
+      "origin_name": "Нижний Новгород",
+      "record_count": 406,
+      "trip_count": 31650,
+      "backend_compatible_rub_per_km": 74.2296,
+      "trip_weighted_rub_per_km": 71.7748,
+      "mean_price": 86021.0837,
+      "mean_route_length": 1158.8522
+    },
+    {
+      "origin_fias": "748d7afa-7407-4876-9f40-764ecdd09bbd",
+      "origin_name": "Набережные Челны",
+      "record_count": 406,
+      "trip_count": 33786,
+      "backend_compatible_rub_per_km": 71.0132,
+      "trip_weighted_rub_per_km": 65.3173,
+      "mean_price": 126680.936,
+      "mean_route_length": 1783.9064
+    },
+    {
+      "origin_fias": "d0a6a8f3-7497-495a-9632-5a969555f86b",
+      "origin_name": "ОЭЗ Алабуга",
+      "record_count": 405,
+      "trip_count": 55573,
+      "backend_compatible_rub_per_km": 68.5444,
+      "trip_weighted_rub_per_km": 63.5378,
+      "mean_price": 120063.8025,
+      "mean_route_length": 1751.6198
+    },
+    {
+      "origin_fias": "bd10eef0-b2e0-4491-ad72-9f12e9480f7e",
+      "origin_name": "Ворсино",
+      "record_count": 404,
+      "trip_count": 18014,
+      "backend_compatible_rub_per_km": 111.026,
+      "trip_weighted_rub_per_km": 105.4344,
+      "mean_price": 91544.2327,
+      "mean_route_length": 824.5297
+    },
+    {
+      "origin_fias": "e3b0eae8-a4ce-4779-ae04-5c0797de66be",
+      "origin_name": "Томск",
+      "record_count": 403,
+      "trip_count": 92087,
+      "backend_compatible_rub_per_km": 46.384,
+      "trip_weighted_rub_per_km": 46.1222,
+      "mean_price": 198286.2779,
+      "mean_route_length": 4274.8834
+    },
+    {
+      "origin_fias": "6b849aa8-0782-4c26-b7ac-a0f413f306c0",
+      "origin_name": "Нижнекамск",
+      "record_count": 403,
+      "trip_count": 18543,
+      "backend_compatible_rub_per_km": 74.0224,
+      "trip_weighted_rub_per_km": 66.5331,
+      "mean_price": 132870.5707,
+      "mean_route_length": 1795.005
+    },
+    {
+      "origin_fias": "d1d28f0b-8436-4b92-bfd4-ada6fd02d158",
+      "origin_name": "Гидроторф",
+      "record_count": 402,
+      "trip_count": 47687,
+      "backend_compatible_rub_per_km": 76.1114,
+      "trip_weighted_rub_per_km": 73.6607,
+      "mean_price": 87604.602,
+      "mean_route_length": 1151.005
+    },
+    {
+      "origin_fias": "2763c110-cb8b-416a-9dac-ad28a55b4402",
+      "origin_name": "Екатеринбург",
+      "record_count": 402,
+      "trip_count": 17413,
+      "backend_compatible_rub_per_km": 70.6433,
+      "trip_weighted_rub_per_km": 60.9762,
+      "mean_price": 173306.7413,
+      "mean_route_length": 2453.2662
+    },
+    {
+      "origin_fias": "2365151a-7a78-4af5-a8fb-a4faff856df5",
+      "origin_name": "Клин",
+      "record_count": 402,
+      "trip_count": 58178,
+      "backend_compatible_rub_per_km": 110.8754,
+      "trip_weighted_rub_per_km": 108.4497,
+      "mean_price": 73806.0448,
+      "mean_route_length": 665.6667
+    },
+    {
+      "origin_fias": "a309e4ce-2f36-4106-b1ca-53e0f48a6d95",
+      "origin_name": "Пермь",
+      "record_count": 402,
+      "trip_count": 48795,
+      "backend_compatible_rub_per_km": 47.7068,
+      "trip_weighted_rub_per_km": 47.7955,
+      "mean_price": 100025.1741,
+      "mean_route_length": 2096.6667
+    },
+    {
+      "origin_fias": "cda74a83-ae08-4ba2-b01c-c6fc373222cb",
+      "origin_name": "Новокуйбышевск",
+      "record_count": 402,
+      "trip_count": 72807,
+      "backend_compatible_rub_per_km": 59.4274,
+      "trip_weighted_rub_per_km": 57.1394,
+      "mean_price": 111731.9652,
+      "mean_route_length": 1880.1418
+    },
+    {
+      "origin_fias": "d790c72e-479b-4da2-90d7-842b1712a71c",
+      "origin_name": "Курск",
+      "record_count": 401,
+      "trip_count": 31685,
+      "backend_compatible_rub_per_km": 84.1309,
+      "trip_weighted_rub_per_km": 83.2346,
+      "mean_price": 107385.0623,
+      "mean_route_length": 1276.404
+    },
+    {
+      "origin_fias": "b502ae45-897e-4b6f-9776-6ff49740b537",
+      "origin_name": "Калуга",
+      "record_count": 401,
+      "trip_count": 19037,
+      "backend_compatible_rub_per_km": 100.8986,
+      "trip_weighted_rub_per_km": 99.7842,
+      "mean_price": 91034.7132,
+      "mean_route_length": 902.2394
+    },
+    {
+      "origin_fias": "a863ac33-3a58-4efc-80a3-b37e1ed7dfc0",
+      "origin_name": "Малино",
+      "record_count": 400,
+      "trip_count": 43224,
+      "backend_compatible_rub_per_km": 108.7558,
+      "trip_weighted_rub_per_km": 107.1016,
+      "mean_price": 113656.375,
+      "mean_route_length": 1045.06
+    },
+    {
+      "origin_fias": "6f88d420-8ca3-4fe2-adc8-be9b08c3ff87",
+      "origin_name": "Малино",
+      "record_count": 400,
+      "trip_count": 64728,
+      "backend_compatible_rub_per_km": 104.364,
+      "trip_weighted_rub_per_km": 105.1919,
+      "mean_price": 100612.125,
+      "mean_route_length": 964.05
+    },
+    {
+      "origin_fias": "111e2cce-10aa-4667-ac59-69ff0a4410b8",
+      "origin_name": "Казань",
+      "record_count": 400,
+      "trip_count": 18132,
+      "backend_compatible_rub_per_km": 63.243,
+      "trip_weighted_rub_per_km": 63.1902,
+      "mean_price": 98007.725,
+      "mean_route_length": 1549.7
+    },
+    {
+      "origin_fias": "e7fc9328-fdc9-42c5-9051-966c9ab12696",
+      "origin_name": "Казань",
+      "record_count": 400,
+      "trip_count": 22780,
+      "backend_compatible_rub_per_km": 64.5496,
+      "trip_weighted_rub_per_km": 64.4757,
+      "mean_price": 94301.75,
+      "mean_route_length": 1460.92
+    },
+    {
+      "origin_fias": "d393a779-b266-4d09-9bcd-58e1bdcabcea",
+      "origin_name": "Самара",
+      "record_count": 400,
+      "trip_count": 29812,
+      "backend_compatible_rub_per_km": 100.1607,
+      "trip_weighted_rub_per_km": 99.8146,
+      "mean_price": 99342.425,
+      "mean_route_length": 991.83
+    },
+    {
+      "origin_fias": "553db494-e64b-4bda-b52d-f4ac0dac0462",
+      "origin_name": "Самара",
+      "record_count": 400,
+      "trip_count": 28880,
+      "backend_compatible_rub_per_km": 110.0778,
+      "trip_weighted_rub_per_km": 106.8606,
+      "mean_price": 33911.675,
+      "mean_route_length": 308.07
+    },
+    {
+      "origin_fias": "72c043c6-01a7-4c62-b782-ab6fe72ad3a3",
+      "origin_name": "Ступино",
+      "record_count": 400,
+      "trip_count": 51740,
+      "backend_compatible_rub_per_km": 86.9774,
+      "trip_weighted_rub_per_km": 86.6153,
+      "mean_price": 89398.8,
+      "mean_route_length": 1027.84
+    },
+    {
+      "origin_fias": "fd56766e-f87c-4c74-9139-2188909c903d",
+      "origin_name": "Ступино",
+      "record_count": 400,
+      "trip_count": 71072,
+      "backend_compatible_rub_per_km": 86.9205,
+      "trip_weighted_rub_per_km": 85.3376,
+      "mean_price": 85229.925,
+      "mean_route_length": 980.55
+    },
+    {
+      "origin_fias": "e40e562f-5dac-4b81-8ed6-351bded52d72",
+      "origin_name": "Ступино",
+      "record_count": 400,
+      "trip_count": 119860,
+      "backend_compatible_rub_per_km": 76.6349,
+      "trip_weighted_rub_per_km": 76.8391,
+      "mean_price": 89991.55,
+      "mean_route_length": 1174.29
+    },
+    {
+      "origin_fias": "4c35e5c8-1774-4590-b35d-b8434becb4d7",
+      "origin_name": "Ступино",
+      "record_count": 400,
+      "trip_count": 23360,
+      "backend_compatible_rub_per_km": 101.0429,
+      "trip_weighted_rub_per_km": 104.0244,
+      "mean_price": 76450.1,
+      "mean_route_length": 756.61
+    },
+    {
+      "origin_fias": "f516f0a9-3882-42fb-ae68-87a433e83e06",
+      "origin_name": "Ступино",
+      "record_count": 400,
+      "trip_count": 68440,
+      "backend_compatible_rub_per_km": 104.6603,
+      "trip_weighted_rub_per_km": 101.0885,
+      "mean_price": 89944.05,
+      "mean_route_length": 859.39
+    },
+    {
+      "origin_fias": "c30608ce-3494-44f0-853b-47245e02c54a",
+      "origin_name": "Казань",
+      "record_count": 400,
+      "trip_count": 22320,
+      "backend_compatible_rub_per_km": 57.7246,
+      "trip_weighted_rub_per_km": 57.6249,
+      "mean_price": 98100.625,
+      "mean_route_length": 1699.46
+    },
+    {
+      "origin_fias": "1966eb14-be1f-4929-9499-1695df51302b",
+      "origin_name": "Самарское",
+      "record_count": 400,
+      "trip_count": 29492,
+      "backend_compatible_rub_per_km": 57.8648,
+      "trip_weighted_rub_per_km": 57.7589,
+      "mean_price": 146363.175,
+      "mean_route_length": 2529.4
+    },
+    {
+      "origin_fias": "5d402bfa-4863-4830-8cd3-beadf7ba126e",
+      "origin_name": "Самарское",
+      "record_count": 400,
+      "trip_count": 60828,
+      "backend_compatible_rub_per_km": 71.9917,
+      "trip_weighted_rub_per_km": 71.3074,
+      "mean_price": 133740.475,
+      "mean_route_length": 1857.72
+    },
+    {
+      "origin_fias": "a2b09905-6ed5-4f80-a6c1-dfd714316054",
+      "origin_name": "Клин",
+      "record_count": 400,
+      "trip_count": 46080,
+      "backend_compatible_rub_per_km": 100.878,
+      "trip_weighted_rub_per_km": 100.2177,
+      "mean_price": 93206.2,
+      "mean_route_length": 923.95
+    },
+    {
+      "origin_fias": "382c22c2-49be-4f28-89f6-71a416069349",
+      "origin_name": "Клин",
+      "record_count": 400,
+      "trip_count": 35948,
+      "backend_compatible_rub_per_km": 82.6773,
+      "trip_weighted_rub_per_km": 81.8357,
+      "mean_price": 90316.65,
+      "mean_route_length": 1092.4
+    },
+    {
+      "origin_fias": "1b19c017-e0bb-4104-b10f-94a2cb5fbc62",
+      "origin_name": "Ступино",
+      "record_count": 400,
+      "trip_count": 114100,
+      "backend_compatible_rub_per_km": 88.7285,
+      "trip_weighted_rub_per_km": 87.9841,
+      "mean_price": 164191.2,
+      "mean_route_length": 1850.49
+    },
+    {
+      "origin_fias": "0cc5b35f-9d25-417e-8d2e-a0fd857c0721",
+      "origin_name": "Клин",
+      "record_count": 400,
+      "trip_count": 20980,
+      "backend_compatible_rub_per_km": 106.3071,
+      "trip_weighted_rub_per_km": 105.8968,
+      "mean_price": 55254.2,
+      "mean_route_length": 519.76
+    },
+    {
+      "origin_fias": "6973d599-19c1-494a-8458-8dab91e5015c",
+      "origin_name": "Клин",
+      "record_count": 400,
+      "trip_count": 9640,
+      "backend_compatible_rub_per_km": 80.8862,
+      "trip_weighted_rub_per_km": 80.9787,
+      "mean_price": 50215.775,
+      "mean_route_length": 620.82
+    },
+    {
+      "origin_fias": "e550bfd2-86bc-4764-9acf-130da638c526",
+      "origin_name": "Клин",
+      "record_count": 400,
+      "trip_count": 38684,
+      "backend_compatible_rub_per_km": 90.1694,
+      "trip_weighted_rub_per_km": 90.2312,
+      "mean_price": 37047.9,
+      "mean_route_length": 410.87
+    },
+    {
+      "origin_fias": "0420351f-e979-4db6-85dc-fdfcc8d380c8",
+      "origin_name": "Клин",
+      "record_count": 400,
+      "trip_count": 60080,
+      "backend_compatible_rub_per_km": 80.5964,
+      "trip_weighted_rub_per_km": 78.2165,
+      "mean_price": 28254.675,
+      "mean_route_length": 350.57
+    },
+    {
+      "origin_fias": "f1c72b9d-a2d7-45b7-b9f5-2222c12d5164",
+      "origin_name": "Москва",
+      "record_count": 400,
+      "trip_count": 22220,
+      "backend_compatible_rub_per_km": 58.2109,
+      "trip_weighted_rub_per_km": 58.0706,
+      "mean_price": 95215.55,
+      "mean_route_length": 1635.7
+    },
+    {
+      "origin_fias": "c15dbe72-d304-43e8-a557-899aa226739d",
+      "origin_name": "Курск",
+      "record_count": 400,
+      "trip_count": 11056,
+      "backend_compatible_rub_per_km": 150.1238,
+      "trip_weighted_rub_per_km": 150.4818,
+      "mean_price": 25397.95,
+      "mean_route_length": 169.18
+    },
+    {
+      "origin_fias": "1335f20d-3475-4fbc-b6e3-306a3ea558ca",
+      "origin_name": "Преображенка",
+      "record_count": 400,
+      "trip_count": 56924,
+      "backend_compatible_rub_per_km": 60.9637,
+      "trip_weighted_rub_per_km": 59.2623,
+      "mean_price": 114273.475,
+      "mean_route_length": 1874.45
+    },
+    {
+      "origin_fias": "b3660be7-70e5-4afa-bd45-803490ecf579",
+      "origin_name": "Преображенка",
+      "record_count": 400,
+      "trip_count": 65920,
+      "backend_compatible_rub_per_km": 61.542,
+      "trip_weighted_rub_per_km": 60.2995,
+      "mean_price": 115025.025,
+      "mean_route_length": 1869.05
+    },
+    {
+      "origin_fias": "efaff568-29a6-49f8-a766-178ae997552e",
+      "origin_name": "Преображенка",
+      "record_count": 400,
+      "trip_count": 20968,
+      "backend_compatible_rub_per_km": 58.3879,
+      "trip_weighted_rub_per_km": 59.124,
+      "mean_price": 109865.5,
+      "mean_route_length": 1881.65
+    },
+    {
+      "origin_fias": "d80a97db-8053-48ad-869e-ee6e347aacdb",
+      "origin_name": "Ворсино",
+      "record_count": 400,
+      "trip_count": 30816,
+      "backend_compatible_rub_per_km": 87.3319,
+      "trip_weighted_rub_per_km": 86.2121,
+      "mean_price": 96415.325,
+      "mean_route_length": 1104.01
+    },
+    {
+      "origin_fias": "2e299931-e328-4918-bcd7-f59ca219ccaf",
+      "origin_name": "Преображенка",
+      "record_count": 400,
+      "trip_count": 24352,
+      "backend_compatible_rub_per_km": 65.2342,
+      "trip_weighted_rub_per_km": 61.9854,
+      "mean_price": 138405.4,
+      "mean_route_length": 2121.67
+    },
+    {
+      "origin_fias": "5d7b2eb3-1fb0-404f-9aa6-64b5e1a78191",
+      "origin_name": "Зеленодольск",
+      "record_count": 400,
+      "trip_count": 30400,
+      "backend_compatible_rub_per_km": 57.0567,
+      "trip_weighted_rub_per_km": 57.0567,
+      "mean_price": 157849.15,
+      "mean_route_length": 2766.53
+    },
+    {
+      "origin_fias": "96fe63dd-2802-415b-8b73-e06c2147ceef",
+      "origin_name": "Криводановка",
+      "record_count": 400,
+      "trip_count": 123284,
+      "backend_compatible_rub_per_km": 46.3834,
+      "trip_weighted_rub_per_km": 43.5857,
+      "mean_price": 185826.875,
+      "mean_route_length": 4006.32
+    },
+    {
+      "origin_fias": "7baaac39-aa31-4712-893d-51ef80124a86",
+      "origin_name": "Сергиев Посад",
+      "record_count": 400,
+      "trip_count": 30656,
+      "backend_compatible_rub_per_km": 102.8908,
+      "trip_weighted_rub_per_km": 101.6714,
+      "mean_price": 79929.725,
+      "mean_route_length": 776.84
+    },
+    {
+      "origin_fias": "48d6df3d-d485-42e1-9f94-c1b0af5c5b0c",
+      "origin_name": "Клин",
+      "record_count": 400,
+      "trip_count": 120880,
+      "backend_compatible_rub_per_km": 93.2941,
+      "trip_weighted_rub_per_km": 92.0808,
+      "mean_price": 126159.725,
+      "mean_route_length": 1352.28
+    },
+    {
+      "origin_fias": "82d4c783-5080-4faa-9cec-ba9152bc9fc8",
+      "origin_name": "Елабуга",
+      "record_count": 400,
+      "trip_count": 44104,
+      "backend_compatible_rub_per_km": 71.8007,
+      "trip_weighted_rub_per_km": 66.6871,
+      "mean_price": 125788.4,
+      "mean_route_length": 1751.91
+    },
+    {
+      "origin_fias": "0aa27072-35fc-40a1-a12b-8dbd7b8121c8",
+      "origin_name": "Красноярск",
+      "record_count": 400,
+      "trip_count": 30400,
+      "backend_compatible_rub_per_km": 57.2109,
+      "trip_weighted_rub_per_km": 57.2109,
+      "mean_price": 154120.575,
+      "mean_route_length": 2693.9
+    },
+    {
+      "origin_fias": "ff70ee32-50ae-4994-acc1-51289dc92d7c",
+      "origin_name": "Воронеж",
+      "record_count": 400,
+      "trip_count": 37796,
+      "backend_compatible_rub_per_km": 87.5349,
+      "trip_weighted_rub_per_km": 86.7661,
+      "mean_price": 92626.8,
+      "mean_route_length": 1058.17
+    },
+    {
+      "origin_fias": "a4c1f3dc-ef2f-4b0c-a80f-e53a7600ceb3",
+      "origin_name": "Ворсино",
+      "record_count": 400,
+      "trip_count": 18072,
+      "backend_compatible_rub_per_km": 111.0269,
+      "trip_weighted_rub_per_km": 105.4847,
+      "mean_price": 91505.075,
+      "mean_route_length": 824.17
+    },
+    {
+      "origin_fias": "e0775ae9-f9b4-4c83-a13b-13e92b2a0726",
+      "origin_name": "Курск",
+      "record_count": 400,
+      "trip_count": 11056,
+      "backend_compatible_rub_per_km": 150.9065,
+      "trip_weighted_rub_per_km": 151.1033,
+      "mean_price": 25329.65,
+      "mean_route_length": 167.85
+    },
+    {
+      "origin_fias": "27c5bc66-61bf-4a17-b0cd-ca0eb64192d6",
+      "origin_name": "Балашиха",
+      "record_count": 352,
+      "trip_count": 31156,
+      "backend_compatible_rub_per_km": 104.3744,
+      "trip_weighted_rub_per_km": 103.7317,
+      "mean_price": 80498.7784,
+      "mean_route_length": 771.25
+    },
+    {
+      "origin_fias": "5bf5ddff-6353-4a3d-80c4-6fb27f00c6c1",
+      "origin_name": "Воронеж",
+      "record_count": 343,
+      "trip_count": 36652,
+      "backend_compatible_rub_per_km": 98.4005,
+      "trip_weighted_rub_per_km": 92.8973,
+      "mean_price": 127610.5831,
+      "mean_route_length": 1296.8484
+    },
+    {
+      "origin_fias": "140e31da-27bf-4519-9ea0-6185d681d44e",
+      "origin_name": "Омск",
+      "record_count": 7,
+      "trip_count": 10,
+      "backend_compatible_rub_per_km": 56.4651,
+      "trip_weighted_rub_per_km": 58.6997,
+      "mean_price": 194102.8571,
+      "mean_route_length": 3437.5714
+    }
+  ],
+  "by_destination": [
+    {
+      "destination_fias": "52da70f1-08b0-4b4c-9d22-d67a62bc2aa5",
+      "destination_name": "г Кириши",
+      "record_count": 260,
+      "trip_count": 16560,
+      "backend_compatible_rub_per_km": 73.6402,
+      "trip_weighted_rub_per_km": 67.8821,
+      "mean_price": 98089.6154,
+      "mean_route_length": 1332.0115
+    },
+    {
+      "destination_fias": "a5554286-fefd-4ae9-b846-8d21ed304c08",
+      "destination_name": "деревня Новосаратовка",
+      "record_count": 256,
+      "trip_count": 30093,
+      "backend_compatible_rub_per_km": 72.8136,
+      "trip_weighted_rub_per_km": 62.788,
+      "mean_price": 98890.5078,
+      "mean_route_length": 1358.1328
+    },
+    {
+      "destination_fias": "a4a3e3af-ce5a-4eba-9aae-36c350fa7fec",
+      "destination_name": "г Выборг",
+      "record_count": 253,
+      "trip_count": 32615,
+      "backend_compatible_rub_per_km": 71.3661,
+      "trip_weighted_rub_per_km": 67.3772,
+      "mean_price": 107284.0711,
+      "mean_route_length": 1503.2925
+    },
+    {
+      "destination_fias": "7db77c8e-fb17-4f25-999b-95732a3baef5",
+      "destination_name": "г Бугры",
+      "record_count": 252,
+      "trip_count": 32955,
+      "backend_compatible_rub_per_km": 69.8708,
+      "trip_weighted_rub_per_km": 66.1556,
+      "mean_price": 96270.0794,
+      "mean_route_length": 1377.8294
+    },
+    {
+      "destination_fias": "765cbc20-351b-4645-acfa-34472f970dab",
+      "destination_name": "поселок Ларионово",
+      "record_count": 252,
+      "trip_count": 37644,
+      "backend_compatible_rub_per_km": 69.4125,
+      "trip_weighted_rub_per_km": 67.9185,
+      "mean_price": 105904.7222,
+      "mean_route_length": 1525.7302
+    },
+    {
+      "destination_fias": "86ec26f6-d980-4c40-b4ce-77e1638ec8ad",
+      "destination_name": "г Тихвин",
+      "record_count": 252,
+      "trip_count": 19430,
+      "backend_compatible_rub_per_km": 73.0392,
+      "trip_weighted_rub_per_km": 68.6943,
+      "mean_price": 96619.3254,
+      "mean_route_length": 1322.8413
+    },
+    {
+      "destination_fias": "5f52edf9-92aa-4e69-9314-e629c45ec1d5",
+      "destination_name": "г Лодейное Поле",
+      "record_count": 252,
+      "trip_count": 16820,
+      "backend_compatible_rub_per_km": 72.4685,
+      "trip_weighted_rub_per_km": 67.9324,
+      "mean_price": 112036.3095,
+      "mean_route_length": 1546.0
+    },
+    {
+      "destination_fias": "1a12dc30-ca4c-480f-89dd-31452648b493",
+      "destination_name": "г Бокситогорск",
+      "record_count": 252,
+      "trip_count": 23368,
+      "backend_compatible_rub_per_km": 73.9331,
+      "trip_weighted_rub_per_km": 71.7692,
+      "mean_price": 100477.4603,
+      "mean_route_length": 1359.0317
+    },
+    {
+      "destination_fias": "0a243487-acce-4775-979a-5a08e8c62da6",
+      "destination_name": "г Пикалево",
+      "record_count": 252,
+      "trip_count": 23544,
+      "backend_compatible_rub_per_km": 73.5118,
+      "trip_weighted_rub_per_km": 69.6842,
+      "mean_price": 99679.6429,
+      "mean_route_length": 1355.9683
+    },
+    {
+      "destination_fias": "6d13b512-6d25-413a-ab29-3d9ade960f3a",
+      "destination_name": "г Подпорожье",
+      "record_count": 252,
+      "trip_count": 25672,
+      "backend_compatible_rub_per_km": 72.7327,
+      "trip_weighted_rub_per_km": 69.866,
+      "mean_price": 115378.254,
+      "mean_route_length": 1586.3333
+    },
+    {
+      "destination_fias": "438104d1-e43e-4f9f-a42f-ff979833396f",
+      "destination_name": "деревня Самойлово",
+      "record_count": 252,
+      "trip_count": 23428,
+      "backend_compatible_rub_per_km": 73.5512,
+      "trip_weighted_rub_per_km": 69.6747,
+      "mean_price": 99403.9286,
+      "mean_route_length": 1351.4921
+    },
+    {
+      "destination_fias": "758b0ebf-8b63-405d-8f12-177461ab5a31",
+      "destination_name": "гп Мга",
+      "record_count": 251,
+      "trip_count": 18817,
+      "backend_compatible_rub_per_km": 71.3084,
+      "trip_weighted_rub_per_km": 67.9177,
+      "mean_price": 97263.2669,
+      "mean_route_length": 1363.9801
+    },
+    {
+      "destination_fias": "1ef24331-e6d4-4d7f-8064-88b9a997791c",
+      "destination_name": "тер Южная часть промзоны Горелово",
+      "record_count": 251,
+      "trip_count": 30652,
+      "backend_compatible_rub_per_km": 71.6737,
+      "trip_weighted_rub_per_km": 63.8695,
+      "mean_price": 99345.4183,
+      "mean_route_length": 1386.0797
+    },
+    {
+      "destination_fias": "42ea1577-d345-4773-96e1-746a3f0e3ee4",
+      "destination_name": "гп Красный Бор",
+      "record_count": 251,
+      "trip_count": 23231,
+      "backend_compatible_rub_per_km": 71.9801,
+      "trip_weighted_rub_per_km": 69.3023,
+      "mean_price": 98278.008,
+      "mean_route_length": 1365.3506
+    },
+    {
+      "destination_fias": "a4ae9883-686b-40a9-86f4-aefb68b414d1",
+      "destination_name": "гп Рощино",
+      "record_count": 250,
+      "trip_count": 26569,
+      "backend_compatible_rub_per_km": 71.1239,
+      "trip_weighted_rub_per_km": 68.7173,
+      "mean_price": 102706.96,
+      "mean_route_length": 1444.056
+    },
+    {
+      "destination_fias": "9a3a5092-348e-4f1d-9543-35253b5c9fa4",
+      "destination_name": "деревня Аннолово",
+      "record_count": 249,
+      "trip_count": 21886,
+      "backend_compatible_rub_per_km": 72.8753,
+      "trip_weighted_rub_per_km": 69.0641,
+      "mean_price": 98843.494,
+      "mean_route_length": 1356.3373
+    },
+    {
+      "destination_fias": "144cffd1-1d6d-46a3-a0d1-f57a4d487487",
+      "destination_name": "деревня Низино",
+      "record_count": 248,
+      "trip_count": 20348,
+      "backend_compatible_rub_per_km": 73.8153,
+      "trip_weighted_rub_per_km": 70.1112,
+      "mean_price": 103672.4597,
+      "mean_route_length": 1404.4839
+    },
+    {
+      "destination_fias": "1585eb89-9bde-472a-b15c-dcbc1fa329db",
+      "destination_name": "поселок Волхов",
+      "record_count": 248,
+      "trip_count": 33172,
+      "backend_compatible_rub_per_km": 71.2289,
+      "trip_weighted_rub_per_km": 68.8634,
+      "mean_price": 103715.0403,
+      "mean_route_length": 1456.0806
+    },
+    {
+      "destination_fias": "2a213780-2446-4ba6-91e3-6e6ac994a867",
+      "destination_name": "поселок Пески",
+      "record_count": 248,
+      "trip_count": 35948,
+      "backend_compatible_rub_per_km": 70.1992,
+      "trip_weighted_rub_per_km": 67.2812,
+      "mean_price": 102567.8226,
+      "mean_route_length": 1461.0968
+    },
+    {
+      "destination_fias": "4ef03615-75bd-4fdd-b767-6350984b3ad1",
+      "destination_name": "тер Производственно-административная зона Порзолово",
+      "record_count": 248,
+      "trip_count": 40180,
+      "backend_compatible_rub_per_km": 71.2276,
+      "trip_weighted_rub_per_km": 66.3911,
+      "mean_price": 99511.8548,
+      "mean_route_length": 1397.0968
+    },
+    {
+      "destination_fias": "92b8d45b-e0a2-4b25-9032-9f17dfa4c66f",
+      "destination_name": "поселок Ропша",
+      "record_count": 248,
+      "trip_count": 36104,
+      "backend_compatible_rub_per_km": 72.1754,
+      "trip_weighted_rub_per_km": 71.5803,
+      "mean_price": 100500.7258,
+      "mean_route_length": 1392.4516
+    },
+    {
+      "destination_fias": "50e5b018-358f-4bfa-8c59-827e213d5764",
+      "destination_name": "поселок Оредеж",
+      "record_count": 248,
+      "trip_count": 16468,
+      "backend_compatible_rub_per_km": 74.5104,
+      "trip_weighted_rub_per_km": 69.5209,
+      "mean_price": 102883.1855,
+      "mean_route_length": 1380.7903
+    },
+    {
+      "destination_fias": "2145f2cb-3ec2-4c1d-bd52-f84b2858c6a9",
+      "destination_name": "г Новая Ладога",
+      "record_count": 248,
+      "trip_count": 26100,
+      "backend_compatible_rub_per_km": 72.1428,
+      "trip_weighted_rub_per_km": 70.0356,
+      "mean_price": 103820.4839,
+      "mean_route_length": 1439.0968
+    },
+    {
+      "destination_fias": "8417e81e-2205-4c93-a8bd-1fd2cbc97c04",
+      "destination_name": "деревня Бор",
+      "record_count": 248,
+      "trip_count": 16464,
+      "backend_compatible_rub_per_km": 73.3222,
+      "trip_weighted_rub_per_km": 67.9034,
+      "mean_price": 98237.5403,
+      "mean_route_length": 1339.8065
+    },
+    {
+      "destination_fias": "a1535e5e-c151-431a-a4c4-954d4545e37a",
+      "destination_name": "г Кировск",
+      "record_count": 248,
+      "trip_count": 16632,
+      "backend_compatible_rub_per_km": 73.2174,
+      "trip_weighted_rub_per_km": 68.8557,
+      "mean_price": 104479.7984,
+      "mean_route_length": 1426.9798
+    },
+    {
+      "destination_fias": "9c7205ca-dfc9-4dce-99fa-226500d875eb",
+      "destination_name": "поселок Кутузовское",
+      "record_count": 248,
+      "trip_count": 35924,
+      "backend_compatible_rub_per_km": 69.7847,
+      "trip_weighted_rub_per_km": 68.1578,
+      "mean_price": 106187.5,
+      "mean_route_length": 1521.6452
+    },
+    {
+      "destination_fias": "8fbead84-4fdc-4317-bf64-dc0fef08dc2f",
+      "destination_name": "деревня Кипень",
+      "record_count": 247,
+      "trip_count": 36556,
+      "backend_compatible_rub_per_km": 71.8424,
+      "trip_weighted_rub_per_km": 71.7469,
+      "mean_price": 99074.413,
+      "mean_route_length": 1379.0526
+    },
+    {
+      "destination_fias": "165119d1-6555-4473-8b90-46ec517b4076",
+      "destination_name": "г Тосно",
+      "record_count": 247,
+      "trip_count": 18790,
+      "backend_compatible_rub_per_km": 71.2013,
+      "trip_weighted_rub_per_km": 66.8306,
+      "mean_price": 97305.0202,
+      "mean_route_length": 1366.6194
+    },
+    {
+      "destination_fias": "6434dbe8-6886-48f7-8ce3-3a90288fc28f",
+      "destination_name": "гп Янино-1",
+      "record_count": 245,
+      "trip_count": 31070,
+      "backend_compatible_rub_per_km": 70.7165,
+      "trip_weighted_rub_per_km": 62.9603,
+      "mean_price": 98373.0612,
+      "mean_route_length": 1391.0898
+    },
+    {
+      "destination_fias": "7be8f0b5-87ee-4597-8910-55d1ba108143",
+      "destination_name": "деревня Новолисино",
+      "record_count": 244,
+      "trip_count": 17712,
+      "backend_compatible_rub_per_km": 71.9511,
+      "trip_weighted_rub_per_km": 67.8997,
+      "mean_price": 96909.877,
+      "mean_route_length": 1346.8852
+    },
+    {
+      "destination_fias": "300deaa9-c677-4b8b-8a97-8e1c311f08c1",
+      "destination_name": "деревня Узигонты",
+      "record_count": 244,
+      "trip_count": 35680,
+      "backend_compatible_rub_per_km": 71.5621,
+      "trip_weighted_rub_per_km": 67.5556,
+      "mean_price": 100243.2787,
+      "mean_route_length": 1400.7869
+    },
+    {
+      "destination_fias": "24c8fd3a-100b-4d7b-a170-c054a2f395b9",
+      "destination_name": "деревня Янино-2",
+      "record_count": 244,
+      "trip_count": 32296,
+      "backend_compatible_rub_per_km": 70.2176,
+      "trip_weighted_rub_per_km": 62.8618,
+      "mean_price": 98219.5082,
+      "mean_route_length": 1398.7869
+    },
+    {
+      "destination_fias": "553db494-e64b-4bda-b52d-f4ac0dac0462",
+      "destination_name": "деревня Самара",
+      "record_count": 244,
+      "trip_count": 30856,
+      "backend_compatible_rub_per_km": 71.9842,
+      "trip_weighted_rub_per_km": 67.0213,
+      "mean_price": 103803.6066,
+      "mean_route_length": 1442.0328
+    },
+    {
+      "destination_fias": "9318402f-09e3-43c8-b72b-c1b991500aa0",
+      "destination_name": "деревня Зимитицы",
+      "record_count": 244,
+      "trip_count": 32316,
+      "backend_compatible_rub_per_km": 72.1213,
+      "trip_weighted_rub_per_km": 72.3065,
+      "mean_price": 104387.9508,
+      "mean_route_length": 1447.3934
+    },
+    {
+      "destination_fias": "366e3ffc-89e5-4334-aba9-63ac643464a5",
+      "destination_name": "деревня Коркино",
+      "record_count": 244,
+      "trip_count": 15772,
+      "backend_compatible_rub_per_km": 73.3066,
+      "trip_weighted_rub_per_km": 66.8885,
+      "mean_price": 97062.7869,
+      "mean_route_length": 1324.0656
+    },
+    {
+      "destination_fias": "7538747b-c291-457a-bac1-68e5aff83360",
+      "destination_name": "деревня Бор",
+      "record_count": 244,
+      "trip_count": 32448,
+      "backend_compatible_rub_per_km": 71.9293,
+      "trip_weighted_rub_per_km": 69.3233,
+      "mean_price": 96914.7131,
+      "mean_route_length": 1347.3607
+    },
+    {
+      "destination_fias": "a354738c-dc1b-4871-9ed9-1df77c8b65a0",
+      "destination_name": "деревня Томилино",
+      "record_count": 244,
+      "trip_count": 27240,
+      "backend_compatible_rub_per_km": 70.9585,
+      "trip_weighted_rub_per_km": 68.6969,
+      "mean_price": 105839.8361,
+      "mean_route_length": 1491.5738
+    },
+    {
+      "destination_fias": "98cd19c4-e172-4fa3-a81d-7caedeec669b",
+      "destination_name": "г Кудрово",
+      "record_count": 244,
+      "trip_count": 31888,
+      "backend_compatible_rub_per_km": 71.0289,
+      "trip_weighted_rub_per_km": 62.2341,
+      "mean_price": 98860.5328,
+      "mean_route_length": 1391.8361
+    },
+    {
+      "destination_fias": "0c87fa9a-6b31-4924-8c1c-0e6dbc9802a1",
+      "destination_name": "деревня Аропаккузи",
+      "record_count": 244,
+      "trip_count": 35732,
+      "backend_compatible_rub_per_km": 71.8506,
+      "trip_weighted_rub_per_km": 72.201,
+      "mean_price": 99195.0,
+      "mean_route_length": 1380.5738
+    },
+    {
+      "destination_fias": "24dbd01a-1184-4cf8-a3ba-c0bdd4852b71",
+      "destination_name": "деревня Велигонты",
+      "record_count": 244,
+      "trip_count": 26100,
+      "backend_compatible_rub_per_km": 72.1803,
+      "trip_weighted_rub_per_km": 68.0662,
+      "mean_price": 100945.9836,
+      "mean_route_length": 1398.5246
+    },
+    {
+      "destination_fias": "2481847d-4222-495d-bf27-cec9ee31baed",
+      "destination_name": "поселок Первомайское",
+      "record_count": 244,
+      "trip_count": 31184,
+      "backend_compatible_rub_per_km": 70.9305,
+      "trip_weighted_rub_per_km": 67.7556,
+      "mean_price": 102760.8197,
+      "mean_route_length": 1448.7541
+    },
+    {
+      "destination_fias": "0ed903b7-3031-45be-b523-632293057ae4",
+      "destination_name": "гп Кузьмоловский",
+      "record_count": 243,
+      "trip_count": 33659,
+      "backend_compatible_rub_per_km": 70.2645,
+      "trip_weighted_rub_per_km": 65.9019,
+      "mean_price": 99038.8889,
+      "mean_route_length": 1409.5144
+    },
+    {
+      "destination_fias": "9441a644-199e-4172-9234-9ad6658c7d5a",
+      "destination_name": "гп имени Свердлова",
+      "record_count": 242,
+      "trip_count": 29070,
+      "backend_compatible_rub_per_km": 71.3007,
+      "trip_weighted_rub_per_km": 63.3863,
+      "mean_price": 97844.2975,
+      "mean_route_length": 1372.2769
+    },
+    {
+      "destination_fias": "a203a874-0d05-4e12-9505-539f310849a4",
+      "destination_name": "п/р Центральное отделение",
+      "record_count": 241,
+      "trip_count": 29237,
+      "backend_compatible_rub_per_km": 71.3473,
+      "trip_weighted_rub_per_km": 62.7685,
+      "mean_price": 98910.7054,
+      "mean_route_length": 1386.3278
+    },
+    {
+      "destination_fias": "6baabc82-cb12-414e-b00e-f61374a4b6cb",
+      "destination_name": "деревня Ям-Ижора",
+      "record_count": 241,
+      "trip_count": 21553,
+      "backend_compatible_rub_per_km": 72.29,
+      "trip_weighted_rub_per_km": 69.4779,
+      "mean_price": 100349.917,
+      "mean_route_length": 1388.1577
+    },
+    {
+      "destination_fias": "21c207c8-7ba1-4ea9-920e-6a3ad08b0fd3",
+      "destination_name": "гп Дубровка",
+      "record_count": 240,
+      "trip_count": 38700,
+      "backend_compatible_rub_per_km": 69.9864,
+      "trip_weighted_rub_per_km": 66.0411,
+      "mean_price": 99129.9583,
+      "mean_route_length": 1416.4167
+    },
+    {
+      "destination_fias": "43cb88de-fa89-4027-b3ef-84deb2d32ce5",
+      "destination_name": "г Никольское",
+      "record_count": 240,
+      "trip_count": 18196,
+      "backend_compatible_rub_per_km": 71.4474,
+      "trip_weighted_rub_per_km": 68.4055,
+      "mean_price": 95824.125,
+      "mean_route_length": 1341.1833
+    },
+    {
+      "destination_fias": "59a9c284-72fb-49e6-8380-10ca044d0bd7",
+      "destination_name": "г Приозерск",
+      "record_count": 240,
+      "trip_count": 15116,
+      "backend_compatible_rub_per_km": 71.8192,
+      "trip_weighted_rub_per_km": 62.0979,
+      "mean_price": 109614.0417,
+      "mean_route_length": 1526.25
+    },
+    {
+      "destination_fias": "2d65a312-1951-4206-88e7-828b3e980fff",
+      "destination_name": "деревня Суоранда",
+      "record_count": 240,
+      "trip_count": 31124,
+      "backend_compatible_rub_per_km": 70.2204,
+      "trip_weighted_rub_per_km": 62.7982,
+      "mean_price": 98324.875,
+      "mean_route_length": 1400.2333
+    },
+    {
+      "destination_fias": "3d024505-fbb8-4b87-ae77-89bd7ac79258",
+      "destination_name": "деревня Мелехово",
+      "record_count": 240,
+      "trip_count": 15704,
+      "backend_compatible_rub_per_km": 72.3326,
+      "trip_weighted_rub_per_km": 65.0686,
+      "mean_price": 96977.5417,
+      "mean_route_length": 1340.7167
+    },
+    {
+      "destination_fias": "10b761cb-8804-446e-b960-c9c4c132495a",
+      "destination_name": "деревня Ополье",
+      "record_count": 240,
+      "trip_count": 13764,
+      "backend_compatible_rub_per_km": 78.0049,
+      "trip_weighted_rub_per_km": 71.8619,
+      "mean_price": 114795.875,
+      "mean_route_length": 1471.65
+    },
+    {
+      "destination_fias": "58399f33-3e18-4921-950a-ac0fa5f9e97c",
+      "destination_name": "г Каменногорск",
+      "record_count": 240,
+      "trip_count": 24276,
+      "backend_compatible_rub_per_km": 68.802,
+      "trip_weighted_rub_per_km": 63.4329,
+      "mean_price": 107468.75,
+      "mean_route_length": 1562.0
+    },
+    {
+      "destination_fias": "554a3a96-63bd-4eee-ac94-eb7e87723da4",
+      "destination_name": "гп Ульяновка",
+      "record_count": 240,
+      "trip_count": 17624,
+      "backend_compatible_rub_per_km": 71.1218,
+      "trip_weighted_rub_per_km": 67.7196,
+      "mean_price": 96558.4583,
+      "mean_route_length": 1357.65
+    },
+    {
+      "destination_fias": "3a48b53f-a717-4d52-8736-f0ad70bab54b",
+      "destination_name": "мкр Сертолово-1",
+      "record_count": 240,
+      "trip_count": 30264,
+      "backend_compatible_rub_per_km": 71.0283,
+      "trip_weighted_rub_per_km": 66.8454,
+      "mean_price": 98893.9167,
+      "mean_route_length": 1392.3167
+    },
+    {
+      "destination_fias": "40cd4458-b83b-4ff4-a5bf-d943a9ae6cb5",
+      "destination_name": "массив Проба",
+      "record_count": 240,
+      "trip_count": 32208,
+      "backend_compatible_rub_per_km": 71.3219,
+      "trip_weighted_rub_per_km": 67.9571,
+      "mean_price": 98539.5417,
+      "mean_route_length": 1381.6167
+    },
+    {
+      "destination_fias": "5d74147e-3c58-4600-9169-8da0330f672b",
+      "destination_name": "тер Северная часть промзоны Горелово",
+      "record_count": 240,
+      "trip_count": 25544,
+      "backend_compatible_rub_per_km": 71.6569,
+      "trip_weighted_rub_per_km": 68.8755,
+      "mean_price": 100744.7917,
+      "mean_route_length": 1405.9333
+    },
+    {
+      "destination_fias": "16a06c55-d7c2-42e9-966a-f7fbdfd7632e",
+      "destination_name": "поселок Алексеевка",
+      "record_count": 240,
+      "trip_count": 14508,
+      "backend_compatible_rub_per_km": 78.2066,
+      "trip_weighted_rub_per_km": 71.8864,
+      "mean_price": 115409.4167,
+      "mean_route_length": 1475.7
+    },
+    {
+      "destination_fias": "7b3bea05-858e-44b9-a5f4-b2ea010c157f",
+      "destination_name": "массив Рахья",
+      "record_count": 240,
+      "trip_count": 34204,
+      "backend_compatible_rub_per_km": 70.7578,
+      "trip_weighted_rub_per_km": 67.6011,
+      "mean_price": 99330.9583,
+      "mean_route_length": 1403.8167
+    },
+    {
+      "destination_fias": "5bbcc18f-8c45-413a-95ca-3319c2f5838d",
+      "destination_name": "деревня Порошкино",
+      "record_count": 240,
+      "trip_count": 32640,
+      "backend_compatible_rub_per_km": 70.4611,
+      "trip_weighted_rub_per_km": 66.0841,
+      "mean_price": 99044.7917,
+      "mean_route_length": 1405.6667
+    },
+    {
+      "destination_fias": "459dca99-04ff-44fb-af9f-7e2100ec28ac",
+      "destination_name": "г Коммунар",
+      "record_count": 239,
+      "trip_count": 17803,
+      "backend_compatible_rub_per_km": 71.3344,
+      "trip_weighted_rub_per_km": 68.1881,
+      "mean_price": 97891.9247,
+      "mean_route_length": 1372.2971
+    },
+    {
+      "destination_fias": "878aa7cc-76f0-42c8-90f5-3489f43c169c",
+      "destination_name": "г Приморск",
+      "record_count": 236,
+      "trip_count": 30428,
+      "backend_compatible_rub_per_km": 71.0253,
+      "trip_weighted_rub_per_km": 66.9683,
+      "mean_price": 108170.2542,
+      "mean_route_length": 1522.9831
+    },
+    {
+      "destination_fias": "897cad81-a442-46c1-81ef-a032325e719e",
+      "destination_name": "кв-л Лесной (деревня Лепсари)",
+      "record_count": 236,
+      "trip_count": 34164,
+      "backend_compatible_rub_per_km": 70.5075,
+      "trip_weighted_rub_per_km": 67.9924,
+      "mean_price": 97912.161,
+      "mean_route_length": 1388.678
+    },
+    {
+      "destination_fias": "063144da-2812-49ac-8fa7-0914d366551e",
+      "destination_name": "поселок Стеклянный",
+      "record_count": 236,
+      "trip_count": 24760,
+      "backend_compatible_rub_per_km": 70.8409,
+      "trip_weighted_rub_per_km": 65.6388,
+      "mean_price": 102443.0932,
+      "mean_route_length": 1446.1017
+    },
+    {
+      "destination_fias": "894c8c23-0148-4810-9858-d3fa1c355430",
+      "destination_name": "деревня Малая Романовка",
+      "record_count": 236,
+      "trip_count": 31184,
+      "backend_compatible_rub_per_km": 70.8476,
+      "trip_weighted_rub_per_km": 68.0844,
+      "mean_price": 97613.5169,
+      "mean_route_length": 1377.7966
+    },
+    {
+      "destination_fias": "27901133-846d-4914-919b-7bda53fc2bab",
+      "destination_name": "гп Рахья",
+      "record_count": 236,
+      "trip_count": 34164,
+      "backend_compatible_rub_per_km": 70.3886,
+      "trip_weighted_rub_per_km": 67.9153,
+      "mean_price": 98948.5169,
+      "mean_route_length": 1405.7458
+    },
+    {
+      "destination_fias": "001aa09a-cb0f-46b7-8609-0f27c4c5e011",
+      "destination_name": "деревня Проба",
+      "record_count": 236,
+      "trip_count": 32168,
+      "backend_compatible_rub_per_km": 70.9545,
+      "trip_weighted_rub_per_km": 68.2953,
+      "mean_price": 98234.661,
+      "mean_route_length": 1384.4746
+    },
+    {
+      "destination_fias": "718ef648-aafc-4866-b515-afe87bf6de1d",
+      "destination_name": "деревня Выра",
+      "record_count": 233,
+      "trip_count": 20631,
+      "backend_compatible_rub_per_km": 72.5787,
+      "trip_weighted_rub_per_km": 71.1851,
+      "mean_price": 104430.7725,
+      "mean_route_length": 1438.8627
+    },
+    {
+      "destination_fias": "103454e7-358f-4d78-8ee9-b1bb01d767d0",
+      "destination_name": "поселок Елизаветино",
+      "record_count": 232,
+      "trip_count": 19672,
+      "backend_compatible_rub_per_km": 72.6461,
+      "trip_weighted_rub_per_km": 70.9095,
+      "mean_price": 104027.9741,
+      "mean_route_length": 1431.9828
+    },
+    {
+      "destination_fias": "75eeb581-89d6-4e88-b846-34cec0707743",
+      "destination_name": "деревня Малое Верево",
+      "record_count": 232,
+      "trip_count": 26276,
+      "backend_compatible_rub_per_km": 70.6161,
+      "trip_weighted_rub_per_km": 69.2489,
+      "mean_price": 101541.0776,
+      "mean_route_length": 1437.931
+    },
+    {
+      "destination_fias": "8e329ed3-79c5-4cee-97c5-09a0f65eddc6",
+      "destination_name": "поселок Свердлово",
+      "record_count": 232,
+      "trip_count": 31180,
+      "backend_compatible_rub_per_km": 71.154,
+      "trip_weighted_rub_per_km": 67.3056,
+      "mean_price": 109786.8966,
+      "mean_route_length": 1542.9483
+    },
+    {
+      "destination_fias": "57526f74-be0c-4705-827b-31fd24230efa",
+      "destination_name": "деревня Ёксолово",
+      "record_count": 232,
+      "trip_count": 32932,
+      "backend_compatible_rub_per_km": 70.7099,
+      "trip_weighted_rub_per_km": 68.0884,
+      "mean_price": 97013.9224,
+      "mean_route_length": 1372.0
+    },
+    {
+      "destination_fias": "6650c1c4-31ea-463a-a136-c4bdd6c1e5e0",
+      "destination_name": "поселок Терволово",
+      "record_count": 232,
+      "trip_count": 37856,
+      "backend_compatible_rub_per_km": 70.3019,
+      "trip_weighted_rub_per_km": 68.6404,
+      "mean_price": 98519.569,
+      "mean_route_length": 1401.3793
+    },
+    {
+      "destination_fias": "1b0b169c-5a79-48b7-b340-8b64e560f080",
+      "destination_name": "деревня Новое Девяткино",
+      "record_count": 230,
+      "trip_count": 30834,
+      "backend_compatible_rub_per_km": 70.3438,
+      "trip_weighted_rub_per_km": 65.6813,
+      "mean_price": 96902.5217,
+      "mean_route_length": 1377.5565
+    },
+    {
+      "destination_fias": "18c52730-daf5-4ecb-83a5-cf3bcecbfd8c",
+      "destination_name": "поселок Пудость",
+      "record_count": 229,
+      "trip_count": 19993,
+      "backend_compatible_rub_per_km": 72.9324,
+      "trip_weighted_rub_per_km": 65.5045,
+      "mean_price": 103488.1659,
+      "mean_route_length": 1418.9607
+    },
+    {
+      "destination_fias": "6d0bcb5c-9df2-48a2-bac6-fa0f3e8baf1e",
+      "destination_name": "поселок Войсковицы",
+      "record_count": 228,
+      "trip_count": 18388,
+      "backend_compatible_rub_per_km": 72.3297,
+      "trip_weighted_rub_per_km": 70.4037,
+      "mean_price": 104248.6404,
+      "mean_route_length": 1441.2982
+    },
+    {
+      "destination_fias": "04ad058c-cf95-40c1-8983-283b946a45f2",
+      "destination_name": "деревня Захонье",
+      "record_count": 228,
+      "trip_count": 15128,
+      "backend_compatible_rub_per_km": 76.512,
+      "trip_weighted_rub_per_km": 71.6189,
+      "mean_price": 112528.9474,
+      "mean_route_length": 1470.7368
+    },
+    {
+      "destination_fias": "6e564b1c-cf49-432e-8f60-eb618641d2ef",
+      "destination_name": "деревня Агалатово",
+      "record_count": 228,
+      "trip_count": 34708,
+      "backend_compatible_rub_per_km": 70.5719,
+      "trip_weighted_rub_per_km": 65.2219,
+      "mean_price": 98768.5088,
+      "mean_route_length": 1399.5439
+    },
+    {
+      "destination_fias": "67abcf73-502d-4be8-850d-cede0b4022ef",
+      "destination_name": "деревня Большие Колпаны",
+      "record_count": 228,
+      "trip_count": 18396,
+      "backend_compatible_rub_per_km": 72.611,
+      "trip_weighted_rub_per_km": 70.4786,
+      "mean_price": 104227.3246,
+      "mean_route_length": 1435.4211
+    },
+    {
+      "destination_fias": "0aac0ee1-9e4a-44ca-889f-b3510ab9fcdf",
+      "destination_name": "деревня Малые Колпаны",
+      "record_count": 228,
+      "trip_count": 18380,
+      "backend_compatible_rub_per_km": 72.3546,
+      "trip_weighted_rub_per_km": 70.4208,
+      "mean_price": 104063.6404,
+      "mean_route_length": 1438.2456
+    },
+    {
+      "destination_fias": "79b806cd-e36c-48fc-b82c-8cbb5cfd9450",
+      "destination_name": "г Сертолово",
+      "record_count": 228,
+      "trip_count": 32076,
+      "backend_compatible_rub_per_km": 70.0689,
+      "trip_weighted_rub_per_km": 65.3164,
+      "mean_price": 97395.7895,
+      "mean_route_length": 1390.0
+    },
+    {
+      "destination_fias": "8556dcea-b116-4dc0-a35c-364d3b8ab894",
+      "destination_name": "массив Рождествено",
+      "record_count": 228,
+      "trip_count": 21056,
+      "backend_compatible_rub_per_km": 72.5428,
+      "trip_weighted_rub_per_km": 70.978,
+      "mean_price": 104912.1053,
+      "mean_route_length": 1446.2105
+    },
+    {
+      "destination_fias": "1945cdaf-6a79-4ace-b42a-eda819d3e7e8",
+      "destination_name": "деревня Шундорово",
+      "record_count": 228,
+      "trip_count": 19028,
+      "backend_compatible_rub_per_km": 71.9382,
+      "trip_weighted_rub_per_km": 71.508,
+      "mean_price": 104368.4211,
+      "mean_route_length": 1450.807
+    },
+    {
+      "destination_fias": "8a8d3a4d-81bc-4486-84bd-66bbd744f5ff",
+      "destination_name": "деревня Вартемяги",
+      "record_count": 228,
+      "trip_count": 34068,
+      "backend_compatible_rub_per_km": 70.1994,
+      "trip_weighted_rub_per_km": 65.4765,
+      "mean_price": 98429.4737,
+      "mean_route_length": 1402.1404
+    },
+    {
+      "destination_fias": "8e8b9677-ffe0-4522-bd68-1b128768fa30",
+      "destination_name": "г Колтуши",
+      "record_count": 228,
+      "trip_count": 22956,
+      "backend_compatible_rub_per_km": 72.5711,
+      "trip_weighted_rub_per_km": 68.6498,
+      "mean_price": 100123.9912,
+      "mean_route_length": 1379.6667
+    },
+    {
+      "destination_fias": "1ece4f45-41b7-4381-9e00-5f6c6361ac21",
+      "destination_name": "деревня Мяглово",
+      "record_count": 226,
+      "trip_count": 22702,
+      "backend_compatible_rub_per_km": 72.6333,
+      "trip_weighted_rub_per_km": 68.9549,
+      "mean_price": 98454.7788,
+      "mean_route_length": 1355.5044
+    },
+    {
+      "destination_fias": "5a543514-a133-431c-919e-8a61c2261783",
+      "destination_name": "г Шлиссельбург",
+      "record_count": 225,
+      "trip_count": 16758,
+      "backend_compatible_rub_per_km": 73.7701,
+      "trip_weighted_rub_per_km": 73.3566,
+      "mean_price": 102640.8,
+      "mean_route_length": 1391.36
+    },
+    {
+      "destination_fias": "70c7dd11-0cfc-4feb-9b0d-236dadcb1ee3",
+      "destination_name": "деревня Лупполово",
+      "record_count": 224,
+      "trip_count": 31064,
+      "backend_compatible_rub_per_km": 69.8773,
+      "trip_weighted_rub_per_km": 65.0871,
+      "mean_price": 97564.9107,
+      "mean_route_length": 1396.2321
+    },
+    {
+      "destination_fias": "1667a6fb-e5ae-43d5-b00a-7d7249a56cf4",
+      "destination_name": "гп Толмачево",
+      "record_count": 224,
+      "trip_count": 19912,
+      "backend_compatible_rub_per_km": 74.1575,
+      "trip_weighted_rub_per_km": 71.2347,
+      "mean_price": 105695.625,
+      "mean_route_length": 1425.2857
+    },
+    {
+      "destination_fias": "6c86f6dd-57cb-43bb-80d3-b27e7a573d32",
+      "destination_name": "поселок Плоское",
+      "record_count": 224,
+      "trip_count": 19912,
+      "backend_compatible_rub_per_km": 74.1463,
+      "trip_weighted_rub_per_km": 71.2254,
+      "mean_price": 105801.4286,
+      "mean_route_length": 1426.9286
+    },
+    {
+      "destination_fias": "2cb032f4-7088-4ff6-aeca-3476d2710df6",
+      "destination_name": "деревня Косколово",
+      "record_count": 224,
+      "trip_count": 12096,
+      "backend_compatible_rub_per_km": 76.776,
+      "trip_weighted_rub_per_km": 68.0483,
+      "mean_price": 118509.2857,
+      "mean_route_length": 1543.5714
+    },
+    {
+      "destination_fias": "743d20cc-7b70-4859-95df-31db554e282a",
+      "destination_name": "село Павлово",
+      "record_count": 224,
+      "trip_count": 23616,
+      "backend_compatible_rub_per_km": 72.2007,
+      "trip_weighted_rub_per_km": 68.7567,
+      "mean_price": 99883.2143,
+      "mean_route_length": 1383.4107
+    },
+    {
+      "destination_fias": "17cecc8c-1ac1-4086-b88d-8dc2a54e8b38",
+      "destination_name": "поселок Торфяное",
+      "record_count": 224,
+      "trip_count": 18328,
+      "backend_compatible_rub_per_km": 72.6257,
+      "trip_weighted_rub_per_km": 71.2406,
+      "mean_price": 102750.8036,
+      "mean_route_length": 1414.7991
+    },
+    {
+      "destination_fias": "856a5b3f-01ed-44c5-8fa0-2b0b9087830f",
+      "destination_name": "гп имени Морозова",
+      "record_count": 224,
+      "trip_count": 17448,
+      "backend_compatible_rub_per_km": 73.0687,
+      "trip_weighted_rub_per_km": 69.4071,
+      "mean_price": 102020.8482,
+      "mean_route_length": 1396.2321
+    },
+    {
+      "destination_fias": "2e8c138f-b320-4115-8af3-7efadb511f68",
+      "destination_name": "деревня Малое Карлино",
+      "record_count": 224,
+      "trip_count": 23504,
+      "backend_compatible_rub_per_km": 71.2759,
+      "trip_weighted_rub_per_km": 69.9316,
+      "mean_price": 102153.6607,
+      "mean_route_length": 1433.2143
+    },
+    {
+      "destination_fias": "660e6dff-a44b-4360-9064-1e9fa479785e",
+      "destination_name": "местечко Карьер-Мяглово",
+      "record_count": 224,
+      "trip_count": 22952,
+      "backend_compatible_rub_per_km": 72.339,
+      "trip_weighted_rub_per_km": 68.985,
+      "mean_price": 99935.0893,
+      "mean_route_length": 1381.4821
+    },
+    {
+      "destination_fias": "294c9ce2-295f-4e7c-b7f0-036cf22c2ba9",
+      "destination_name": "деревня Старая Пустошь",
+      "record_count": 224,
+      "trip_count": 25068,
+      "backend_compatible_rub_per_km": 71.7999,
+      "trip_weighted_rub_per_km": 68.6426,
+      "mean_price": 99681.2946,
+      "mean_route_length": 1388.3214
+    },
+    {
+      "destination_fias": "752d9929-945c-4464-ae38-20a626108da9",
+      "destination_name": "г Ивангород",
+      "record_count": 220,
+      "trip_count": 11844,
+      "backend_compatible_rub_per_km": 76.4998,
+      "trip_weighted_rub_per_km": 67.5455,
+      "mean_price": 118157.4545,
+      "mean_route_length": 1544.5455
+    },
+    {
+      "destination_fias": "0540b577-dc2b-4a72-a80a-9da447509e2b",
+      "destination_name": "поселок Пригородный",
+      "record_count": 219,
+      "trip_count": 17898,
+      "backend_compatible_rub_per_km": 71.8493,
+      "trip_weighted_rub_per_km": 70.6763,
+      "mean_price": 103488.5388,
+      "mean_route_length": 1440.3562
+    },
+    {
+      "destination_fias": "6df13b2d-711f-4c31-abfe-ca1636ace486",
+      "destination_name": "деревня Куровицы",
+      "record_count": 216,
+      "trip_count": 11844,
+      "backend_compatible_rub_per_km": 76.4691,
+      "trip_weighted_rub_per_km": 67.7454,
+      "mean_price": 118585.1852,
+      "mean_route_length": 1550.7593
+    },
+    {
+      "destination_fias": "77837ef2-428b-4a6b-ab26-750e1e9327e7",
+      "destination_name": "деревня Бор",
+      "record_count": 212,
+      "trip_count": 14204,
+      "backend_compatible_rub_per_km": 73.8845,
+      "trip_weighted_rub_per_km": 66.9547,
+      "mean_price": 105458.2547,
+      "mean_route_length": 1427.3396
+    },
+    {
+      "destination_fias": "a69e1fe5-684d-4997-8ac8-c1694f8c1871",
+      "destination_name": "поселок Сосново",
+      "record_count": 129,
+      "trip_count": 19535,
+      "backend_compatible_rub_per_km": 75.95,
+      "trip_weighted_rub_per_km": 76.2646,
+      "mean_price": 101171.2403,
+      "mean_route_length": 1332.0775
+    },
+    {
+      "destination_fias": "a7de8a21-caf5-4011-a44f-6bb22f765d42",
+      "destination_name": "гп Форносово",
+      "record_count": 108,
+      "trip_count": 6268,
+      "backend_compatible_rub_per_km": 81.5386,
+      "trip_weighted_rub_per_km": 73.218,
+      "mean_price": 94965.2778,
+      "mean_route_length": 1164.6667
+    },
+    {
+      "destination_fias": "a82ba7ec-d662-484e-8059-66a834bc3015",
+      "destination_name": "массив Щеглово",
+      "record_count": 92,
+      "trip_count": 13232,
+      "backend_compatible_rub_per_km": 81.3948,
+      "trip_weighted_rub_per_km": 81.6822,
+      "mean_price": 90089.8913,
+      "mean_route_length": 1106.8261
+    },
+    {
+      "destination_fias": "a7a1a8e5-45b2-4542-b718-0976702ccd90",
+      "destination_name": "г Сланцы",
+      "record_count": 85,
+      "trip_count": 4266,
+      "backend_compatible_rub_per_km": 85.0275,
+      "trip_weighted_rub_per_km": 81.873,
+      "mean_price": 128622.5882,
+      "mean_route_length": 1512.7176
+    },
+    {
+      "destination_fias": "a928489e-6b6e-4cee-a1b1-8166238c6cd2",
+      "destination_name": "деревня Пески",
+      "record_count": 68,
+      "trip_count": 9876,
+      "backend_compatible_rub_per_km": 75.3576,
+      "trip_weighted_rub_per_km": 71.8158,
+      "mean_price": 98182.0588,
+      "mean_route_length": 1302.8824
+    },
+    {
+      "destination_fias": "aa51eb68-bde3-4251-81d5-4ae6e397d3da",
+      "destination_name": "гп Кузнечное",
+      "record_count": 68,
+      "trip_count": 3724,
+      "backend_compatible_rub_per_km": 75.7944,
+      "trip_weighted_rub_per_km": 69.8843,
+      "mean_price": 106245.8824,
+      "mean_route_length": 1401.7647
+    },
+    {
+      "destination_fias": "b2f908fc-0772-4006-bbea-cf7dc5b406c0",
+      "destination_name": "гп Лесогорский",
+      "record_count": 65,
+      "trip_count": 3966,
+      "backend_compatible_rub_per_km": 69.0694,
+      "trip_weighted_rub_per_km": 68.3822,
+      "mean_price": 103473.3846,
+      "mean_route_length": 1498.1077
+    },
+    {
+      "destination_fias": "ab287028-29c0-4fb9-bcb7-fc44ffd4b4ac",
+      "destination_name": "деревня Разбегаево",
+      "record_count": 64,
+      "trip_count": 10908,
+      "backend_compatible_rub_per_km": 76.4566,
+      "trip_weighted_rub_per_km": 69.3485,
+      "mean_price": 95183.75,
+      "mean_route_length": 1244.9375
+    },
+    {
+      "destination_fias": "ad8c8e4d-38c7-4993-9f38-4c26fb384675",
+      "destination_name": "деревня Никольское",
+      "record_count": 52,
+      "trip_count": 5108,
+      "backend_compatible_rub_per_km": 77.8376,
+      "trip_weighted_rub_per_km": 74.8295,
+      "mean_price": 97494.6154,
+      "mean_route_length": 1252.5385
+    },
+    {
+      "destination_fias": "b2fa82b5-f00b-4565-8e86-e319e1e6e6ca",
+      "destination_name": "поселок Романовка",
+      "record_count": 44,
+      "trip_count": 3584,
+      "backend_compatible_rub_per_km": 81.7726,
+      "trip_weighted_rub_per_km": 85.2208,
+      "mean_price": 83883.8636,
+      "mean_route_length": 1025.8182
+    },
+    {
+      "destination_fias": "b3233f8e-41fe-44a9-a3d4-891ccc5ef943",
+      "destination_name": "поселок Ермилово",
+      "record_count": 44,
+      "trip_count": 5664,
+      "backend_compatible_rub_per_km": 75.2263,
+      "trip_weighted_rub_per_km": 81.4805,
+      "mean_price": 112955.6818,
+      "mean_route_length": 1501.5455
+    },
+    {
+      "destination_fias": "b49ae2f7-8aa4-43e0-87e7-26c6b39d318d",
+      "destination_name": "промзона Северная часть Горелово",
+      "record_count": 36,
+      "trip_count": 2500,
+      "backend_compatible_rub_per_km": 79.6548,
+      "trip_weighted_rub_per_km": 93.6541,
+      "mean_price": 111065.2778,
+      "mean_route_length": 1394.3333
+    },
+    {
+      "destination_fias": "c70a5280-c482-4f6e-801a-cdd6851eab50",
+      "destination_name": "г Всеволожск",
+      "record_count": 34,
+      "trip_count": 2899,
+      "backend_compatible_rub_per_km": 78.684,
+      "trip_weighted_rub_per_km": 75.4781,
+      "mean_price": 105124.1176,
+      "mean_route_length": 1336.0294
+    },
+    {
+      "destination_fias": "b1f2ce65-7a65-4acf-9206-d8e7ba67c3e1",
+      "destination_name": "массив Пудость",
+      "record_count": 32,
+      "trip_count": 1292,
+      "backend_compatible_rub_per_km": 82.29,
+      "trip_weighted_rub_per_km": 73.2818,
+      "mean_price": 114506.5625,
+      "mean_route_length": 1391.5
+    },
+    {
+      "destination_fias": "ba1f26a7-0b32-4bc4-a718-b732efb72509",
+      "destination_name": "деревня Потанино",
+      "record_count": 32,
+      "trip_count": 932,
+      "backend_compatible_rub_per_km": 89.2315,
+      "trip_weighted_rub_per_km": 86.166,
+      "mean_price": 106888.125,
+      "mean_route_length": 1197.875
+    },
+    {
+      "destination_fias": "be1c0232-5c0a-4234-98b3-56a990f585e9",
+      "destination_name": "деревня Таменгонт",
+      "record_count": 32,
+      "trip_count": 1952,
+      "backend_compatible_rub_per_km": 82.0885,
+      "trip_weighted_rub_per_km": 72.0553,
+      "mean_price": 120177.5,
+      "mean_route_length": 1464.0
+    },
+    {
+      "destination_fias": "bca11ea6-0773-42a6-9a49-ec8bc4cf63d5",
+      "destination_name": "деревня Лаголово",
+      "record_count": 28,
+      "trip_count": 1628,
+      "backend_compatible_rub_per_km": 87.0211,
+      "trip_weighted_rub_per_km": 98.4494,
+      "mean_price": 102734.6429,
+      "mean_route_length": 1180.5714
+    },
+    {
+      "destination_fias": "bd52d0bd-e679-4adf-b8f5-3c9effdaf3ad",
+      "destination_name": "деревня Новосергиевка",
+      "record_count": 24,
+      "trip_count": 5180,
+      "backend_compatible_rub_per_km": 72.3956,
+      "trip_weighted_rub_per_km": 53.9704,
+      "mean_price": 109220.8333,
+      "mean_route_length": 1508.6667
+    },
+    {
+      "destination_fias": "d193a2f8-4ea1-406a-ba9a-698ae19caeb7",
+      "destination_name": "г Гатчина",
+      "record_count": 22,
+      "trip_count": 1245,
+      "backend_compatible_rub_per_km": 66.2911,
+      "trip_weighted_rub_per_km": 83.1871,
+      "mean_price": 126432.2727,
+      "mean_route_length": 1907.2273
+    },
+    {
+      "destination_fias": "c15dbe72-d304-43e8-a557-899aa226739d",
+      "destination_name": "деревня Курск",
+      "record_count": 20,
+      "trip_count": 2252,
+      "backend_compatible_rub_per_km": 82.6951,
+      "trip_weighted_rub_per_km": 82.8956,
+      "mean_price": 113573.5,
+      "mean_route_length": 1373.4
+    },
+    {
+      "destination_fias": "c0baa3bb-d8f7-497a-9193-3ed2b3c9dab2",
+      "destination_name": "деревня Заневка",
+      "record_count": 20,
+      "trip_count": 4776,
+      "backend_compatible_rub_per_km": 69.5481,
+      "trip_weighted_rub_per_km": 52.6241,
+      "mean_price": 114573.5,
+      "mean_route_length": 1647.4
+    },
+    {
+      "destination_fias": "d4789972-b71d-4e70-9af8-f4acfcf80c71",
+      "destination_name": "г Светогорск",
+      "record_count": 17,
+      "trip_count": 1960,
+      "backend_compatible_rub_per_km": 75.8202,
+      "trip_weighted_rub_per_km": 84.5399,
+      "mean_price": 98798.2353,
+      "mean_route_length": 1303.0588
+    },
+    {
+      "destination_fias": "d77089df-c8ed-464d-a26b-69ce42383a0f",
+      "destination_name": "г Волхов",
+      "record_count": 16,
+      "trip_count": 1959,
+      "backend_compatible_rub_per_km": 78.66,
+      "trip_weighted_rub_per_km": 88.6797,
+      "mean_price": 98364.375,
+      "mean_route_length": 1250.5
+    },
+    {
+      "destination_fias": "c207228b-6e5d-4670-bc25-2af932a4bd8f",
+      "destination_name": "г Тельмана",
+      "record_count": 16,
+      "trip_count": 468,
+      "backend_compatible_rub_per_km": 88.9483,
+      "trip_weighted_rub_per_km": 75.2169,
+      "mean_price": 110585.0,
+      "mean_route_length": 1243.25
+    },
+    {
+      "destination_fias": "d9135f5d-627e-441d-b208-9087ee0367dd",
+      "destination_name": "г Луга",
+      "record_count": 15,
+      "trip_count": 1272,
+      "backend_compatible_rub_per_km": 78.6365,
+      "trip_weighted_rub_per_km": 83.6837,
+      "mean_price": 92660.0,
+      "mean_route_length": 1178.3333
+    },
+    {
+      "destination_fias": "d5987224-1336-425a-9681-9d5579e9ab89",
+      "destination_name": "гп Сиверский",
+      "record_count": 13,
+      "trip_count": 215,
+      "backend_compatible_rub_per_km": 80.5417,
+      "trip_weighted_rub_per_km": 65.2528,
+      "mean_price": 132212.3077,
+      "mean_route_length": 1641.5385
+    },
+    {
+      "destination_fias": "f4a4b31f-9f0a-4fdb-804c-d67661085eb4",
+      "destination_name": "г Сосновый Бор",
+      "record_count": 12,
+      "trip_count": 1563,
+      "backend_compatible_rub_per_km": 105.8698,
+      "trip_weighted_rub_per_km": 99.7815,
+      "mean_price": 81960.8333,
+      "mean_route_length": 774.1667
+    },
+    {
+      "destination_fias": "c25e2d4b-38f5-4370-9ece-c9a63051faea",
+      "destination_name": "массив Стеклянный",
+      "record_count": 12,
+      "trip_count": 908,
+      "backend_compatible_rub_per_km": 89.3324,
+      "trip_weighted_rub_per_km": 86.0378,
+      "mean_price": 83853.3333,
+      "mean_route_length": 938.6667
+    },
+    {
+      "destination_fias": "c4602384-ff62-4e0f-bf4b-06a5c653702b",
+      "destination_name": "г Отрадное",
+      "record_count": 12,
+      "trip_count": 512,
+      "backend_compatible_rub_per_km": 82.9439,
+      "trip_weighted_rub_per_km": 70.6607,
+      "mean_price": 120213.3333,
+      "mean_route_length": 1449.3333
+    },
+    {
+      "destination_fias": "e4e3bd19-68d9-4048-9a95-852b30429dc6",
+      "destination_name": "деревня Лужицы",
+      "record_count": 12,
+      "trip_count": 660,
+      "backend_compatible_rub_per_km": 107.3597,
+      "trip_weighted_rub_per_km": 93.2043,
+      "mean_price": 172169.1667,
+      "mean_route_length": 1603.6667
+    },
+    {
+      "destination_fias": "ef14bc6b-dd76-4264-bb40-c0fd8a60985b",
+      "destination_name": "г Кингисепп",
+      "record_count": 11,
+      "trip_count": 1175,
+      "backend_compatible_rub_per_km": 103.2175,
+      "trip_weighted_rub_per_km": 94.1611,
+      "mean_price": 84779.0909,
+      "mean_route_length": 821.3636
+    },
+    {
+      "destination_fias": "e9a45e39-d66b-445a-b971-999a22a23cd6",
+      "destination_name": "поселок Усть-Луга",
+      "record_count": 10,
+      "trip_count": 652,
+      "backend_compatible_rub_per_km": 103.0756,
+      "trip_weighted_rub_per_km": 92.6306,
+      "mean_price": 101179.0,
+      "mean_route_length": 981.6
+    },
+    {
+      "destination_fias": "f0a4b813-7189-4bd4-8a3a-aaa7fbed4711",
+      "destination_name": "г Высоцк",
+      "record_count": 10,
+      "trip_count": 659,
+      "backend_compatible_rub_per_km": 71.5624,
+      "trip_weighted_rub_per_km": 91.8958,
+      "mean_price": 95865.0,
+      "mean_route_length": 1339.6
+    },
+    {
+      "destination_fias": "e398b8cf-6336-4ef4-ba7e-3d1a2fc32cc6",
+      "destination_name": "тер СНТ Усть-Луга",
+      "record_count": 10,
+      "trip_count": 763,
+      "backend_compatible_rub_per_km": 97.7072,
+      "trip_weighted_rub_per_km": 89.6527,
+      "mean_price": 193773.0,
+      "mean_route_length": 1983.2
+    },
+    {
+      "destination_fias": "ee598bbe-20c2-46f3-9e1a-13cfef927346",
+      "destination_name": "гп Фёдоровское",
+      "record_count": 10,
+      "trip_count": 206,
+      "backend_compatible_rub_per_km": 88.6104,
+      "trip_weighted_rub_per_km": 109.3724,
+      "mean_price": 83409.0,
+      "mean_route_length": 941.3
+    },
+    {
+      "destination_fias": "c90b9fd4-f0ad-4a04-8473-5e81fe1a0333",
+      "destination_name": "поселок Щеглово",
+      "record_count": 9,
+      "trip_count": 596,
+      "backend_compatible_rub_per_km": 87.378,
+      "trip_weighted_rub_per_km": 72.2518,
+      "mean_price": 103678.8889,
+      "mean_route_length": 1186.5556
+    },
+    {
+      "destination_fias": "f574ab03-a535-42ae-a1d1-2bfa4f4855eb",
+      "destination_name": "промзона Большевик (деревня Разбегаево)",
+      "record_count": 9,
+      "trip_count": 766,
+      "backend_compatible_rub_per_km": 96.8177,
+      "trip_weighted_rub_per_km": 102.6392,
+      "mean_price": 112566.6667,
+      "mean_route_length": 1162.6667
+    },
+    {
+      "destination_fias": "d73506c5-015c-4c39-929a-696ea8144e16",
+      "destination_name": "г Мурино",
+      "record_count": 8,
+      "trip_count": 784,
+      "backend_compatible_rub_per_km": 68.0239,
+      "trip_weighted_rub_per_km": 68.3695,
+      "mean_price": 109552.5,
+      "mean_route_length": 1610.5
+    },
+    {
+      "destination_fias": "ce995805-0182-4f6b-870c-050845e5cabc",
+      "destination_name": "село Копорье",
+      "record_count": 8,
+      "trip_count": 720,
+      "backend_compatible_rub_per_km": 105.0645,
+      "trip_weighted_rub_per_km": 97.8817,
+      "mean_price": 201618.75,
+      "mean_route_length": 1919.0
+    },
+    {
+      "destination_fias": "d2122ebe-c718-4215-bc2f-088e24d2c498",
+      "destination_name": "деревня Горбунки",
+      "record_count": 8,
+      "trip_count": 608,
+      "backend_compatible_rub_per_km": 81.284,
+      "trip_weighted_rub_per_km": 102.1486,
+      "mean_price": 130013.75,
+      "mean_route_length": 1599.5
+    },
+    {
+      "destination_fias": "cda96dc0-75b2-411b-b995-16cc63fcfa05",
+      "destination_name": "г Любань",
+      "record_count": 8,
+      "trip_count": 32,
+      "backend_compatible_rub_per_km": 87.8853,
+      "trip_weighted_rub_per_km": 79.5732,
+      "mean_price": 154810.0,
+      "mean_route_length": 1761.5
+    },
+    {
+      "destination_fias": "d9576313-8e0b-424a-9694-05cb4117b1d1",
+      "destination_name": "гп Вырица",
+      "record_count": 8,
+      "trip_count": 176,
+      "backend_compatible_rub_per_km": 80.4554,
+      "trip_weighted_rub_per_km": 67.2167,
+      "mean_price": 147313.75,
+      "mean_route_length": 1831.0
+    },
+    {
+      "destination_fias": "d0433df5-fa04-4c32-8baa-52739c09f235",
+      "destination_name": "поселок Новогорелово",
+      "record_count": 8,
+      "trip_count": 1272,
+      "backend_compatible_rub_per_km": 72.6015,
+      "trip_weighted_rub_per_km": 85.5783,
+      "mean_price": 115363.75,
+      "mean_route_length": 1589.0
+    },
+    {
+      "destination_fias": "dbf26986-2a4a-46ca-8508-cafe72ca2f05",
+      "destination_name": "тер Логистический Парк Янино (гп Янино-1)",
+      "record_count": 8,
+      "trip_count": 840,
+      "backend_compatible_rub_per_km": 64.2384,
+      "trip_weighted_rub_per_km": 63.5273,
+      "mean_price": 102588.75,
+      "mean_route_length": 1597.0
+    },
+    {
+      "destination_fias": "dfba722d-1a54-49a3-826d-52ac8e0be2fa",
+      "destination_name": "деревня Городище (Цвылевское с/п)",
+      "record_count": 8,
+      "trip_count": 852,
+      "backend_compatible_rub_per_km": 75.0401,
+      "trip_weighted_rub_per_km": 83.1479,
+      "mean_price": 133196.25,
+      "mean_route_length": 1775.0
+    },
+    {
+      "destination_fias": "d93f5974-bef7-411c-b34d-32e4e9f5bf81",
+      "destination_name": "тер промышленная зона Лесное (поселок Лесное)",
+      "record_count": 8,
+      "trip_count": 856,
+      "backend_compatible_rub_per_km": 71.1886,
+      "trip_weighted_rub_per_km": 78.8128,
+      "mean_price": 118066.25,
+      "mean_route_length": 1658.5
+    },
+    {
+      "destination_fias": "d27339d4-b089-46fb-a52b-53b69f518ee1",
+      "destination_name": "деревня Вистино",
+      "record_count": 8,
+      "trip_count": 648,
+      "backend_compatible_rub_per_km": 102.9816,
+      "trip_weighted_rub_per_km": 92.6847,
+      "mean_price": 204727.5,
+      "mean_route_length": 1988.0
+    },
+    {
+      "destination_fias": "c671e577-10a3-45e9-bad6-c93ceccf8887",
+      "destination_name": "поселок Возрождение",
+      "record_count": 8,
+      "trip_count": 16,
+      "backend_compatible_rub_per_km": 93.0482,
+      "trip_weighted_rub_per_km": 103.5582,
+      "mean_price": 104818.75,
+      "mean_route_length": 1126.5
+    },
+    {
+      "destination_fias": "f59186fa-b4db-4b2d-88b9-e3fde4a90690",
+      "destination_name": "г Сясьстрой",
+      "record_count": 8,
+      "trip_count": 2004,
+      "backend_compatible_rub_per_km": 92.8899,
+      "trip_weighted_rub_per_km": 90.8956,
+      "mean_price": 101853.75,
+      "mean_route_length": 1096.5
+    },
+    {
+      "destination_fias": "e0775ae9-f9b4-4c83-a13b-13e92b2a0726",
+      "destination_name": "поселок Курск",
+      "record_count": 8,
+      "trip_count": 840,
+      "backend_compatible_rub_per_km": 100.8999,
+      "trip_weighted_rub_per_km": 94.9126,
+      "mean_price": 108063.75,
+      "mean_route_length": 1071.0
+    },
+    {
+      "destination_fias": "f25d6f40-8448-4500-a419-20072912d8d4",
+      "destination_name": "гп Новоселье",
+      "record_count": 6,
+      "trip_count": 1015,
+      "backend_compatible_rub_per_km": 95.972,
+      "trip_weighted_rub_per_km": 105.2614,
+      "mean_price": 78905.0,
+      "mean_route_length": 822.1667
+    },
+    {
+      "destination_fias": "ff801571-d9df-4152-8e73-036260754938",
+      "destination_name": "тер Промышленная зона Пески",
+      "record_count": 5,
+      "trip_count": 569,
+      "backend_compatible_rub_per_km": 109.5498,
+      "trip_weighted_rub_per_km": 105.1385,
+      "mean_price": 64240.0,
+      "mean_route_length": 586.4
+    },
+    {
+      "destination_fias": "cd34cb78-d641-4906-94cb-4d98474dd25c",
+      "destination_name": "деревня Пикколово",
+      "record_count": 5,
+      "trip_count": 281,
+      "backend_compatible_rub_per_km": 72.0339,
+      "trip_weighted_rub_per_km": 74.9759,
+      "mean_price": 91022.0,
+      "mean_route_length": 1263.6
+    },
+    {
+      "destination_fias": "e48a1d26-f32a-4b9c-8aed-a1c40277191d",
+      "destination_name": "поселок Аннино",
+      "record_count": 4,
+      "trip_count": 12,
+      "backend_compatible_rub_per_km": 74.5769,
+      "trip_weighted_rub_per_km": 74.5769,
+      "mean_price": 183757.5,
+      "mean_route_length": 2464.0
+    },
+    {
+      "destination_fias": "f8e86fdf-e957-431e-8446-7009b4b5d2d6",
+      "destination_name": "деревня Лепсари",
+      "record_count": 4,
+      "trip_count": 40,
+      "backend_compatible_rub_per_km": 127.273,
+      "trip_weighted_rub_per_km": 127.273,
+      "mean_price": 96727.5,
+      "mean_route_length": 760.0
+    },
+    {
+      "destination_fias": "c2d46706-277c-49fd-a896-7903ce930860",
+      "destination_name": "гп Синявино",
+      "record_count": 4,
+      "trip_count": 56,
+      "backend_compatible_rub_per_km": 94.4887,
+      "trip_weighted_rub_per_km": 94.4887,
+      "mean_price": 71150.0,
+      "mean_route_length": 753.0
+    },
+    {
+      "destination_fias": "d64c8bf5-6770-4621-853c-358a40e84980",
+      "destination_name": "деревня Углово",
+      "record_count": 4,
+      "trip_count": 40,
+      "backend_compatible_rub_per_km": 127.7064,
+      "trip_weighted_rub_per_km": 127.7064,
+      "mean_price": 95907.5,
+      "mean_route_length": 751.0
+    },
+    {
+      "destination_fias": "c9b13889-74ec-4b1a-a730-c7c22419895e",
+      "destination_name": "деревня Разметелево",
+      "record_count": 4,
+      "trip_count": 4,
+      "backend_compatible_rub_per_km": 115.5685,
+      "trip_weighted_rub_per_km": 115.5685,
+      "mean_price": 84365.0,
+      "mean_route_length": 730.0
+    },
+    {
+      "destination_fias": "e1f3d0b7-d623-4dc8-9994-5064f528aa0d",
+      "destination_name": "массив Карьер Мяглово",
+      "record_count": 4,
+      "trip_count": 4,
+      "backend_compatible_rub_per_km": 115.4297,
+      "trip_weighted_rub_per_km": 115.4297,
+      "mean_price": 84610.0,
+      "mean_route_length": 733.0
+    },
+    {
+      "destination_fias": "e5c62df7-a3cb-457e-872c-995db0a25e44",
+      "destination_name": "поселок Ковалево",
+      "record_count": 4,
+      "trip_count": 400,
+      "backend_compatible_rub_per_km": 104.5929,
+      "trip_weighted_rub_per_km": 104.5929,
+      "mean_price": 77085.0,
+      "mean_route_length": 737.0
+    },
+    {
+      "destination_fias": "e2f0a5d4-b2e7-4058-adec-3922c0b22450",
+      "destination_name": "деревня Красный Бор",
+      "record_count": 4,
+      "trip_count": 192,
+      "backend_compatible_rub_per_km": 84.0197,
+      "trip_weighted_rub_per_km": 84.0197,
+      "mean_price": 149555.0,
+      "mean_route_length": 1780.0
+    },
+    {
+      "destination_fias": "f81867d5-89c2-40a2-a5ab-7873964affb1",
+      "destination_name": "поселок Кикерино",
+      "record_count": 4,
+      "trip_count": 4,
+      "backend_compatible_rub_per_km": 107.6108,
+      "trip_weighted_rub_per_km": 107.6108,
+      "mean_price": 133545.0,
+      "mean_route_length": 1241.0
+    },
+    {
+      "destination_fias": "eb8a9d09-6728-43fe-b3d1-21a2c804b40c",
+      "destination_name": "г Волосово",
+      "record_count": 4,
+      "trip_count": 716,
+      "backend_compatible_rub_per_km": 97.7629,
+      "trip_weighted_rub_per_km": 97.7629,
+      "mean_price": 127385.0,
+      "mean_route_length": 1303.0
+    }
+  ]
+}

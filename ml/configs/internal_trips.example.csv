@@ -1,0 +1,2 @@
+origin_fias,origin_name,destination_fias,destination_name,destination_region,period_id,route_length,trip_count,reference_price
+00000000-0000-0000-0000-000000000000,Пример отправления,11111111-1111-1111-1111-111111111111,Пример назначения,Ленинградская область,202608,750,10,65000

@@ -1,0 +1,199 @@
+﻿section,metric,value
+,generated_at_utc,2026-08-23T13:47:35.020254+00:00
+,source,pulse
+,source_path,C:\folder\Python\Проект ИИ Логистика\v_pulse_prices.csv
+,source_size_bytes,308775183
+rows,total,543101
+rows,unique,543101
+rows,duplicates,0
+rows,duplicate_pct,0.0
+entities,unique_origin_fias,108
+entities,unique_destination_fias,3166
+periods.range,min,202605
+periods.range,max,202611
+periods.types,current,133798
+periods.types,forecast,401394
+periods.types,retro,7909
+price_types,spot,7909
+price_types,tender,535192
+nulls.destination_name,count,168
+nulls.destination_name,pct,0.0309
+nulls.destination_region,count,168
+nulls.destination_region,pct,0.0309
+nulls.latitude,count,543101
+nulls.latitude,pct,100.0
+nulls.longitude,count,543101
+nulls.longitude,pct,100.0
+rub_per_km,count,543101
+rub_per_km,min,13.5194
+rub_per_km,p25,65.9212
+rub_per_km,median,82.7761
+rub_per_km,p75,98.2531
+rub_per_km,p95,152.8025
+rub_per_km,max,14290.0
+rub_per_km,mean,93.7516
+destination_regions.Московская область,rows,36032
+destination_regions.Московская область,unique_destinations,236
+destination_regions.Республика Татарстан,rows,28258
+destination_regions.Республика Татарстан,unique_destinations,112
+destination_regions.Ленинградская область,rows,25309
+destination_regions.Ленинградская область,unique_destinations,163
+destination_regions.Краснодарский край,rows,24471
+destination_regions.Краснодарский край,unique_destinations,144
+destination_regions.Свердловская область,rows,24023
+destination_regions.Свердловская область,unique_destinations,98
+destination_regions.Нижегородская область,rows,23895
+destination_regions.Нижегородская область,unique_destinations,92
+destination_regions.Самарская область,rows,23796
+destination_regions.Самарская область,unique_destinations,72
+destination_regions.Республика Башкортостан,rows,22074
+destination_regions.Республика Башкортостан,unique_destinations,102
+destination_regions.Ростовская область,rows,21432
+destination_regions.Ростовская область,unique_destinations,111
+destination_regions.Тульская область,rows,19579
+destination_regions.Тульская область,unique_destinations,86
+destination_regions.Воронежская область,rows,18416
+destination_regions.Воронежская область,unique_destinations,81
+destination_regions.Калужская область,rows,16921
+destination_regions.Калужская область,unique_destinations,66
+destination_regions.Владимирская область,rows,16546
+destination_regions.Владимирская область,unique_destinations,70
+destination_regions.Челябинская область,rows,13974
+destination_regions.Челябинская область,unique_destinations,80
+destination_regions.Саратовская область,rows,13514
+destination_regions.Саратовская область,unique_destinations,68
+destination_regions.Пермский край,rows,13229
+destination_regions.Пермский край,unique_destinations,59
+destination_regions.Волгоградская область,rows,11927
+destination_regions.Волгоградская область,unique_destinations,56
+destination_regions.Новосибирская область,rows,10672
+destination_regions.Новосибирская область,unique_destinations,56
+destination_regions.Белгородская область,rows,10281
+destination_regions.Белгородская область,unique_destinations,49
+destination_regions.Москва,rows,9328
+destination_regions.Москва,unique_destinations,39
+destination_regions.Ярославская область,rows,9089
+destination_regions.Ярославская область,unique_destinations,35
+destination_regions.Тверская область,rows,9061
+destination_regions.Тверская область,unique_destinations,47
+destination_regions.Кировская область,rows,8625
+destination_regions.Кировская область,unique_destinations,41
+destination_regions.Брянская область,rows,7647
+destination_regions.Брянская область,unique_destinations,49
+destination_regions.Курская область,rows,7529
+destination_regions.Курская область,unique_destinations,32
+destination_regions.Ставропольский край,rows,7289
+destination_regions.Ставропольский край,unique_destinations,47
+destination_regions.Санкт-Петербург,rows,7061
+destination_regions.Санкт-Петербург,unique_destinations,23
+destination_regions.Рязанская область,rows,6921
+destination_regions.Рязанская область,unique_destinations,38
+destination_regions.Липецкая область,rows,6331
+destination_regions.Липецкая область,unique_destinations,36
+destination_regions.Смоленская область,rows,5779
+destination_regions.Смоленская область,unique_destinations,34
+destination_regions.Оренбургская область,rows,5630
+destination_regions.Оренбургская область,unique_destinations,37
+destination_regions.Новгородская область,rows,5596
+destination_regions.Новгородская область,unique_destinations,35
+destination_regions.Тюменская область,rows,5415
+destination_regions.Тюменская область,unique_destinations,32
+destination_regions.Удмуртская Республика,rows,4996
+destination_regions.Удмуртская Республика,unique_destinations,31
+destination_regions.Ивановская область,rows,4712
+destination_regions.Ивановская область,unique_destinations,35
+destination_regions.Ульяновская область,rows,4597
+destination_regions.Ульяновская область,unique_destinations,26
+destination_regions.Республика Адыгея,rows,4306
+destination_regions.Республика Адыгея,unique_destinations,25
+destination_regions.Тамбовская область,rows,4146
+destination_regions.Тамбовская область,unique_destinations,37
+destination_regions.Республика Мордовия,rows,3959
+destination_regions.Республика Мордовия,unique_destinations,32
+destination_regions.Красноярский край,rows,3890
+destination_regions.Красноярский край,unique_destinations,42
+destination_regions.Орловская область,rows,3539
+destination_regions.Орловская область,unique_destinations,27
+destination_regions.Вологодская область,rows,3362
+destination_regions.Вологодская область,unique_destinations,34
+destination_regions.Кемеровская область,rows,2924
+destination_regions.Кемеровская область,unique_destinations,38
+destination_regions.Чувашская Республика,rows,2736
+destination_regions.Чувашская Республика,unique_destinations,27
+destination_regions.Алтайский край,rows,2726
+destination_regions.Алтайский край,unique_destinations,29
+destination_regions.Пензенская область,rows,2661
+destination_regions.Пензенская область,unique_destinations,39
+destination_regions.Республика Марий Эл,rows,2312
+destination_regions.Республика Марий Эл,unique_destinations,23
+destination_regions.Омская область,rows,2168
+destination_regions.Омская область,unique_destinations,11
+destination_regions.Томская область,rows,1466
+destination_regions.Томская область,unique_destinations,10
+destination_regions.Астраханская область,rows,1359
+destination_regions.Астраханская область,unique_destinations,23
+destination_regions.Кабардино-Балкарская Республика,rows,1326
+destination_regions.Кабардино-Балкарская Республика,unique_destinations,15
+destination_regions.Иркутская область,rows,1265
+destination_regions.Иркутская область,unique_destinations,34
+destination_regions.Республика Дагестан,rows,1147
+destination_regions.Республика Дагестан,unique_destinations,16
+destination_regions.Псковская область,rows,1021
+destination_regions.Псковская область,unique_destinations,13
+destination_regions.Курганская область,rows,1011
+destination_regions.Курганская область,unique_destinations,17
+destination_regions.Мурманская область,rows,895
+destination_regions.Мурманская область,unique_destinations,19
+destination_regions.Костромская область,rows,818
+destination_regions.Костромская область,unique_destinations,14
+destination_regions.Карачаево-Черкесская Республика,rows,645
+destination_regions.Карачаево-Черкесская Республика,unique_destinations,8
+destination_regions.Ханты-Мансийский автономный округ — Югра,rows,593
+destination_regions.Ханты-Мансийский автономный округ — Югра,unique_destinations,41
+destination_regions.Архангельская область,rows,586
+destination_regions.Архангельская область,unique_destinations,16
+destination_regions.Республика Северная Осетия — Алания,rows,392
+destination_regions.Республика Северная Осетия — Алания,unique_destinations,6
+destination_regions.Республика Ингушетия,rows,353
+destination_regions.Республика Ингушетия,unique_destinations,4
+destination_regions.Чеченская Республика,rows,348
+destination_regions.Чеченская Республика,unique_destinations,8
+destination_regions.Приморский край,rows,230
+destination_regions.Приморский край,unique_destinations,10
+destination_regions.Амурская область,rows,201
+destination_regions.Амурская область,unique_destinations,15
+destination_regions.Республика Коми,rows,200
+destination_regions.Республика Коми,unique_destinations,12
+destination_regions.Хабаровский край,rows,170
+destination_regions.Хабаровский край,unique_destinations,6
+destination_regions.<missing>,rows,168
+destination_regions.<missing>,unique_destinations,77
+destination_regions.Республика Хакасия,rows,166
+destination_regions.Республика Хакасия,unique_destinations,10
+destination_regions.Республика Бурятия,rows,19
+destination_regions.Республика Бурятия,unique_destinations,4
+destination_regions.Республика Карелия,rows,16
+destination_regions.Республика Карелия,unique_destinations,2
+destination_regions.Забайкальский край,rows,12
+destination_regions.Забайкальский край,unique_destinations,3
+destination_regions.Еврейская автономная область,rows,10
+destination_regions.Еврейская автономная область,unique_destinations,1
+trips_per_destination,count,3166
+trips_per_destination,min,1.0
+trips_per_destination,p25,4690.0
+trips_per_destination,median,11143.5
+trips_per_destination,p75,19556.0
+trips_per_destination,p95,34316.25
+trips_per_destination,max,151446.0
+trips_per_destination,mean,13604.8654
+rows_per_destination,count,3166
+rows_per_destination,min,1.0
+rows_per_destination,p25,104.0
+rows_per_destination,median,200.0
+rows_per_destination,p75,236.0
+rows_per_destination,p95,321.5
+rows_per_destination,max,401.0
+rows_per_destination,mean,171.5417
+contract,rub_per_km_formula,price / route_length for price > 0 and route_length > 0
+contract,coordinate_status,optional; expected to be joined by FIAS when absent
+contract,duplicate_definition,identical normalized business fields
