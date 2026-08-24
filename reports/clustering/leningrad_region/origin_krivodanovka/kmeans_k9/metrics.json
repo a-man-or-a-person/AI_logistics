@@ -1,0 +1,166 @@
+{
+  "experiment_id": "f62ad0fa15095d9f",
+  "git_commit": "3037c6fb97da19ef76c4e22ae82cd5234fe45d0f",
+  "dataset_hash": "cc8a1ce5d304d1009fe1640839da793563901a787951f8d21b2ad876873eb5e4",
+  "source": "pulse",
+  "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\reports\\locations\\leningrad_region\\origin_krivodanovka\\locations.json",
+  "region": "Ленинградская область",
+  "origin_fias": "96fe63dd-2802-415b-8b73-e06c2147ceef",
+  "period": "all",
+  "algorithm": "kmeans",
+  "parameters": {
+    "n_clusters": 9,
+    "weight_mode": "none",
+    "random_state": 42
+  },
+  "location_count": 97,
+  "cluster_count": 9,
+  "metrics": {
+    "point_coverage_pct": 100.0,
+    "noise_pct": 0.0,
+    "mean_distance_to_medoid_m": 20496.5359,
+    "weighted_mean_distance_to_medoid_m": 20131.5006,
+    "p95_distance_to_medoid_m": 54820.1629,
+    "max_distance_to_medoid_m": 71395.1865,
+    "min_cluster_size": 3,
+    "max_cluster_size": 27,
+    "polygon_coverage_pct": null,
+    "polygon_overlap_pct": null,
+    "fragmentation": null,
+    "silhouette": 0.461002
+  },
+  "projection": {
+    "name": "local_azimuthal_equidistant",
+    "center_latitude": 59.853078255485606,
+    "center_longitude": 30.597619175751827
+  },
+  "created_at_utc": "2026-08-24T12:42:52.460765+00:00",
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "point_count": 17,
+      "trip_count": 41400,
+      "centroid": [
+        -11589.288316469563,
+        33759.60268243861
+      ],
+      "medoid_point_id": "5bbcc18f-8c45-413a-95ca-3319c2f5838d",
+      "medoid": [
+        -14063.022451917499,
+        28389.30275505892
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "point_count": 27,
+      "trip_count": 13488,
+      "centroid": [
+        -31492.29584040742,
+        -26823.17806352824
+      ],
+      "medoid_point_id": "18c52730-daf5-4ecb-83a5-cf3bcecbfd8c",
+      "medoid": [
+        -31479.72950353185,
+        -26006.576565403866
+      ]
+    },
+    {
+      "cluster_id": 2,
+      "point_count": 5,
+      "trip_count": 3124,
+      "centroid": [
+        194082.71344899922,
+        -20520.663245439784
+      ],
+      "medoid_point_id": "0a243487-acce-4775-979a-5a08e8c62da6",
+      "medoid": [
+        201907.0677461352,
+        -31742.233791081682
+      ]
+    },
+    {
+      "cluster_id": 3,
+      "point_count": 25,
+      "trip_count": 30948,
+      "centroid": [
+        8282.707665360847,
+        -3569.839709939189
+      ],
+      "medoid_point_id": "660e6dff-a44b-4360-9064-1e9fa479785e",
+      "medoid": [
+        4315.798847840198,
+        991.5991708194614
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "point_count": 7,
+      "trip_count": 16360,
+      "centroid": [
+        -64323.75882907009,
+        105083.72225351806
+      ],
+      "medoid_point_id": "58399f33-3e18-4921-950a-ac0fa5f9e97c",
+      "medoid": [
+        -79507.31880637439,
+        123392.51155576103
+      ]
+    },
+    {
+      "cluster_id": 5,
+      "point_count": 3,
+      "trip_count": 2392,
+      "centroid": [
+        162176.36758315936,
+        97236.08803379392
+      ],
+      "medoid_point_id": "5f52edf9-92aa-4e69-9314-e629c45ec1d5",
+      "medoid": [
+        160802.45005340336,
+        101731.24499338375
+      ]
+    },
+    {
+      "cluster_id": 6,
+      "point_count": 4,
+      "trip_count": 64,
+      "centroid": [
+        -40730.605143787194,
+        -109618.14274970908
+      ],
+      "medoid_point_id": "1667a6fb-e5ae-43d5-b00a-7d7249a56cf4",
+      "medoid": [
+        -40152.64399547111,
+        -110176.28905767437
+      ]
+    },
+    {
+      "cluster_id": 7,
+      "point_count": 4,
+      "trip_count": 1308,
+      "centroid": [
+        -110024.03540077168,
+        -36707.326831333776
+      ],
+      "medoid_point_id": "10b761cb-8804-446e-b960-c9c4c132495a",
+      "medoid": [
+        -100428.8258191971,
+        -44788.27061379503
+      ]
+    },
+    {
+      "cluster_id": 8,
+      "point_count": 5,
+      "trip_count": 6688,
+      "centroid": [
+        85817.35463811875,
+        -7845.337339678047
+      ],
+      "medoid_point_id": "1585eb89-9bde-472a-b15c-dcbc1fa329db",
+      "medoid": [
+        96737.33033152288,
+        9564.399668698628
+      ]
+    }
+  ]
+}

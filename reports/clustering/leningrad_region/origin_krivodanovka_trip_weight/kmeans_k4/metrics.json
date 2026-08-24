@@ -1,0 +1,96 @@
+{
+  "experiment_id": "0bc9115c3c550dae",
+  "git_commit": "3037c6fb97da19ef76c4e22ae82cd5234fe45d0f",
+  "dataset_hash": "cc8a1ce5d304d1009fe1640839da793563901a787951f8d21b2ad876873eb5e4",
+  "source": "pulse",
+  "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\reports\\locations\\leningrad_region\\origin_krivodanovka\\locations.json",
+  "region": "Ленинградская область",
+  "origin_fias": "96fe63dd-2802-415b-8b73-e06c2147ceef",
+  "period": "all",
+  "algorithm": "kmeans",
+  "parameters": {
+    "n_clusters": 4,
+    "weight_mode": "trip_count",
+    "random_state": 42
+  },
+  "location_count": 97,
+  "cluster_count": 4,
+  "metrics": {
+    "point_coverage_pct": 100.0,
+    "noise_pct": 0.0,
+    "mean_distance_to_medoid_m": 35068.3073,
+    "weighted_mean_distance_to_medoid_m": 31328.3747,
+    "p95_distance_to_medoid_m": 92523.0525,
+    "max_distance_to_medoid_m": 145616.1537,
+    "min_cluster_size": 9,
+    "max_cluster_size": 41,
+    "polygon_coverage_pct": null,
+    "polygon_overlap_pct": null,
+    "fragmentation": null,
+    "silhouette": 0.393284
+  },
+  "projection": {
+    "name": "local_azimuthal_equidistant",
+    "center_latitude": 59.853078255485606,
+    "center_longitude": 30.597619175751827
+  },
+  "created_at_utc": "2026-08-24T12:46:17.277266+00:00",
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "point_count": 41,
+      "trip_count": 15892,
+      "centroid": [
+        -34571.71624980895,
+        -35609.71970286988
+      ],
+      "medoid_point_id": "0aac0ee1-9e4a-44ca-889f-b3510ab9fcdf",
+      "medoid": [
+        -29306.167170402812,
+        -34620.985106055545
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "point_count": 13,
+      "trip_count": 12204,
+      "centroid": [
+        145079.18793731293,
+        11529.097013522509
+      ],
+      "medoid_point_id": "86ec26f6-d980-4c40-b4ce-77e1638ec8ad",
+      "medoid": [
+        165994.87331004295,
+        -19570.706628090204
+      ]
+    },
+    {
+      "cluster_id": 2,
+      "point_count": 9,
+      "trip_count": 20200,
+      "centroid": [
+        -61392.49816235507,
+        93064.64372804452
+      ],
+      "medoid_point_id": "8e329ed3-79c5-4cee-97c5-09a0f65eddc6",
+      "medoid": [
+        -97175.79088726232,
+        85035.6173979073
+      ]
+    },
+    {
+      "cluster_id": 3,
+      "point_count": 34,
+      "trip_count": 67476,
+      "centroid": [
+        2248.4052436669085,
+        15680.656966277456
+      ],
+      "medoid_point_id": "294c9ce2-295f-4e7c-b7f0-036cf22c2ba9",
+      "medoid": [
+        4640.02093112192,
+        13317.264108231084
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+﻿experiment_id,algorithm,parameters,zones,noise_pct,silhouette,mean_radius_km,p95_radius_km,max_radius_km,point_coverage_pct,polygon_coverage_pct,wape,stability,fragmentation
+a8332acbd275d454,kmeans,"{""n_clusters"": 2, ""random_state"": 42, ""weight_mode"": ""trip_count""}",2,0.0,0.595395,51.2834,123.7107,145.6162,100.0,,,,
+2a4dce1e4e7168d5,kmeans,"{""n_clusters"": 3, ""random_state"": 42, ""weight_mode"": ""trip_count""}",3,0.0,0.517016,45.0746,102.1125,145.6162,100.0,,,,
+0bc9115c3c550dae,kmeans,"{""n_clusters"": 4, ""random_state"": 42, ""weight_mode"": ""trip_count""}",4,0.0,0.393284,35.0683,92.5231,145.6162,100.0,,,,
+d8a1c3e6e9e79338,kmeans,"{""n_clusters"": 5, ""random_state"": 42, ""weight_mode"": ""trip_count""}",5,0.0,0.401897,31.2402,86.3513,135.753,100.0,,,,
+5110d25b518172d6,kmeans,"{""n_clusters"": 6, ""random_state"": 42, ""weight_mode"": ""trip_count""}",6,0.0,0.399919,29.3886,80.8572,155.4395,100.0,,,,
+e222749d9f6631f7,kmeans,"{""n_clusters"": 7, ""random_state"": 42, ""weight_mode"": ""trip_count""}",7,0.0,0.385893,25.7918,89.0878,135.753,100.0,,,,
+7421b229acd68800,kmeans,"{""n_clusters"": 8, ""random_state"": 42, ""weight_mode"": ""trip_count""}",8,0.0,0.414502,23.3396,82.4516,106.6499,100.0,,,,
+09774a83264472f7,kmeans,"{""n_clusters"": 9, ""random_state"": 42, ""weight_mode"": ""trip_count""}",9,0.0,0.338702,22.2311,82.4516,106.6499,100.0,,,,
+b048901744173f71,kmeans,"{""n_clusters"": 10, ""random_state"": 42, ""weight_mode"": ""trip_count""}",10,0.0,0.358411,22.4209,82.4516,106.6499,100.0,,,,

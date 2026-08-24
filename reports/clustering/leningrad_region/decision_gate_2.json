@@ -1,0 +1,46 @@
+{
+  "gate": "Stop 2: K-Means + territorialization + out-of-time evaluation",
+  "status": "not_passed",
+  "pilot": {
+    "destination_region": "Ленинградская область",
+    "origin_fias": "96fe63dd-2802-415b-8b73-e06c2147ceef",
+    "origin_name": "Криводановка",
+    "selection_reason": "maximum trip_count among available origins for the region",
+    "locations_total": 100,
+    "locations_with_coordinates": 97,
+    "location_coverage_pct": 97.0,
+    "trip_coverage_pct": 93.9068
+  },
+  "evaluation": {
+    "train_periods": ["202608"],
+    "test_periods": ["202609", "202610", "202611"],
+    "target_semantics": "Pulse forecast prices; proxy only, not realized ATI/internal actuals",
+    "primary_metric": "WAPE",
+    "regional_wape_pct": 2.0333,
+    "best_kmeans_unweighted": {
+      "n_clusters": 6,
+      "cluster_wape_pct": 2.1596,
+      "relative_wape_improvement_pct": -6.2116
+    },
+    "best_kmeans_trip_weighted": {
+      "n_clusters": 6,
+      "cluster_wape_pct": 2.1685,
+      "relative_wape_improvement_pct": -6.6493
+    }
+  },
+  "territorialization": {
+    "implementation": "grid-based nearest-medoid territorializer tested on synthetic boundaries",
+    "pilot_zones_geojson_generated": false,
+    "blocker": "approved official boundary GeoJSON for Ленинградская область is absent"
+  },
+  "decision": {
+    "evidence_of_wape_improvement": false,
+    "continue_to_agglomerative_dbscan_hdbscan": false,
+    "reason": "Every tested K-Means configuration worsened the primary out-of-time proxy WAPE",
+    "required_before_reassessment": [
+      "internal/ATI actual route distances and reference prices for H1",
+      "approved official Ленинградская область boundary GeoJSON",
+      "actual future-period prices rather than Pulse forecast proxy"
+    ]
+  }
+}

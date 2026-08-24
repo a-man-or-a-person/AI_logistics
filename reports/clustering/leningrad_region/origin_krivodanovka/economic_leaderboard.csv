@@ -1,0 +1,10 @@
+﻿experiment_id,algorithm,parameters,regional_wape,cluster_wape,relative_wape_improvement_pct,regional_mae_rub,cluster_mae_rub,cluster_bias_pct,cluster_within_10_pct,matched_rows,unmatched_rows
+227604eec81cc700,kmeans,"{""n_clusters"": 2, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.5575,-25.7808,3582.5537,4506.1199,-1.9304,95.7952,291,9
+9890285070825c2b,kmeans,"{""n_clusters"": 3, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.5595,-25.8791,3582.5537,4509.6026,-1.9304,95.7952,291,9
+8025a88eb288d1d0,kmeans,"{""n_clusters"": 4, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.7125,-33.4038,3582.5537,4779.2175,-1.9304,96.8835,291,9
+677439aeddb46de4,kmeans,"{""n_clusters"": 5, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.2473,-10.5248,3582.5537,3959.6184,-1.9304,98.7562,291,9
+687743d82d931500,kmeans,"{""n_clusters"": 6, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.1596,-6.2116,3582.5537,3805.1057,-1.9304,98.7976,291,9
+b701f3a1038eec3e,kmeans,"{""n_clusters"": 7, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.2941,-12.8264,3582.5537,4042.0773,-1.9304,98.8115,291,9
+d73e493e90198342,kmeans,"{""n_clusters"": 8, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.2217,-9.2657,3582.5537,3914.4832,-1.9304,98.7976,291,9
+f62ad0fa15095d9f,kmeans,"{""n_clusters"": 9, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.2182,-9.0936,3582.5537,3908.3669,-1.9304,98.8207,291,9
+adde2e6a402f8d6b,kmeans,"{""n_clusters"": 10, ""random_state"": 42, ""weight_mode"": ""none""}",2.0333,2.2188,-9.1231,3582.5537,3909.2735,-1.9304,98.8207,291,9

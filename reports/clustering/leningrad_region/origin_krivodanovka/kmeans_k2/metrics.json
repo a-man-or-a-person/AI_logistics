@@ -1,0 +1,68 @@
+{
+  "experiment_id": "227604eec81cc700",
+  "git_commit": "3037c6fb97da19ef76c4e22ae82cd5234fe45d0f",
+  "dataset_hash": "cc8a1ce5d304d1009fe1640839da793563901a787951f8d21b2ad876873eb5e4",
+  "source": "pulse",
+  "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\reports\\locations\\leningrad_region\\origin_krivodanovka\\locations.json",
+  "region": "Ленинградская область",
+  "origin_fias": "96fe63dd-2802-415b-8b73-e06c2147ceef",
+  "period": "all",
+  "algorithm": "kmeans",
+  "parameters": {
+    "n_clusters": 2,
+    "weight_mode": "none",
+    "random_state": 42
+  },
+  "location_count": 97,
+  "cluster_count": 2,
+  "metrics": {
+    "point_coverage_pct": 100.0,
+    "noise_pct": 0.0,
+    "mean_distance_to_medoid_m": 51283.3897,
+    "weighted_mean_distance_to_medoid_m": 53593.8316,
+    "p95_distance_to_medoid_m": 123710.748,
+    "max_distance_to_medoid_m": 145616.1537,
+    "min_cluster_size": 13,
+    "max_cluster_size": 84,
+    "polygon_coverage_pct": null,
+    "polygon_overlap_pct": null,
+    "fragmentation": null,
+    "silhouette": 0.595395
+  },
+  "projection": {
+    "name": "local_azimuthal_equidistant",
+    "center_latitude": 59.853078255485606,
+    "center_longitude": 30.597619175751827
+  },
+  "created_at_utc": "2026-08-24T12:42:51.466327+00:00",
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "point_count": 84,
+      "trip_count": 103568,
+      "centroid": [
+        -22541.98894546057,
+        -1062.790207283701
+      ],
+      "medoid_point_id": "5d74147e-3c58-4600-9169-8da0330f672b",
+      "medoid": [
+        -21287.666222970423,
+        -7775.823105648127
+      ]
+    },
+    {
+      "cluster_id": 1,
+      "point_count": 13,
+      "trip_count": 12204,
+      "centroid": [
+        145079.18793731293,
+        11529.097013522509
+      ],
+      "medoid_point_id": "86ec26f6-d980-4c40-b4ce-77e1638ec8ad",
+      "medoid": [
+        165994.87331004295,
+        -19570.706628090204
+      ]
+    }
+  ]
+}

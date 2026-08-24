@@ -1,0 +1,143 @@
+{
+  "experiment_id": "687743d82d931500",
+  "algorithm": "kmeans",
+  "parameters": {
+    "n_clusters": 6,
+    "weight_mode": "none",
+    "random_state": 42
+  },
+  "filters": {
+    "destination_region": "Ленинградская область",
+    "origin_fias": "96fe63dd-2802-415b-8b73-e06c2147ceef",
+    "train_periods": [
+      "202608"
+    ],
+    "test_periods": [
+      "202609",
+      "202610",
+      "202611"
+    ],
+    "train_period_types": [
+      "current"
+    ],
+    "test_period_types": [
+      "forecast"
+    ]
+  },
+  "target_semantics": "Pulse test-period prices; forecast periods are a proxy, not realized actuals",
+  "rates": {
+    "regional_rub_per_km": 42.9516,
+    "cluster_rub_per_km": {
+      "0": 43.4571,
+      "1": 43.728,
+      "2": 42.3409,
+      "3": 47.4794,
+      "4": 50.8669,
+      "5": 42.5989
+    }
+  },
+  "coverage": {
+    "matched_rows": 291,
+    "unmatched_rows": 9,
+    "unmatched_trip_weight": 5634
+  },
+  "overall": {
+    "regional": {
+      "rows": 291,
+      "trip_weight": 86829,
+      "mae_rub": 3582.5537,
+      "wape_pct": 2.0333,
+      "median_ape_pct": 3.1788,
+      "bias_rub": -3577.3361,
+      "bias_pct": -2.0304,
+      "within_10_pct": 94.9694,
+      "within_20_pct": 99.8664
+    },
+    "cluster": {
+      "rows": 291,
+      "trip_weight": 86829,
+      "mae_rub": 3805.1057,
+      "wape_pct": 2.1596,
+      "median_ape_pct": 3.385,
+      "bias_rub": -3401.168,
+      "bias_pct": -1.9304,
+      "within_10_pct": 98.7976,
+      "within_20_pct": 100.0
+    },
+    "relative_wape_improvement_pct": -6.2116
+  },
+  "by_test_period": {
+    "202609": {
+      "regional": {
+        "rows": 97,
+        "trip_weight": 28943,
+        "mae_rub": 3164.8265,
+        "wape_pct": 1.8006,
+        "median_ape_pct": 3.1496,
+        "bias_rub": -3149.174,
+        "bias_pct": -1.7917,
+        "within_10_pct": 94.9694,
+        "within_20_pct": 100.0
+      },
+      "cluster": {
+        "rows": 97,
+        "trip_weight": 28943,
+        "mae_rub": 3480.8925,
+        "wape_pct": 1.9804,
+        "median_ape_pct": 2.8322,
+        "bias_rub": -2973.0059,
+        "bias_pct": -1.6915,
+        "within_10_pct": 98.8253,
+        "within_20_pct": 100.0
+      }
+    },
+    "202610": {
+      "regional": {
+        "rows": 97,
+        "trip_weight": 28943,
+        "mae_rub": 4233.5702,
+        "wape_pct": 2.3939,
+        "median_ape_pct": 3.7438,
+        "bias_rub": -4233.5702,
+        "bias_pct": -2.3939,
+        "within_10_pct": 94.9694,
+        "within_20_pct": 99.5992
+      },
+      "cluster": {
+        "rows": 97,
+        "trip_weight": 28943,
+        "mae_rub": 4305.674,
+        "wape_pct": 2.4347,
+        "median_ape_pct": 3.4047,
+        "bias_rub": -4057.4021,
+        "bias_pct": -2.2943,
+        "within_10_pct": 98.7562,
+        "within_20_pct": 100.0
+      }
+    },
+    "202611": {
+      "regional": {
+        "rows": 97,
+        "trip_weight": 28943,
+        "mae_rub": 3349.2642,
+        "wape_pct": 1.9034,
+        "median_ape_pct": 3.2621,
+        "bias_rub": -3349.2642,
+        "bias_pct": -1.9034,
+        "within_10_pct": 94.9694,
+        "within_20_pct": 100.0
+      },
+      "cluster": {
+        "rows": 97,
+        "trip_weight": 28943,
+        "mae_rub": 3628.7505,
+        "wape_pct": 2.0622,
+        "median_ape_pct": 2.943,
+        "bias_rub": -3173.0961,
+        "bias_pct": -1.8033,
+        "within_10_pct": 98.8115,
+        "within_20_pct": 100.0
+      }
+    }
+  }
+}

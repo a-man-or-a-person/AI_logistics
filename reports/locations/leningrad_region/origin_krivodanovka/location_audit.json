@@ -1,0 +1,57 @@
+{
+  "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\v_pulse_prices.csv",
+  "coordinate_cache_path": "C:\\folder\\Python\\Проект ИИ Логистика\\backend\\cache\\coords_cache.json",
+  "filters": {
+    "destination_region": "Ленинградская область",
+    "origin_fias": "96fe63dd-2802-415b-8b73-e06c2147ceef",
+    "period_types": [],
+    "price_types": []
+  },
+  "records": 400,
+  "locations": {
+    "total": 100,
+    "fias": 100,
+    "fallback": 0
+  },
+  "coordinates": {
+    "resolved": 97,
+    "unresolved": 3,
+    "location_coverage_pct": 97.0,
+    "trip_coverage_pct": 93.9068,
+    "sources": {
+      "cache_exact": 97,
+      "cache_null": 3
+    }
+  },
+  "unresolved": [
+    {
+      "id": "40cd4458-b83b-4ff4-a5bf-d943a9ae6cb5",
+      "fias_id": "40cd4458-b83b-4ff4-a5bf-d943a9ae6cb5",
+      "name": "массив Проба",
+      "region": "Ленинградская область",
+      "trip_count": 2504,
+      "coordinate_source": "cache_null"
+    },
+    {
+      "id": "4ef03615-75bd-4fdd-b767-6350984b3ad1",
+      "fias_id": "4ef03615-75bd-4fdd-b767-6350984b3ad1",
+      "name": "тер Производственно-административная зона Порзолово",
+      "region": "Ленинградская область",
+      "trip_count": 2504,
+      "coordinate_source": "cache_null"
+    },
+    {
+      "id": "a203a874-0d05-4e12-9505-539f310849a4",
+      "fias_id": "a203a874-0d05-4e12-9505-539f310849a4",
+      "name": "п/р Центральное отделение",
+      "region": "Ленинградская область",
+      "trip_count": 2504,
+      "coordinate_source": "cache_null"
+    }
+  ],
+  "contract": {
+    "clustering_unit": "unique destination FIAS; normalized name+region fallback",
+    "price_usage": "evaluation only; not a baseline clustering feature",
+    "region_center_fallback": false
+  }
+}

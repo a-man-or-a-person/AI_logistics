@@ -76,6 +76,49 @@ py -3.11 -m venv .venv
 Без внутренних расстояний и референсной цены decision gate №1 намеренно не
 считается пройденным: переход к усложнению через кластеризацию будет преждевременным.
 
+Spatial core устанавливается отдельно от runtime Flask:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-ml.txt
+.\.venv\Scripts\python.exe -m ml.data.locations `
+  --destination-region "Ленинградская область" `
+  --output-dir reports\locations\leningrad_region
+```
+
+`ml.data.locations` создаёт ровно одну аналитическую точку на destination FIAS,
+явно маркирует fallback и unresolved coordinates и не подставляет центр региона.
+Проекция `ml.spatial.projection` переводит WGS84 в локальные метры через AEQD.
+
+Географический K-Means baseline запускается sweep-ом, а не ручным подбором:
+
+```powershell
+.\.venv\Scripts\python.exe -m ml.experiments.clustering_experiment `
+  --locations reports\locations\leningrad_region\locations.json `
+  --output-dir reports\clustering\leningrad_region `
+  --k-min 2 --k-max 10
+```
+
+Baseline использует только метрические `x/y`; ставки и `₽/км` остаются исключительно
+для последующей business evaluation. Polygon coverage, WAPE и stability в leaderboard
+остаются пустыми до соответствующих этапов и не подменяются proxy-метриками.
+
+Универсальный `ml.spatial.territorialize` принимает утверждённую границу региона,
+результат любого `Clusterer` и строит grid-based зоны с проверками coverage, overlap
+и connected components. Граница региона не подменяется bbox или центром региона.
+
+Out-of-time economic evaluation запускается отдельно от clustering:
+
+```powershell
+.\.venv\Scripts\python.exe -m ml.experiments.business_evaluation `
+  --clustering-dir reports\clustering\leningrad_region\origin_krivodanovka `
+  --destination-region "Ленинградская область" `
+  --origin-fias "96fe63dd-2802-415b-8b73-e06c2147ceef" `
+  --train-periods 202608 --test-periods 202609,202610,202611
+```
+
+Ставки обучаются только на train. Прогнозные периоды Pulse явно считаются proxy,
+а не заменой фактическим ATI/internal ценам.
+
 ## Настройки
 
 | Переменная | Назначение | Значение по умолчанию |

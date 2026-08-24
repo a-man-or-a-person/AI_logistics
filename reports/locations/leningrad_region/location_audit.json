@@ -1,0 +1,65 @@
+{
+  "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\v_pulse_prices.csv",
+  "coordinate_cache_path": "C:\\folder\\Python\\Проект ИИ Логистика\\backend\\cache\\coords_cache.json",
+  "filters": {
+    "destination_region": "Ленинградская область",
+    "origin_fias": null,
+    "period_types": [],
+    "price_types": []
+  },
+  "records": 25309,
+  "locations": {
+    "total": 163,
+    "fias": 163,
+    "fallback": 0
+  },
+  "coordinates": {
+    "resolved": 159,
+    "unresolved": 4,
+    "location_coverage_pct": 97.546,
+    "trip_coverage_pct": 96.1135,
+    "sources": {
+      "cache_null": 4,
+      "cache_exact": 159
+    }
+  },
+  "unresolved": [
+    {
+      "id": "4ef03615-75bd-4fdd-b767-6350984b3ad1",
+      "fias_id": "4ef03615-75bd-4fdd-b767-6350984b3ad1",
+      "name": "тер Производственно-административная зона Порзолово",
+      "region": "Ленинградская область",
+      "trip_count": 40180,
+      "coordinate_source": "cache_null"
+    },
+    {
+      "id": "40cd4458-b83b-4ff4-a5bf-d943a9ae6cb5",
+      "fias_id": "40cd4458-b83b-4ff4-a5bf-d943a9ae6cb5",
+      "name": "массив Проба",
+      "region": "Ленинградская область",
+      "trip_count": 32208,
+      "coordinate_source": "cache_null"
+    },
+    {
+      "id": "a203a874-0d05-4e12-9505-539f310849a4",
+      "fias_id": "a203a874-0d05-4e12-9505-539f310849a4",
+      "name": "п/р Центральное отделение",
+      "region": "Ленинградская область",
+      "trip_count": 29237,
+      "coordinate_source": "cache_null"
+    },
+    {
+      "id": "b49ae2f7-8aa4-43e0-87e7-26c6b39d318d",
+      "fias_id": "b49ae2f7-8aa4-43e0-87e7-26c6b39d318d",
+      "name": "промзона Северная часть Горелово",
+      "region": "Ленинградская область",
+      "trip_count": 2500,
+      "coordinate_source": "cache_null"
+    }
+  ],
+  "contract": {
+    "clustering_unit": "unique destination FIAS; normalized name+region fallback",
+    "price_usage": "evaluation only; not a baseline clustering feature",
+    "region_center_fallback": false
+  }
+}
