@@ -1,0 +1,2 @@
+origin_fias,destination_region,destination_fias,shipment_month,distance_km,source,confidence
+pulse-origin-a,Region A,,2026-06,1000,manual_verified,1.0

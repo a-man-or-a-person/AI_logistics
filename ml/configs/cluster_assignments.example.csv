@@ -1,0 +1,2 @@
+shipment_month,actual_origin_id,destination_region,destination_fias,cluster_id,cluster_price,cluster_rub_per_km
+2026-06,actual_factory_a,Region A,destination-a,0,50000,50
