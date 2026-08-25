@@ -73,8 +73,11 @@ py -3.11 -m venv .venv
   --origin-fias "FIAS пункта отправления"
 ```
 
-Без внутренних расстояний и референсной цены decision gate №1 намеренно не
-считается пройденным: переход к усложнению через кластеризацию будет преждевременным.
+H2 research pipeline уже реализован и оценивается географическими и Pulse-proxy
+метриками. Actual price ground truth доступен на grain
+`origin facility × destination region × shipment month`; H1 по-прежнему ожидает
+доверенный источник расстояний. Текущий actual не поддерживает прямую cluster-level
+оценку H2 без destination FIAS или подтверждённого route mix.
 
 Spatial core устанавливается отдельно от runtime Flask:
 
@@ -119,11 +122,42 @@ Out-of-time economic evaluation запускается отдельно от clu
 Ставки обучаются только на train. Прогнозные периоды Pulse явно считаются proxy,
 а не заменой фактическим ATI/internal ценам.
 
+### Actual-price evaluation
+
+Конфиденциальный actual-файл, private mapping и производные отчёты не хранятся в Git.
+Сначала создайте conservative mapping-кандидаты:
+
+```powershell
+.\.venv\Scripts\python.exe -m ml.experiments.actual_audit
+.\.venv\Scripts\python.exe -m ml.experiments.build_origin_mapping_candidates
+```
+
+Неоднозначные origins требуют ручной проверки в ignored-файле
+`ml/configs/private/origin_mapping.csv`. После проверки единый runner запускается так:
+
+```powershell
+.\.venv\Scripts\python.exe -m ml.experiments.compare_variants `
+  --actual "$env:LOGISTICS_ACTUAL_FILE" `
+  --pulse "$env:LOGISTICS_CSV_FILE" `
+  --origin-map "$env:LOGISTICS_ORIGIN_MAP_FILE" `
+  --price-types tender `
+  --period-types current `
+  --output-dir reports\private\evaluation
+```
+
+`E0`, `E0_trip_weighted`, `E1`, `E2`, `E3` и `ATI_REF` используют общий metrics
+engine. Decision gate сравнивает варианты на common intersection. Нехватка trusted
+distance или destination-level ground truth возвращает `blocked`, а не фиктивную метрику.
+Полный контракт описан в `docs/analytics_evaluation_contract.md`.
+
 ## Настройки
 
 | Переменная | Назначение | Значение по умолчанию |
 |---|---|---|
 | `LOGISTICS_CSV_FILE` | Путь к исходному CSV | `v_pulse_prices.csv` |
+| `LOGISTICS_ACTUAL_FILE` | Путь к конфиденциальному actual snapshot CSV | `v_fact_sibur_actual.csv` |
+| `LOGISTICS_ORIGIN_MAP_FILE` | Путь к проверенному private origin mapping | не задан |
+| `LOGISTICS_DISTANCE_FILE` | Путь к доверенным расстояниям для E1/E3 | не задан |
 | `LOGISTICS_HOST` | Адрес прямого запуска `backend/app.py` | `127.0.0.1` |
 | `LOGISTICS_PORT` | Порт прямого запуска | `5000` |
 | `LOGISTICS_DEBUG` | Включить Flask debug (`1`) | выключен |
