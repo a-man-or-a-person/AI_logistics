@@ -21,6 +21,7 @@ from flask_cors import CORS
 # Добавляем директорию проекта в путь
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+from backend.clustering_api import clustering_blueprint
 from backend.data_processor import (
     calculate_rub_per_km,
     get_map_points,
@@ -59,6 +60,7 @@ CORS_ORIGINS = [
 ]
 if CORS_ORIGINS:
     CORS(app, resources={r"/api/*": {"origins": CORS_ORIGINS}})
+app.register_blueprint(clustering_blueprint)
 
 _bg_geocode_started = False
 _bg_geocode_start_lock = threading.Lock()
