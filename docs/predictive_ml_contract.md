@@ -1,8 +1,8 @@
 # Predictive ML contract v0 — DEFERRED
 
 > **STATUS: DEFERRED. NOT PART OF THE CURRENT CLUSTERING MILESTONE.**
-> `units` is now confirmed as shipment volume for clustering and must not be treated as
-> a candidate price target. Any future price-prediction track needs a different target contract.
+> The active Clustering Contract v1 defines `units` as trip price and `bid_count` as
+> trip count. This historical document does not override the active clustering contract.
 
 This document preserves the earlier price-prediction investigation for historical context.
 It is not an active roadmap.
@@ -28,7 +28,7 @@ deduplicating them.
 
 ## Target and temporal policy
 
-- `units` is shipment volume and is prohibited as a price target.
+- `units` is price under Clustering Contract v1; predictive PIT evaluation stays deferred.
 - `period_type=forecast` is never accepted as an ordinary training label.
 - `tech_load_ts` establishes what was available at prediction time.
 - Random train/test splitting is prohibited.
@@ -39,7 +39,7 @@ deduplicating them.
 
 | Source field | Status | Reason |
 |---|---|---|
-| `units` | prohibited price target | Confirmed as shipment volume for clustering. |
+| `units` | deferred price target | Active clustering semantics say price; predictive validation is separate. |
 | `period_type` | split control | Forecast rows can be external predictions. |
 | `confidence` | blocked | It may be derived from the external price calculation. |
 | `bid_count` | blocked | Availability at prediction time is unknown. |

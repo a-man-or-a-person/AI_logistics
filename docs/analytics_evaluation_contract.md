@@ -30,7 +30,7 @@ actual-derived отчёты хранятся только в ignored-путях:
 | Источник | Grain | Роль |
 |---|---|---|
 | actual snapshots | snapshot × shipment month × origin facility × destination region | target и ATI/market as-of benchmark |
-| Pulse | origin FIAS × destination FIAS × period × price type | E0 и региональная ставка ₽/км |
+| Pulse | origin FIAS × destination FIAS × period × tariff/vehicle/tonnage segment | price и региональная ставка ₽/км |
 | origin mapping | actual facility → Pulse origin FIAS | контролируемый join |
 | trusted distance | origin FIAS × destination region/FIAS × optional month | E1/E3 |
 | cluster/route assignment | EvaluationKey × destination FIAS × cluster | E2/E3 |
@@ -97,8 +97,8 @@ Destination сопоставляется только по точной норм
 
 | Вариант | Формула/смысл | Реальный статус без дополнительных данных |
 |---|---|---|
-| E0 | arithmetic mean Pulse units на origin FIAS × destination region × period | после подтверждённого origin mapping |
-| E0_trip_weighted | `Σ units × bid_count / Σ bid_count` | diagnostic |
+| E0 | `Σ units × bid_count / Σ bid_count` на origin FIAS × destination region × filters | после подтверждённого origin mapping |
+| E0_unweighted | arithmetic mean Pulse units | diagnostic only |
 | ATI_REF | market price из actual snapshot → финальный fact, отдельно по M0/M1/M2/... | доступен |
 | E1 | Pulse regional ₽/км × trusted distance | blocked без distance |
 | E2 | cluster-specific route price | blocked без destination FIAS/route mix |

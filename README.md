@@ -49,14 +49,19 @@ milestone формирует воспроизводимые географиче
 .\.venv\Scripts\python.exe -m ml.data.audit
 ```
 
-`PulseRawRecord` буквально сохраняет 25 колонок. Для clustering `units` означает
-`shipment_count`; `bid_count` и `confidence` остаются diagnostic-only, а `forecast`
-полностью исключается. Контракт описан в `docs/clustering_data_contract.md`.
+`PulseRawRecord` буквально сохраняет 25 колонок. Clustering Contract v1 задаёт
+`price = units`, `trip_count = bid_count` и `rub_per_km = price / route_length`.
+`retro/current/forecast` выбираются явно. Контракт описан в
+`docs/clustering_data_contract.md`.
 
 ```powershell
 .\.venv\Scripts\python.exe -m ml.data.clustering_dataset `
+  --origin-fias "FIAS пункта отправления" `
+  --destination-region "Ленинградская область" `
   --output-dir reports\clustering_data
-.\.venv\Scripts\python.exe -m ml.experiments.clustering_data_audit
+.\.venv\Scripts\python.exe -m ml.experiments.clustering_data_audit `
+  --origin-fias "FIAS пункта отправления" `
+  --destination-region "Ленинградская область"
 ```
 
 Predictive price ML и E0–E3 сохранены как deferred-треки. H1 заблокирован без trusted
@@ -100,10 +105,14 @@ Spatial core устанавливается отдельно от runtime Flask:
 ```
 
 `ml.data.locations` создаёт ровно одну аналитическую точку на destination FIAS,
-явно маркирует fallback и unresolved coordinates и не подставляет центр региона.
+отклоняет name/region fallback, явно маркирует unresolved coordinates и не подставляет центр региона.
 Проекция `ml.spatial.projection` переводит WGS84 в локальные метры через AEQD.
 
-K-Means запускается sweep-ом сразу в geo-only и shipment-weighted режимах:
+Основной research pipeline запускает на одном spatial graph три режима: Geography,
+Geo+Cost и Bear Zones. Delaunay с adaptive pruning используется как primary graph,
+mutual kNN — как benchmark. Geo+Cost сохраняет sensitivity 80/20, 70/30 и 60/40.
+
+Старый K-Means sweep сохранён только как legacy baseline:
 
 ```powershell
 .\.venv\Scripts\python.exe -m ml.experiments.clustering_experiment `
@@ -141,15 +150,15 @@ K-Means запускается sweep-ом сразу в geo-only и shipment-wei
 ```
 
 Неоднозначные origin FIAS выносятся в приватную очередь ручной проверки, отсортированную
-по `shipment_count`:
+по `trip_count`:
 
 ```powershell
 .\.venv\Scripts\python.exe -m ml.experiments.origin_fias_audit
 ```
 
-Матрица всегда использует только метрические `x/y`. `shipment_count` передаётся отдельно
-как optional sample weight. Leaderboard содержит geographic, shipment balance, coverage,
-ARI stability и Pareto-shortlist; price и WAPE в нём отсутствуют.
+В режиме Geography matrix использует только метрические `x/y`; цена и `trip_count`
+не меняют adjacency. Geo+Cost добавляет robust-scaled weighted ₽/км, сохраняя graph
+как hard constraint. Сравнительный отчёт не выбирает автоматического winner.
 
 Универсальный `ml.spatial.territorialize` принимает утверждённую границу региона,
 результат любого `Clusterer` и строит grid-based зоны с проверками coverage, overlap

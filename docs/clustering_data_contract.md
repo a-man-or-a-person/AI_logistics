@@ -1,70 +1,85 @@
-# Контракт данных территориальной кластеризации
+# Clustering Contract v1
 
-Версия: `clustering-data-v1`. Это текущий аналитический milestone проекта.
+Версия: clustering-contract-v1. Предыдущий clustering-data-v1 и его трактовка
+units → shipment_count отменены.
 
 ## Семантика Pulse
 
-- `units` — количество перевозок / объём направления и источник `shipment_count`;
-- `bid_count` и `confidence` — производные диагностические поля Pulse;
-- `forecast` — прогноз Pulse и полностью исключается;
-- в датасет допускаются только `current` и `retro`;
-- цена, `rub_per_km`, actual/market/fact и Pulse-derived diagnostics не являются
-  признаками или весами кластеризации.
+- price = units;
+- trip_count = bid_count;
+- rub_per_km = price / route_length, только если цена и расстояние положительны;
+- при невалидной цене или дистанции rub_per_km = None, не 0;
+- confidence сохраняется как качество источника, но не подменяет trip_count;
+- retro, current, forecast — равноправные selectable period types.
 
-`PulseRawRecord` буквально сохраняет 25 исходных колонок. `LogisticsRecord` нормализует
-подтверждённые поля, не называя `units` ценой. `ClusteringRoute` агрегирует строки до grain:
+Все экономические агрегаты используют одну формулу:
 
-```text
-origin_fias × destination_fias × destination_region × period_id
-```
+    weighted(metric) = Σ(metric_i × trip_count_i) / Σ trip_count_i
 
-с `shipment_count = Σ Pulse.units`.
+Она применяется к point, cluster, bear zone и region. Строки с нулевым или
+отсутствующим trip_count не получают искусственный вес.
 
-## Точки
+## Grain и фильтры
 
-`LocationPoint` содержит одну точку на destination FIAS, координаты, число исходных записей,
-суммарный `shipment_count`, число активных периодов и origins. Fallback name+region явно
-маркируется; центр региона не подставляется.
+Один эксперимент обязан иметь:
 
-Основная географическая coverage дополняется бизнес-покрытием:
+    ONE origin_fias × ONE destination_region
 
-```text
-Σ shipment_count geocoded destinations / Σ shipment_count all destinations
-```
+Запрос без одного из этих значений отклоняется. Внутри grain применяются multi-select
+фильтры period_types, price_types, vehicle_types, tonnage_ids. Выбранные строки
+агрегируются до одной точки на destination_fias.
 
-## Матрица и веса
+ClusterResult явно сообщает contains_forecast, выбранные фильтры и признаки
+смешения price/vehicle/tonnage segments.
 
-Матрица KMeans всегда равна `X = [projected_x, projected_y]`.
+## LocationPoint
 
-- `weight_mode=none` — чистая география;
-- `weight_mode=shipment_count` — география с бизнес-весом;
-- `weight_mode=both` — рекомендуемый sweep обоих режимов.
+Точка содержит FIAS identity, WGS84 и локальные AEQD x/y, record_count,
+trip_count, weighted price, weighted ₽/км, число активных периодов, источник
+координат и data-quality flags. Missing destination FIAS не заменяется
+name/region fallback; missing coordinates не заменяются центром региона.
 
-`bid_count`, `confidence`, `forecast`, price, actual и market не могут попасть ни в `X`,
-ни в `sample_weight`.
+## Пространственная связность
 
-## Метрики и решение
+Все три product research modes используют один spatial graph:
 
-Cluster metrics: silhouette, mean/p95/max radius, shipment-weighted mean/p95 radius,
-размеры кластеров, shipment shares/CV, point/shipment coverage и ARI stability по seeds.
-Geo-only и shipment-weighted assignments сравниваются через ARI.
+- основной кандидат — Delaunay + adaptive MAD long-edge pruning;
+- benchmark — mutual kNN;
+- degree = 0 означает spatial_outlier;
+- отдельный компонент из нескольких точек не считается outlier;
+- ни цена, ни trip_count не меняют координаты или adjacency.
 
-Кандидаты выбираются Pareto-shortlist, а не максимумом silhouette и не WAPE. Decision gate:
-`decision_gate_clustering.json`.
+## Режимы
 
-Territorialization metrics (polygon coverage, overlap, fragmentation) хранятся отдельно и
-не входят в primary cluster score.
+### Geography
 
-## Границы
+Connectivity-constrained agglomerative clustering использует только x/y и graph.
+Manual K и Auto K поддерживаются. Auto K сравнивает K=2…10 по silhouette,
+Calinski–Harabasz, Davies–Bouldin и compactness. Каждый кластер проверяется на
+связность в исходном graph.
 
-Полигон не нужен KMeans и не блокирует исследование. Он применяется после assignments.
-Production boundary требует локальный WGS84 GeoJSON НСПД/ЕГРН и manifest с SHA-256,
-authority, effective date и статусом `official`. Development/unknown источники не должны
-маркироваться официальными.
+### Geo + Cost
 
-## Замороженные треки
+Использует тот же graph как hard constraint. Feature space состоит из robust-scaled
+x/y и weighted ₽/км. Default weights: 70/30; sensitivity: 80/20, 70/30, 60/40.
+Экономическое сходство никогда не создаёт spatial edge и не объединяет разные
+graph components.
 
-- predictive price ML — deferred;
-- H1 — blocked без trusted distance;
-- actual-validation H2/E2/E3 — blocked без destination FIAS/route mix;
-- `decision_gate_2.json` — исторический price-proxy artifact.
+### Bear Zones
+
+Default candidate threshold: point rate не ниже regional rate × 1.35.
+Обычная zone строится только из connected component размером от двух точек с
+trip_count >= 3 у каждой точки и повторно проходит zone-level 35% invariant.
+Singleton threshold равен +70%, но singleton_min_trip_count остаётся обязательным
+research-параметром без придуманного default. До его подтверждения статус —
+singleton_candidate.
+
+## Результаты и границы
+
+Общий ClusterResult содержит mode, internal algorithm, assignments, typed clusters,
+regional economics, filters, forecast/mixed-segment metadata, typed outliers,
+data quality и geographic/economic/graph metrics.
+
+Polygons postponed. Существующий boundary/territorialization код сохранён как
+отдельный post-processing и не является dependency нового clustering core.
+Production API, frontend и map UX в этот milestone не подключаются.
