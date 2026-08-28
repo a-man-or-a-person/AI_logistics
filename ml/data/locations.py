@@ -5,12 +5,12 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import statistics
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from ml.data.clustering_dataset import CLUSTERING_ALLOWED_PERIOD_TYPES
 from ml.data.loader import default_csv_path, iter_records
 from ml.data.schema import LogisticsRecord
 
@@ -71,12 +71,9 @@ class LocationPoint:
     longitude: float | None
     coordinate_source: str
     record_count: int
-    trip_count: int
-    price_count: int
-    avg_price: float | None
-    avg_rub_per_km: float | None
-    median_rub_per_km: float | None
-    weighted_avg_rub_per_km: float | None
+    shipment_count: float
+    active_period_count: int
+    origin_count: int
 
 
 @dataclass(slots=True)
@@ -85,11 +82,9 @@ class _LocationAccumulator:
     names: Counter[str] = field(default_factory=Counter)
     regions: Counter[str] = field(default_factory=Counter)
     record_count: int = 0
-    trip_count: int = 0
-    prices: list[float] = field(default_factory=list)
-    rub_per_km: list[float] = field(default_factory=list)
-    weighted_rub_sum: float = 0
-    rub_weight: int = 0
+    shipment_count: float = 0
+    periods: set[str] = field(default_factory=set)
+    origins: set[str] = field(default_factory=set)
 
     def add(self, record: LogisticsRecord) -> None:
         if record.destination_name:
@@ -97,16 +92,11 @@ class _LocationAccumulator:
         if record.destination_region:
             self.regions[record.destination_region] += 1
         self.record_count += 1
-        trips = max(record.trip_count or 0, 0)
-        self.trip_count += trips
-        if record.price is not None and record.price > 0:
-            self.prices.append(record.price)
-        rub_per_km = record.rub_per_km
-        if rub_per_km is not None:
-            self.rub_per_km.append(rub_per_km)
-            if trips > 0:
-                self.weighted_rub_sum += rub_per_km * trips
-                self.rub_weight += trips
+        self.shipment_count += max(record.shipment_count or 0, 0)
+        if record.period_id:
+            self.periods.add(record.period_id)
+        if record.origin_fias:
+            self.origins.add(record.origin_fias)
 
 
 def _location_id(record: LogisticsRecord) -> tuple[str, str]:
@@ -154,23 +144,31 @@ def build_location_dataset(
     origin_fias: str | None = None,
     period_types: set[str] | None = None,
     price_types: set[str] | None = None,
+    allow_name_fallback: bool = False,
 ) -> tuple[list[LocationPoint], dict[str, Any]]:
     source_path = Path(path) if path is not None else default_csv_path()
     cache_path = Path(coordinate_cache_path)
     cache = json.loads(cache_path.read_text(encoding="utf-8"))
-    selected_period_types = period_types or set()
+    requested_period_types = (
+        set(period_types) if period_types is not None else set(CLUSTERING_ALLOWED_PERIOD_TYPES)
+    )
+    selected_period_types = requested_period_types & set(CLUSTERING_ALLOWED_PERIOD_TYPES)
     selected_price_types = price_types or set()
     accumulators: dict[str, _LocationAccumulator] = {}
     id_sources: dict[str, str] = {}
+    excluded_missing_fias_records = 0
 
     for record in iter_records(source_path):
         if destination_region and record.destination_region != destination_region:
             continue
         if origin_fias and record.origin_fias != origin_fias:
             continue
-        if selected_period_types and record.period_type not in selected_period_types:
+        if record.period_type not in selected_period_types:
             continue
         if selected_price_types and record.price_type not in selected_price_types:
+            continue
+        if not record.destination_fias and not allow_name_fallback:
+            excluded_missing_fias_records += 1
             continue
         location_id, id_source = _location_id(record)
         accumulator = accumulators.setdefault(
@@ -195,42 +193,23 @@ def build_location_dataset(
                 longitude=longitude,
                 coordinate_source=coordinate_source,
                 record_count=accumulator.record_count,
-                trip_count=accumulator.trip_count,
-                price_count=len(accumulator.prices),
-                avg_price=(
-                    round(statistics.fmean(accumulator.prices), 4)
-                    if accumulator.prices
-                    else None
-                ),
-                avg_rub_per_km=(
-                    round(statistics.fmean(accumulator.rub_per_km), 4)
-                    if accumulator.rub_per_km
-                    else None
-                ),
-                median_rub_per_km=(
-                    round(statistics.median(accumulator.rub_per_km), 4)
-                    if accumulator.rub_per_km
-                    else None
-                ),
-                weighted_avg_rub_per_km=(
-                    round(accumulator.weighted_rub_sum / accumulator.rub_weight, 4)
-                    if accumulator.rub_weight
-                    else None
-                ),
+                shipment_count=round(accumulator.shipment_count, 4),
+                active_period_count=len(accumulator.periods),
+                origin_count=len(accumulator.origins),
             )
         )
 
-    points.sort(key=lambda point: (-point.trip_count, point.id))
+    points.sort(key=lambda point: (-point.shipment_count, point.id))
     resolved = [point for point in points if point.latitude is not None]
-    total_trips = sum(point.trip_count for point in points)
-    resolved_trips = sum(point.trip_count for point in resolved)
+    total_shipments = sum(point.shipment_count for point in points)
+    resolved_shipments = sum(point.shipment_count for point in resolved)
     unresolved = [
         {
             "id": point.id,
             "fias_id": point.fias_id,
             "name": point.name,
             "region": point.region,
-            "trip_count": point.trip_count,
+            "shipment_count": point.shipment_count,
             "coordinate_source": point.coordinate_source,
         }
         for point in points
@@ -243,9 +222,11 @@ def build_location_dataset(
             "destination_region": destination_region,
             "origin_fias": origin_fias,
             "period_types": sorted(selected_period_types),
+            "rejected_period_types": sorted(requested_period_types - selected_period_types),
             "price_types": sorted(selected_price_types),
         },
         "records": sum(point.record_count for point in points),
+        "excluded_missing_fias_records": excluded_missing_fias_records,
         "locations": {
             "total": len(points),
             "fias": sum(point.id_source == "fias" for point in points),
@@ -255,13 +236,23 @@ def build_location_dataset(
             "resolved": len(resolved),
             "unresolved": len(points) - len(resolved),
             "location_coverage_pct": round(100 * len(resolved) / len(points), 4) if points else 0,
-            "trip_coverage_pct": round(100 * resolved_trips / total_trips, 4) if total_trips else 0,
+            "shipment_coverage_pct": (
+                round(100 * resolved_shipments / total_shipments, 4) if total_shipments else 0
+            ),
             "sources": dict(Counter(point.coordinate_source for point in points)),
         },
         "unresolved": unresolved,
         "contract": {
-            "clustering_unit": "unique destination FIAS; normalized name+region fallback",
-            "price_usage": "evaluation only; not a baseline clustering feature",
+            "clustering_unit": (
+                "unique destination FIAS"
+                if not allow_name_fallback
+                else "unique destination FIAS; explicit development name+region fallback"
+            ),
+            "name_region_fallback_enabled": allow_name_fallback,
+            "shipment_count_source": "Pulse.units",
+            "diagnostic_only": ["bid_count", "confidence"],
+            "forecast_excluded_by_default": True,
+            "clustering_features": ["projected_x", "projected_y"],
             "region_center_fallback": False,
         },
     }
@@ -306,6 +297,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--origin-fias")
     parser.add_argument("--period-types", type=_csv_set, default=set())
     parser.add_argument("--price-types", type=_csv_set, default=set())
+    parser.add_argument("--allow-name-fallback", action="store_true")
     parser.add_argument("--output-dir", type=Path, default=Path("reports/locations"))
     return parser
 
@@ -319,6 +311,7 @@ def main() -> int:
         origin_fias=args.origin_fias,
         period_types=args.period_types,
         price_types=args.price_types,
+        allow_name_fallback=args.allow_name_fallback,
     )
     json_path, csv_path, audit_path = write_location_dataset(points, report, args.output_dir)
     print(
