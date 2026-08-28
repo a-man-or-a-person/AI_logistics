@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any
 
 from ml.data.internal import iter_internal_trips
-from ml.data.loader import default_csv_path, iter_records
-from ml.data.schema import LogisticsRecord
+from ml.data.loader import default_csv_path
+from ml.data.pulse_evaluation import PulseEvaluationRecord, iter_pulse_evaluation_records
 
 
 @dataclass(slots=True)
@@ -24,12 +24,12 @@ class PulseCell:
     weighted_distance_sum: float = 0
     trip_count: int = 0
 
-    def add(self, record: LogisticsRecord) -> None:
+    def add(self, record: PulseEvaluationRecord) -> None:
         if record.price is None or record.route_length is None:
             return
         if record.price <= 0 or record.route_length <= 0:
             return
-        trips = max(record.trip_count or 0, 0)
+        trips = max(record.bid_count or 0, 0)
         self.price_sum += record.price
         self.distance_sum += record.route_length
         self.weighted_price_sum += record.price * trips
@@ -87,7 +87,7 @@ def evaluate_distance_hypothesis(
 
     cells: dict[tuple[str, str], PulseCell] = defaultdict(PulseCell)
     overall = PulseCell()
-    for record in iter_records(pulse_path):
+    for record in iter_pulse_evaluation_records(pulse_path):
         if destination_region and record.destination_region != destination_region:
             continue
         if origin_fias and record.origin_fias != origin_fias:

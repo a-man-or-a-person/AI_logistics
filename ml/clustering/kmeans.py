@@ -26,13 +26,17 @@ class KMeansClusterer(Clusterer):
         if not 2 <= n_clusters <= len(points):
             raise ValueError("n_clusters must be between 2 and the number of points")
         weight_mode = str(parameters.get("weight_mode", "none"))
-        if weight_mode not in {"none", "trip_count"}:
-            raise ValueError("weight_mode must be none or trip_count")
+        if weight_mode not in {"none", "shipment_count"}:
+            raise ValueError("weight_mode must be none or shipment_count")
         random_state = int(parameters.get("random_state", 42))
         matrix = np.array([(point.x, point.y) for point in points], dtype=float)
         sample_weight = None
-        if weight_mode == "trip_count":
-            sample_weight = np.array([max(point.trip_count, 1) for point in points], dtype=float)
+        if weight_mode == "shipment_count":
+            sample_weight = np.array(
+                [max(point.shipment_count, 0) for point in points], dtype=float
+            )
+            if not sample_weight.any():
+                raise ValueError("shipment_count weighting requires positive shipment volume")
         model = KMeans(n_clusters=n_clusters, n_init=10, random_state=random_state)
         labels = model.fit_predict(matrix, sample_weight=sample_weight)
         assignments = {point.id: int(labels[index]) for index, point in enumerate(points)}

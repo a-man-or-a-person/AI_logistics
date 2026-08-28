@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
-from ml.data.schema import LogisticsRecord
+from ml.data.pulse_evaluation import PulseEvaluationRecord
 
 
 @dataclass(slots=True)
@@ -15,12 +15,12 @@ class WeightedRate:
     price_sum: float = 0
     distance_sum: float = 0
 
-    def add(self, record: LogisticsRecord) -> None:
+    def add(self, record: PulseEvaluationRecord) -> None:
         if record.price is None or record.route_length is None:
             return
         if record.price <= 0 or record.route_length <= 0:
             return
-        weight = max(record.trip_count or 0, 1)
+        weight = max(record.bid_count or 0, 1)
         self.price_sum += record.price * weight
         self.distance_sum += record.route_length * weight
 
@@ -89,8 +89,8 @@ def prediction_metrics(
 
 
 def evaluate_rates(
-    train_records: list[LogisticsRecord],
-    test_records: list[LogisticsRecord],
+    train_records: list[PulseEvaluationRecord],
+    test_records: list[PulseEvaluationRecord],
     assignments: dict[str, int],
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Fit rates on train only and evaluate route prices on later periods."""
@@ -115,7 +115,7 @@ def evaluate_rates(
             continue
         if record.price <= 0 or record.route_length <= 0:
             continue
-        weight = max(record.trip_count or 0, 1)
+        weight = max(record.bid_count or 0, 1)
         cluster_id = assignments.get(record.destination_fias or "")
         if cluster_id is None:
             unmatched_rows += 1

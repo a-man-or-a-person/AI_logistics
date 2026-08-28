@@ -19,8 +19,8 @@ def test_grid_territorializer_covers_boundary_without_overlap():
     first_xy = projection.project(59.95, 30.03)
     second_xy = projection.project(59.95, 30.17)
     points = [
-        ClusterPoint("a", "A", "R", *first_xy, trip_count=2),
-        ClusterPoint("b", "B", "R", *second_xy, trip_count=3),
+        ClusterPoint("a", "A", "R", *first_xy, shipment_count=2),
+        ClusterPoint("b", "B", "R", *second_xy, shipment_count=3),
     ]
     clusters = summarize_assignments(
         points,

@@ -7,7 +7,14 @@ import os
 from collections.abc import Iterator
 from pathlib import Path
 
-from ml.data.schema import LogisticsRecord, clean_text, parse_float, parse_int
+from ml.data.schema import (
+    LogisticsRecord,
+    clean_text,
+    parse_datetime,
+    parse_float,
+    parse_int,
+)
+from ml.data.validation import pulse_row_validation_errors
 
 PULSE_COLUMNS = (
     "shipment_point_locality_fias_id",
@@ -78,14 +85,25 @@ def _pulse_record(row: dict[str, str], source: str) -> LogisticsRecord:
         longitude=parse_float(row.get("longitude")),
         period_id=clean_text(row.get("period_id")),
         period_type=clean_text(row.get("period_type")),
-        price=parse_float(row.get("units")),
+        units=parse_float(row.get("units")),
+        shipment_count=parse_float(row.get("units")),
         route_length=parse_float(row.get("route_length")),
-        trip_count=parse_int(row.get("bid_count")),
+        pulse_bid_count=parse_int(row.get("bid_count")),
         vehicle_type=clean_text(row.get("vehicle_body_type")),
         tonnage_id=clean_text(row.get("tonnage_id")),
         price_type=clean_text(row.get("price_type")),
         currency=clean_text(row.get("currency")),
-        confidence=clean_text(row.get("confidence")),
+        pulse_confidence=clean_text(row.get("confidence")),
+        origin_town_source=clean_text(row.get("shipment_point_town_source")),
+        origin_point_type=clean_text(row.get("shipment_point_point_type")),
+        origin_address=clean_text(row.get("shipment_point_address")),
+        destination_region_source=clean_text(row.get("delivery_point_region_source")),
+        destination_address=clean_text(row.get("delivery_point_address")),
+        destination_point_type=clean_text(row.get("delivery_point_point_type")),
+        nanos=parse_int(row.get("nanos")),
+        route_type=clean_text(row.get("route_type")),
+        tech_ts=parse_datetime(row.get("tech_load_ts")),
+        validation_errors=pulse_row_validation_errors(row),
     )
 
 

@@ -1,2 +1,2 @@
--r requirements-dev.txt
+-r requirements.txt
 pyproj==3.7.2

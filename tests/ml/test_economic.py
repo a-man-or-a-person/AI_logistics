@@ -1,28 +1,21 @@
-from ml.data.schema import LogisticsRecord
+from ml.data.pulse_evaluation import PulseEvaluationRecord
 from ml.evaluation.economic import evaluate_rates
 
 
 def _record(destination, price, distance, period="train"):
-    return LogisticsRecord(
-        source="pulse",
+    return PulseEvaluationRecord(
         origin_fias="origin",
-        origin_name="Origin",
-        origin_region="Origin region",
         destination_fias=destination,
-        destination_name=destination,
         destination_region="Region",
-        latitude=None,
-        longitude=None,
         period_id=period,
         period_type="retro",
         price=price,
         route_length=distance,
-        trip_count=1,
-        vehicle_type=None,
-        tonnage_id=None,
+        bid_count=1,
         price_type="tender",
-        currency="RUB",
-        confidence=None,
+        source_snapshot_time=None,
+        origin_name="Origin",
+        destination_name=destination,
     )
 
 

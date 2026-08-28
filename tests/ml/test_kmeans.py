@@ -17,7 +17,7 @@ def test_kmeans_uses_only_metric_coordinates_and_is_reproducible():
     assert first.point_assignments == second.point_assignments
     assert len(first.clusters) == 2
     assert first.metrics["point_coverage_pct"] == 100
-    assert first.metrics["polygon_coverage_pct"] is None
+    assert "polygon_coverage_pct" not in first.metrics
 
 
 def test_kmeans_rejects_unknown_weight_mode():

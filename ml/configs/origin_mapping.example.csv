@@ -1,0 +1,2 @@
+actual_origin_id,actual_origin_town,pulse_origin_fias,pulse_origin_name,match_method,match_status,confidence,mapping_version
+actual_factory_a,Town A,pulse-origin-a,Town A,manual,matched,1.0,v1

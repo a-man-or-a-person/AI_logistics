@@ -152,6 +152,10 @@ activemq-data/
 .envrc
 .venv
 .codex-test-env/
+.codex-impl-env/
+.codex-pytest-tmp*/
+.uv-cache/
+.uv-python/
 env/
 venv/
 ENV/
@@ -220,4 +224,10 @@ __marimo__/
 
 # Data files (>100MB GitHub limit)
 v_pulse_prices.csv
+v_fact_sibur_actual.csv
+
+# Confidential analytics inputs and derived outputs
+data/private/
+reports/private/
+ml/configs/private/
 

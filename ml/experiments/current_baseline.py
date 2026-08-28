@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ml.data.loader import default_csv_path, iter_records
-from ml.data.schema import LogisticsRecord
+from ml.data.loader import default_csv_path
+from ml.data.pulse_evaluation import PulseEvaluationRecord, iter_pulse_evaluation_records
 
 
 @dataclass(slots=True)
@@ -23,12 +23,12 @@ class RateAccumulator:
     weighted_price_sum: float = 0.0
     weighted_distance_sum: float = 0.0
 
-    def add(self, record: LogisticsRecord) -> None:
+    def add(self, record: PulseEvaluationRecord) -> None:
         if record.price is None or record.route_length is None:
             return
         if record.price <= 0 or record.route_length <= 0:
             return
-        trips = max(record.trip_count or 0, 0)
+        trips = max(record.bid_count or 0, 0)
         self.record_count += 1
         self.trip_count += trips
         self.price_sum += record.price
@@ -60,7 +60,7 @@ def _round(value: float | None) -> float | None:
 
 
 def _matches(
-    record: LogisticsRecord,
+    record: PulseEvaluationRecord,
     *,
     destination_region: str | None,
     origin_fias: str | None,
@@ -92,7 +92,7 @@ def calculate_baseline(
     by_origin: dict[tuple[str, str], RateAccumulator] = defaultdict(RateAccumulator)
     by_destination: dict[tuple[str, str], RateAccumulator] = defaultdict(RateAccumulator)
 
-    for record in iter_records(source_path):
+    for record in iter_pulse_evaluation_records(source_path):
         if not _matches(
             record,
             destination_region=destination_region,
