@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -103,12 +104,38 @@ def build_clustering_routes(
     tonnage_ids: set[str] | None = None,
 ) -> tuple[list[ClusteringRoute], dict[str, Any]]:
     """Aggregate destination economics with ``bid_count`` as the weight."""
+    source_path = Path(path) if path is not None else default_csv_path()
+    return aggregate_clustering_records(
+        iter_records(source_path),
+        source_path=source_path,
+        destination_region=destination_region,
+        origin_fias=origin_fias,
+        period_types=period_types,
+        price_types=price_types,
+        vehicle_types=vehicle_types,
+        tonnage_ids=tonnage_ids,
+    )
+
+
+def aggregate_clustering_records(
+    records: Iterable[LogisticsRecord],
+    *,
+    source_path: str | Path,
+    destination_region: str | None = None,
+    origin_fias: str | None = None,
+    period_types: set[str] | None = None,
+    price_types: set[str] | None = None,
+    vehicle_types: set[str] | None = None,
+    tonnage_ids: set[str] | None = None,
+    dataset_raw_rows: int | None = None,
+) -> tuple[list[ClusteringRoute], dict[str, Any]]:
+    """Apply the canonical aggregation to a stream or repository slice."""
     if not origin_fias:
         raise ValueError("A single origin_fias is required")
     if not destination_region:
         raise ValueError("A single destination_region is required")
 
-    source_path = Path(path) if path is not None else default_csv_path()
+    resolved_source_path = Path(source_path)
     selected_periods = (
         set(period_types) if period_types is not None else set(CLUSTERING_ALLOWED_PERIOD_TYPES)
     )
@@ -121,7 +148,7 @@ def build_clustering_routes(
 
     raw_rows = filtered_rows = unusable_rows = 0
     accumulators: dict[str, _Accumulator] = {}
-    for record in iter_records(source_path):
+    for record in records:
         raw_rows += 1
         if record.origin_fias != origin_fias or record.destination_region != destination_region:
             continue
@@ -171,8 +198,9 @@ def build_clustering_routes(
     observed_vehicles = sorted({value for route in routes for value in route.vehicle_types})
     observed_tonnages = sorted({value for route in routes for value in route.tonnage_ids})
     report = {
-        "source_path": str(source_path.resolve()),
-        "raw_rows": raw_rows,
+        "source_path": str(resolved_source_path.resolve()),
+        "raw_rows": dataset_raw_rows if dataset_raw_rows is not None else raw_rows,
+        "indexed_context_rows": raw_rows,
         "filtered_source_rows": filtered_rows,
         "unusable_rows_excluded": unusable_rows,
         "excluded_missing_fias_rows": unusable_rows,
