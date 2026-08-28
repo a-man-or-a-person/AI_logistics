@@ -1,0 +1,27 @@
+[
+  {
+    "profile": "dense-central",
+    "origin_fias": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+    "destination_region": "Московская область"
+  },
+  {
+    "profile": "elongated-northwest",
+    "origin_fias": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+    "destination_region": "Ленинградская область"
+  },
+  {
+    "profile": "large-south",
+    "origin_fias": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+    "destination_region": "Краснодарский край"
+  },
+  {
+    "profile": "large-ural",
+    "origin_fias": "2763c110-cb8b-416a-9dac-ad28a55b4402",
+    "destination_region": "Свердловская область"
+  },
+  {
+    "profile": "sparse-siberia",
+    "origin_fias": "e3b0eae8-a4ce-4779-ae04-5c0797de66be",
+    "destination_region": "Новосибирская область"
+  }
+]

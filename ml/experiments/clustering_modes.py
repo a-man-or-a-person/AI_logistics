@@ -15,6 +15,8 @@ from ml.clustering.base import ClusterPoint, ClusterResult
 from ml.clustering.bear_zones import BearZoneDetector
 from ml.clustering.geo_cost import GeoCostClusterer
 from ml.clustering.geographic import GeographicClusterer
+from ml.evaluation.bear import bear_threshold_sensitivity
+from ml.evaluation.spatial import graph_pruning_sensitivity
 from ml.spatial.graph import SpatialGraphBuilder
 
 
@@ -43,6 +45,16 @@ def _apply_context(
     prices = tuple(sorted(filters.get("price_types") or ()))
     vehicles = tuple(sorted(filters.get("vehicle_types") or ()))
     tonnages = tuple(sorted(filters.get("tonnage_ids") or ()))
+    segment_details = {
+        "mixed_price_types": len(prices) > 1,
+        "mixed_vehicle_types": len(vehicles) > 1,
+        "mixed_tonnages": len(tonnages) > 1,
+    }
+    warnings = []
+    if "forecast" in periods:
+        warnings.append("contains_forecast")
+    if any(segment_details.values()):
+        warnings.append("mixed_tariff_segments")
     return replace(
         result,
         filters=dict(filters),
@@ -51,12 +63,10 @@ def _apply_context(
         vehicle_types=vehicles,
         tonnage_ids=tonnages,
         contains_forecast="forecast" in periods,
-        mixed_tariff_segments={
-            "mixed_price_types": len(prices) > 1,
-            "mixed_vehicle_types": len(vehicles) > 1,
-            "mixed_tonnages": len(tonnages) > 1,
-        },
+        mixed_tariff_segments=any(segment_details.values()),
+        mixed_segment_details=segment_details,
         data_quality=data_quality,
+        warnings=tuple(warnings),
     )
 
 
@@ -85,7 +95,7 @@ def run_clustering_modes(
     n_clusters: int | str = "auto",
     graph_method: str = "delaunay",
     graph_parameters: dict[str, Any] | None = None,
-    singleton_min_trip_count: int | None = None,
+    source_data_quality: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if not filters.get("origin_fias"):
         raise ValueError("filters.origin_fias is required")
@@ -98,6 +108,7 @@ def run_clustering_modes(
     graph = graph_builder.build(points)
     default_graph_parameters = {"spatial_graph": graph, "n_clusters": n_clusters}
     data_quality = {
+        **(source_data_quality or {}),
         "point_count": len(points),
         "missing_economics_point_count": sum(
             point.weighted_rub_per_km is None for point in points
@@ -138,9 +149,7 @@ def run_clustering_modes(
             {
                 "spatial_graph": graph,
                 "bear_threshold": 0.35,
-                "min_trip_count": 3,
                 "singleton_threshold": 0.70,
-                "singleton_min_trip_count": singleton_min_trip_count,
             },
         ),
         filters,
@@ -165,11 +174,16 @@ def run_clustering_modes(
         "filters": filters,
         "graph_method": graph_method,
         "graph_parameters": graph.parameters,
+        "graph_threshold_m": graph.audit["adaptive_edge_threshold_m"],
         "created_at": datetime.now(UTC).isoformat(),
     }
     report = {
         "metadata": metadata,
         "graph_study": graph_study,
+        "graph_pruning_sensitivity": graph_pruning_sensitivity(points),
+        "bear_threshold_sensitivity": bear_threshold_sensitivity(
+            points, graph=graph
+        ),
         "comparison": [
             _mode_facts(geography),
             *[_mode_facts(result) for result in geo_cost_results],
@@ -197,7 +211,7 @@ def _csv_list(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def _load_points(path: Path) -> list[ClusterPoint]:
+def _load_points(path: Path) -> tuple[list[ClusterPoint], dict[str, Any]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     points = []
     for item in payload:
@@ -224,7 +238,30 @@ def _load_points(path: Path) -> list[ClusterPoint]:
                 data_quality_flags=tuple(item.get("data_quality_flags") or ()),
             )
         )
-    return points
+    total_trips = sum(int(item.get("trip_count") or 0) for item in payload)
+    resolved_trips = sum(point.trip_count for point in points)
+    return points, {
+        "destination_points_total": len(payload),
+        "resolved_points": len(points),
+        "unresolved_points": len(payload) - len(points),
+        "point_coverage_pct": (
+            100 * len(points) / len(payload) if payload else 0.0
+        ),
+        "trip_weight_coverage_pct": (
+            100 * resolved_trips / total_trips if total_trips else 0.0
+        ),
+        "coordinate_source_distribution": {
+            source: sum(
+                item.get("coordinate_source") == source for item in payload
+            )
+            for source in sorted(
+                {
+                    str(item.get("coordinate_source") or "unknown")
+                    for item in payload
+                }
+            )
+        },
+    }
 
 
 def main() -> int:
@@ -242,15 +279,15 @@ def main() -> int:
     parser.add_argument("--knn-k", type=int, default=5)
     parser.add_argument("--edge-mad-multiplier", type=float, default=3.0)
     parser.add_argument("--max-edge-m", type=float)
-    parser.add_argument("--singleton-min-trip-count", type=int)
     args = parser.parse_args()
     n_clusters: int | str = (
         args.n_clusters
         if args.n_clusters == "auto"
         else int(args.n_clusters)
     )
+    points, source_data_quality = _load_points(args.locations)
     report = run_clustering_modes(
-        _load_points(args.locations),
+        points,
         filters={
             "origin_fias": args.origin_fias,
             "destination_region": args.destination_region,
@@ -267,7 +304,7 @@ def main() -> int:
             "edge_mad_multiplier": args.edge_mad_multiplier,
             "max_edge_m": args.max_edge_m,
         },
-        singleton_min_trip_count=args.singleton_min_trip_count,
+        source_data_quality=source_data_quality,
     )
     print(f"Completed {len(report['comparison'])} mode/sensitivity runs")
     print(f"Report: {args.output_dir / 'clustering_modes.json'}")
