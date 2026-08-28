@@ -59,15 +59,15 @@ def point_compactness_metrics(
         medoid = summaries[cluster_id].medoid
         distance = math.hypot(point.x - medoid[0], point.y - medoid[1])
         distances.append(distance)
-        weight = max(point.shipment_count, 0)
+        weight = max(point.trip_count, 0)
         weighted_distances.append((distance, weight))
         weighted_distance_sum += distance * weight
         total_weight += weight
         assigned_weight += weight
 
     total = len(points)
-    all_shipments = sum(max(point.shipment_count, 0) for point in points)
-    shares = [cluster.shipment_share for cluster in result.clusters]
+    all_shipments = sum(max(point.trip_count, 0) for point in points)
+    shares = [cluster.trip_share for cluster in result.clusters]
     share_mean = statistics.fmean(shares) if shares else 0
     share_cv = (
         statistics.pstdev(shares) / share_mean if len(shares) > 1 and share_mean else 0

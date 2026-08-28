@@ -33,7 +33,7 @@ class KMeansClusterer(Clusterer):
         sample_weight = None
         if weight_mode == "shipment_count":
             sample_weight = np.array(
-                [max(point.shipment_count, 0) for point in points], dtype=float
+                [max(point.trip_count, 0) for point in points], dtype=float
             )
             if not sample_weight.any():
                 raise ValueError("shipment_count weighting requires positive shipment volume")

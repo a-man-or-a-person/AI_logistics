@@ -1,4 +1,4 @@
-"""Run reproducible geo-only and shipment-weighted clustering sweeps."""
+"""Run the legacy K-Means baseline (not a Contract v1 product mode)."""
 
 from __future__ import annotations
 
@@ -62,11 +62,16 @@ def _load_points(
                 region=str(location["region"]),
                 x=x,
                 y=y,
-                shipment_count=float(location.get("shipment_count") or 0),
+                trip_count=int(
+                    location.get("trip_count") or location.get("shipment_count") or 0
+                ),
             )
         )
-    total_shipments = sum(float(location.get("shipment_count") or 0) for location in raw_locations)
-    resolved_shipments = sum(point.shipment_count for point in points)
+    total_shipments = sum(
+        float(location.get("trip_count") or location.get("shipment_count") or 0)
+        for location in raw_locations
+    )
+    resolved_shipments = sum(point.trip_count for point in points)
     coverage = {
         "coordinate_coverage_pct": round(100 * len(resolved) / len(raw_locations), 4)
         if raw_locations
@@ -197,7 +202,7 @@ def _write_run(
                     "longitude": raw["longitude"],
                     "x": round(point.x, 4),
                     "y": round(point.y, 4),
-                    "shipment_count": point.shipment_count,
+                    "shipment_count": point.trip_count,
                     "cluster_id": result.point_assignments[point.id],
                 }
             )

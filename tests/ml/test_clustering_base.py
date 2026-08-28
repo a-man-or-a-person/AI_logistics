@@ -29,3 +29,18 @@ def test_assignments_must_cover_exactly_all_points():
 
     with pytest.raises(ValueError, match="Assignments mismatch"):
         summarize_assignments(points, {}, algorithm="test", parameters={})
+
+
+def test_cluster_economics_use_trip_count_weight():
+    points = [
+        ClusterPoint("a", "A", "R", 0, 0, 1, 1000, 10),
+        ClusterPoint("b", "B", "R", 1, 0, 3, 2000, 20),
+    ]
+
+    result = summarize_assignments(
+        points, {"a": 0, "b": 0}, algorithm="test", parameters={}
+    )
+
+    assert result.clusters[0].trip_count == 4
+    assert result.clusters[0].weighted_price == 1750
+    assert result.clusters[0].weighted_rub_per_km == 17.5
