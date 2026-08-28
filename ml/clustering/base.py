@@ -15,14 +15,15 @@ class ClusterPoint:
     region: str
     x: float
     y: float
-    trip_count: int = 0
+    shipment_count: float = 0
 
 
 @dataclass(frozen=True, slots=True)
 class ClusterSummary:
     cluster_id: int
     point_count: int
-    trip_count: int
+    shipment_count: float
+    shipment_share: float
     centroid: tuple[float, float]
     medoid_point_id: str
     medoid: tuple[float, float]
@@ -88,6 +89,7 @@ def summarize_assignments(
             grouped.setdefault(cluster_id, []).append(point)
 
     summaries: list[ClusterSummary] = []
+    total_shipments = sum(max(point.shipment_count, 0) for point in points)
     for cluster_id, cluster_points in sorted(grouped.items()):
         centroid = (
             sum(point.x for point in cluster_points) / len(cluster_points),
@@ -98,7 +100,13 @@ def summarize_assignments(
             ClusterSummary(
                 cluster_id=cluster_id,
                 point_count=len(cluster_points),
-                trip_count=sum(max(point.trip_count, 0) for point in cluster_points),
+                shipment_count=sum(max(point.shipment_count, 0) for point in cluster_points),
+                shipment_share=(
+                    sum(max(point.shipment_count, 0) for point in cluster_points)
+                    / total_shipments
+                    if total_shipments
+                    else 0
+                ),
                 centroid=centroid,
                 medoid_point_id=medoid.id,
                 medoid=(medoid.x, medoid.y),

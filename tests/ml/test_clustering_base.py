@@ -3,7 +3,7 @@ import pytest
 from ml.clustering.base import ClusterPoint, summarize_assignments
 
 
-def test_cluster_result_has_centroid_medoid_trip_count_and_noise():
+def test_cluster_result_has_centroid_medoid_shipment_count_and_noise():
     points = [
         ClusterPoint("a", "A", "R", 0, 0, 2),
         ClusterPoint("b", "B", "R", 2, 0, 3),
@@ -19,7 +19,8 @@ def test_cluster_result_has_centroid_medoid_trip_count_and_noise():
 
     assert result.clusters[0].centroid == (1, 0)
     assert result.clusters[0].medoid_point_id == "a"
-    assert result.clusters[0].trip_count == 5
+    assert result.clusters[0].shipment_count == 5
+    assert result.clusters[0].shipment_share == 0.5
     assert result.noise_point_ids == ("c",)
 
 

@@ -15,7 +15,7 @@ def test_kmeans_sweep_writes_zones_when_approved_boundary_is_supplied(tmp_path):
                     "region": "R",
                     "latitude": 59.93,
                     "longitude": 30.03,
-                    "trip_count": 2,
+                    "shipment_count": 2,
                 },
                 {
                     "id": "b",
@@ -23,7 +23,7 @@ def test_kmeans_sweep_writes_zones_when_approved_boundary_is_supplied(tmp_path):
                     "region": "R",
                     "latitude": 59.97,
                     "longitude": 30.17,
-                    "trip_count": 3,
+                    "shipment_count": 3,
                 },
             ]
         ),
@@ -54,6 +54,7 @@ def test_kmeans_sweep_writes_zones_when_approved_boundary_is_supplied(tmp_path):
         output_dir=output,
         k_values=[2],
         boundary_path=boundary,
+        weight_mode="none",
         cell_size_m=2_000,
     )
 
@@ -61,7 +62,7 @@ def test_kmeans_sweep_writes_zones_when_approved_boundary_is_supplied(tmp_path):
     assert leaderboard[0]["polygon_overlap_pct"] == 0
     assert (output / "kmeans_k2" / "zones.geojson").exists()
     metrics = json.loads((output / "kmeans_k2" / "metrics.json").read_text())
-    assert metrics["territorialization"]["zone_count"] == 2
+    assert metrics["territorialization_metrics"]["zone_count"] == 2
     with (output / "leaderboard.csv").open(encoding="utf-8-sig", newline="") as stream:
         row = next(csv.DictReader(stream))
     assert float(row["polygon_coverage_pct"]) >= 99.999
