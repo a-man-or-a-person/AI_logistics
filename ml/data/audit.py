@@ -13,7 +13,7 @@ from typing import Any
 
 from ml.data.loader import PULSE_COLUMNS, default_csv_path, iter_records
 from ml.data.schema import LogisticsRecord
-from ml.data.validation import PREDICTIVE_FEATURE_POLICY
+from ml.data.validation import CLUSTERING_FIELD_POLICY
 
 AUDITED_FIELDS = (
     "origin_fias",
@@ -32,16 +32,17 @@ AUDITED_FIELDS = (
     "longitude",
     "period_id",
     "period_type",
-    "price",
+    "units",
+    "shipment_count",
     "route_length",
-    "trip_count",
+    "pulse_bid_count",
     "nanos",
     "route_type",
     "vehicle_type",
     "tonnage_id",
     "price_type",
     "currency",
-    "confidence",
+    "pulse_confidence",
     "tech_ts",
 )
 
@@ -126,13 +127,12 @@ class AuditAccumulator:
         self.unique_values: dict[str, set[object]] = {
             field: set() for field in CARDINALITY_FIELDS
         }
-        self.trip_count_by_destination: Counter[str] = Counter()
+        self.shipment_count_by_destination: Counter[str] = Counter()
         self.row_count_by_destination: Counter[str] = Counter()
         self.row_count_by_route: Counter[str] = Counter()
         self.periods_by_route: dict[str, set[str]] = defaultdict(set)
-        self.price: list[float] = []
+        self.units: list[float] = []
         self.route_length: list[float] = []
-        self.rub_per_km: list[float] = []
         self.tech_timestamps: list[str] = []
         self.validation_errors: Counter[str] = Counter()
         self.seen_fingerprints: set[bytes] = set()
@@ -170,20 +170,18 @@ class AuditAccumulator:
 
         self.validation_errors.update(record.validation_errors)
 
-        if record.price is not None:
-            self.price.append(record.price)
-            if record.price == 0:
-                self.invalids["price_zero"] += 1
-            elif record.price < 0:
-                self.invalids["price_negative"] += 1
+        if record.units is not None:
+            self.units.append(record.units)
+            if record.units < 0:
+                self.invalids["units_negative"] += 1
         if record.route_length is not None:
             self.route_length.append(record.route_length)
             if record.route_length == 0:
                 self.invalids["route_length_zero"] += 1
             elif record.route_length < 0:
                 self.invalids["route_length_negative"] += 1
-        if record.trip_count is not None and record.trip_count < 0:
-            self.invalids["trip_count_lt_zero"] += 1
+        if record.pulse_bid_count is not None and record.pulse_bid_count < 0:
+            self.invalids["pulse_bid_count_lt_zero"] += 1
 
         if record.origin_fias:
             self.origin_fias.add(record.origin_fias)
@@ -224,12 +222,8 @@ class AuditAccumulator:
         self.row_count_by_route[route_key] += 1
         if record.period_id:
             self.periods_by_route[route_key].add(record.period_id)
-        if record.trip_count is not None and record.trip_count > 0:
-            self.trip_count_by_destination[destination_key] += record.trip_count
-
-        rub_per_km = record.rub_per_km
-        if rub_per_km is not None:
-            self.rub_per_km.append(rub_per_km)
+        if record.shipment_count is not None and record.shipment_count > 0:
+            self.shipment_count_by_destination[destination_key] += record.shipment_count
 
     def report(self, *, source_path: Path, source: str) -> dict[str, Any]:
         total = self.total_rows
@@ -290,9 +284,8 @@ class AuditAccumulator:
             },
             "invalid_values": dict(sorted(self.invalids.items())),
             "parse_errors": dict(sorted(self.validation_errors.items())),
-            "price": _distribution(self.price),
+            "units": _distribution(self.units),
             "route_length": _distribution(self.route_length),
-            "rub_per_km": _distribution(self.rub_per_km),
             "destination_regions": {
                 region: {
                     "rows": count,
@@ -300,8 +293,8 @@ class AuditAccumulator:
                 }
                 for region, count in self.rows_by_destination_region.most_common()
             },
-            "trips_per_destination": _distribution(
-                [float(value) for value in self.trip_count_by_destination.values()]
+            "shipments_per_destination": _distribution(
+                [float(value) for value in self.shipment_count_by_destination.values()]
             ),
             "rows_per_destination": _distribution(
                 [float(value) for value in self.row_count_by_destination.values()]
@@ -319,7 +312,6 @@ class AuditAccumulator:
                 "routes_seen_ge_12_months": sum(value >= 12 for value in route_month_counts),
             },
             "contract": {
-                "rub_per_km_formula": "price / route_length for price > 0 and route_length > 0",
                 "coordinate_status": "optional; expected to be joined by FIAS when absent",
                 "duplicate_definition": "identical normalized business fields",
                 "candidate_business_key": (
@@ -328,16 +320,11 @@ class AuditAccumulator:
                 ),
                 "row_grain_status": "candidate_only_pending_business_confirmation",
             },
-            "predictive_ml": {
-                "status": "blocked_pending_target_and_point_in_time_semantics",
-                "feature_policy": PREDICTIVE_FEATURE_POLICY,
-                "forecast_training_policy": "period_type=forecast is excluded from labels",
-                "blocking_questions": [
-                    "What business value does units represent?",
-                    "How is period_type=forecast produced?",
-                    "Are bid_count and confidence known at prediction time?",
-                    "What is the first product prediction scenario?",
-                ],
+            "clustering": {
+                "status": "current_milestone",
+                "feature_policy": CLUSTERING_FIELD_POLICY,
+                "shipment_count_source": "Pulse.units",
+                "period_policy": "current/retro only; forecast excluded",
             },
         }
 

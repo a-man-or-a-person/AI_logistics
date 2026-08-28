@@ -152,6 +152,7 @@ activemq-data/
 .envrc
 .venv
 .codex-test-env/
+.codex-impl-env/
 .codex-pytest-tmp*/
 .uv-cache/
 .uv-python/

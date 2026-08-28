@@ -8,7 +8,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ml.data.loader import default_csv_path, iter_records
+from ml.data.loader import default_csv_path
+from ml.data.pulse_evaluation import iter_pulse_evaluation_records
 from ml.evaluation.economic import evaluate_rates
 
 
@@ -46,7 +47,7 @@ def evaluate_clustering_directory(
     test_records = []
     train_period_types: set[str] = set()
     test_period_types: set[str] = set()
-    for record in iter_records(source_path):
+    for record in iter_pulse_evaluation_records(source_path):
         if record.destination_region != destination_region or record.origin_fias != origin_fias:
             continue
         if record.period_id in train_periods:

@@ -22,6 +22,8 @@ class PulseEvaluationRecord:
     bid_count: int | None
     price_type: str | None
     source_snapshot_time: str | None
+    origin_name: str | None = None
+    destination_name: str | None = None
 
 
 def iter_pulse_evaluation_records(
@@ -39,7 +41,9 @@ def iter_pulse_evaluation_records(
             records.append(
                 PulseEvaluationRecord(
                     origin_fias=clean_text(row.get("shipment_point_locality_fias_id")),
+                    origin_name=clean_text(row.get("shipment_point_name_town")),
                     destination_fias=clean_text(row.get("delivery_point_locality_fias_id")),
+                    destination_name=clean_text(row.get("delivery_point_town")),
                     destination_region=clean_text(row.get("delivery_point_region_unified")),
                     period_id=clean_text(row.get("period_id")),
                     period_type=clean_text(row.get("period_type")),

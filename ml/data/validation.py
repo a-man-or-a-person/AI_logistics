@@ -1,4 +1,4 @@
-"""Validation and leakage policy for the predictive Pulse ML data contract."""
+"""Validation and field policy for Pulse analytics contracts."""
 
 from __future__ import annotations
 
@@ -9,27 +9,27 @@ from ml.data.schema import clean_text, parse_datetime, parse_float, parse_int
 
 PERIOD_ID_PATTERN = re.compile(r"^\d{6}$")
 
-# This policy is intentionally conservative until the business semantics are confirmed.
-PREDICTIVE_FEATURE_POLICY = {
+CLUSTERING_FIELD_POLICY = {
     "units": {
-        "role": "target_candidate",
+        "role": "shipment_volume",
         "allowed_as_feature": False,
-        "reason": "Candidate price target; exact business semantics are still open.",
+        "allowed_as_weight": True,
+        "reason": "Confirmed source of shipment_count; never part of the x/y feature matrix.",
     },
     "period_type": {
         "role": "split_control",
         "allowed_as_feature": False,
-        "reason": "forecast rows must not be used as ordinary training labels.",
+        "reason": "Only current and retro rows enter the clustering dataset.",
     },
     "confidence": {
-        "role": "blocked_pending_semantics",
+        "role": "diagnostic_only",
         "allowed_as_feature": False,
-        "reason": "May be derived from the external price calculation and leak the target.",
+        "reason": "Pulse-derived confidence is not a clustering feature or weight.",
     },
     "bid_count": {
-        "role": "blocked_pending_semantics",
+        "role": "diagnostic_only",
         "allowed_as_feature": False,
-        "reason": "It is unknown whether the value exists at prediction time.",
+        "reason": "Pulse-derived bid_count is not shipment volume.",
     },
     "tech_load_ts": {
         "role": "point_in_time_control",
@@ -37,6 +37,9 @@ PREDICTIVE_FEATURE_POLICY = {
         "reason": "Used to establish availability, revisions, and temporal ordering.",
     },
 }
+
+# Kept as a compatibility export for deferred predictive documentation.
+PREDICTIVE_FEATURE_POLICY = CLUSTERING_FIELD_POLICY
 
 
 def pulse_row_validation_errors(row: Mapping[str, object]) -> tuple[str, ...]:
