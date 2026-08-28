@@ -54,9 +54,10 @@ name/region fallback; missing coordinates не заменяются центро
 ### Geography
 
 Connectivity-constrained agglomerative clustering использует только x/y и graph.
-Manual K и Auto K поддерживаются. Auto K сравнивает K=2…10 по silhouette,
-Calinski–Harabasz, Davies–Bouldin и compactness. Каждый кластер проверяется на
-связность в исходном graph.
+Manual K и Auto K поддерживаются. Research Auto K сравнивает K=2…20 по silhouette,
+Calinski–Harabasz, Davies–Bouldin, compactness, size sanity и explicit complexity
+cost. Pareto/tie-breaking предпочитает меньший K среди близких вариантов и не
+вознаграждает дополнительные tiny clusters. Каждый кластер проверяется на связность.
 
 ### Geo + Cost
 
@@ -68,17 +69,22 @@ graph components.
 ### Bear Zones
 
 Default candidate threshold: point rate не ниже regional rate × 1.35.
-Обычная zone строится только из connected component размером от двух точек с
-trip_count >= 3 у каждой точки и повторно проходит zone-level 35% invariant.
-Singleton threshold равен +70%, но singleton_min_trip_count остаётся обязательным
-research-параметром без придуманного default. До его подтверждения статус —
-singleton_candidate.
+Обычная zone строится из connected component размером от двух candidate points и
+повторно проходит zone-level 35% invariant. Singleton с отклонением от +70%
+сразу получает cluster_type expensive_singleton.
+
+trip_count используется только как экономический вес и показатель объёма данных.
+Он не является eligibility threshold для zone или singleton. При суммарном весе 0
+weighted economics недоступна (economic_status insufficient_weight), но Geography
+по-прежнему может использовать точку.
 
 ## Результаты и границы
 
 Общий ClusterResult содержит mode, internal algorithm, assignments, typed clusters,
-regional economics, filters, forecast/mixed-segment metadata, typed outliers,
-data quality и geographic/economic/graph metrics.
+regional economics, filters, forecast/mixed-segment metadata, warnings, typed outliers,
+data quality и geographic/economic/graph metrics. Cluster summary включает point_ids,
+trip_count, economics, centroid/medoid, mean/P95/max radius и connected=true для
+проверенных product modes.
 
 Polygons postponed. Существующий boundary/territorialization код сохранён как
 отдельный post-processing и не является dependency нового clustering core.

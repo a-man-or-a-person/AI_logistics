@@ -67,10 +67,9 @@ trip_count не меняет geography assignments при фиксированн
 
 ## Bear Zones
 
-Default configuration: +35%, min trip_count 3, singleton threshold +70%.
-На первом пилоте найдена одна connected bear zone с trip coverage 0.0814%; на двух
-следующих обычных zones не найдено. Singleton minimum volume не придуман:
-singleton_min_trip_count=None, поэтому такие точки имеют status singleton_candidate.
+Первоначальный research run использовал временное volume-ограничение и потому считается
+superseded. Финальный contract: zone threshold +35%, singleton +70%, без допуска или
+исключения по trip_count. Актуальные результаты после пересчёта приведены в freeze report.
 
 ## Period-slice stability, first pilot
 
