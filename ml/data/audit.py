@@ -11,8 +11,53 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ml.data.loader import default_csv_path, iter_records
+from ml.data.loader import PULSE_COLUMNS, default_csv_path, iter_records
 from ml.data.schema import LogisticsRecord
+from ml.data.validation import PREDICTIVE_FEATURE_POLICY
+
+AUDITED_FIELDS = (
+    "origin_fias",
+    "origin_name",
+    "origin_town_source",
+    "origin_region",
+    "origin_point_type",
+    "origin_address",
+    "destination_fias",
+    "destination_name",
+    "destination_region",
+    "destination_region_source",
+    "destination_address",
+    "destination_point_type",
+    "latitude",
+    "longitude",
+    "period_id",
+    "period_type",
+    "price",
+    "route_length",
+    "trip_count",
+    "nanos",
+    "route_type",
+    "vehicle_type",
+    "tonnage_id",
+    "price_type",
+    "currency",
+    "confidence",
+    "tech_ts",
+)
+
+CARDINALITY_FIELDS = (
+    "origin_fias",
+    "destination_fias",
+    "origin_region",
+    "destination_region",
+    "period_id",
+    "period_type",
+    "route_type",
+    "vehicle_type",
+    "tonnage_id",
+    "price_type",
+    "currency",
+)
 
 
 def _percent(numerator: int, denominator: int) -> float:
@@ -33,15 +78,30 @@ def _quantile(sorted_values: list[float], fraction: float) -> float | None:
 
 def _distribution(values: list[float]) -> dict[str, float | int | None]:
     if not values:
-        return {"count": 0, "min": None, "p25": None, "median": None, "p75": None, "p95": None, "max": None, "mean": None}
+        return {
+            "count": 0,
+            "min": None,
+            "p01": None,
+            "p05": None,
+            "p25": None,
+            "median": None,
+            "p75": None,
+            "p95": None,
+            "p99": None,
+            "max": None,
+            "mean": None,
+        }
     ordered = sorted(values)
     return {
         "count": len(ordered),
         "min": round(ordered[0], 4),
+        "p01": round(_quantile(ordered, 0.01) or 0, 4),
+        "p05": round(_quantile(ordered, 0.05) or 0, 4),
         "p25": round(_quantile(ordered, 0.25) or 0, 4),
         "median": round(_quantile(ordered, 0.5) or 0, 4),
         "p75": round(_quantile(ordered, 0.75) or 0, 4),
         "p95": round(_quantile(ordered, 0.95) or 0, 4),
+        "p99": round(_quantile(ordered, 0.99) or 0, 4),
         "max": round(ordered[-1], 4),
         "mean": round(sum(ordered) / len(ordered), 4),
     }
@@ -54,16 +114,31 @@ class AuditAccumulator:
         self.invalids: Counter[str] = Counter()
         self.period_types: Counter[str] = Counter()
         self.price_types: Counter[str] = Counter()
+        self.currencies: Counter[str] = Counter()
+        self.route_types: Counter[str] = Counter()
+        self.vehicle_types: Counter[str] = Counter()
+        self.tonnage_ids: Counter[str] = Counter()
         self.rows_by_destination_region: Counter[str] = Counter()
         self.destinations_by_region: dict[str, set[str]] = defaultdict(set)
         self.destination_fias: set[str] = set()
         self.origin_fias: set[str] = set()
         self.period_ids: set[str] = set()
+        self.unique_values: dict[str, set[object]] = {
+            field: set() for field in CARDINALITY_FIELDS
+        }
         self.trip_count_by_destination: Counter[str] = Counter()
         self.row_count_by_destination: Counter[str] = Counter()
+        self.row_count_by_route: Counter[str] = Counter()
+        self.periods_by_route: dict[str, set[str]] = defaultdict(set)
+        self.price: list[float] = []
+        self.route_length: list[float] = []
         self.rub_per_km: list[float] = []
+        self.tech_timestamps: list[str] = []
+        self.validation_errors: Counter[str] = Counter()
         self.seen_fingerprints: set[bytes] = set()
+        self.seen_business_keys: set[tuple[object, ...]] = set()
         self.duplicate_rows = 0
+        self.duplicate_business_keys = 0
 
     def add(self, record: LogisticsRecord) -> None:
         self.total_rows += 1
@@ -73,28 +148,40 @@ class AuditAccumulator:
         else:
             self.seen_fingerprints.add(fingerprint)
 
-        for field in (
-            "origin_fias",
-            "origin_name",
-            "origin_region",
-            "destination_fias",
-            "destination_name",
-            "destination_region",
-            "latitude",
-            "longitude",
-            "period_id",
-            "period_type",
-            "price",
-            "route_length",
-            "trip_count",
-        ):
+        business_key = (
+            record.origin_fias,
+            record.destination_fias,
+            record.period_id,
+            record.period_type,
+            record.price_type,
+            record.route_type,
+            record.tonnage_id,
+            record.vehicle_type,
+            record.currency,
+        )
+        if business_key in self.seen_business_keys:
+            self.duplicate_business_keys += 1
+        else:
+            self.seen_business_keys.add(business_key)
+
+        for field in AUDITED_FIELDS:
             if getattr(record, field) is None:
                 self.nulls[field] += 1
 
-        if record.price is not None and record.price <= 0:
-            self.invalids["price_le_zero"] += 1
-        if record.route_length is not None and record.route_length <= 0:
-            self.invalids["route_length_le_zero"] += 1
+        self.validation_errors.update(record.validation_errors)
+
+        if record.price is not None:
+            self.price.append(record.price)
+            if record.price == 0:
+                self.invalids["price_zero"] += 1
+            elif record.price < 0:
+                self.invalids["price_negative"] += 1
+        if record.route_length is not None:
+            self.route_length.append(record.route_length)
+            if record.route_length == 0:
+                self.invalids["route_length_zero"] += 1
+            elif record.route_length < 0:
+                self.invalids["route_length_negative"] += 1
         if record.trip_count is not None and record.trip_count < 0:
             self.invalids["trip_count_lt_zero"] += 1
 
@@ -108,6 +195,20 @@ class AuditAccumulator:
             self.period_types[record.period_type] += 1
         if record.price_type:
             self.price_types[record.price_type] += 1
+        if record.currency:
+            self.currencies[record.currency] += 1
+        if record.route_type:
+            self.route_types[record.route_type] += 1
+        if record.vehicle_type:
+            self.vehicle_types[record.vehicle_type] += 1
+        if record.tonnage_id:
+            self.tonnage_ids[record.tonnage_id] += 1
+        if record.tech_ts is not None:
+            self.tech_timestamps.append(record.tech_ts.isoformat())
+        for field in CARDINALITY_FIELDS:
+            value = getattr(record, field)
+            if value is not None:
+                self.unique_values[field].add(value)
 
         region = record.destination_region or "<missing>"
         self.rows_by_destination_region[region] += 1
@@ -116,6 +217,13 @@ class AuditAccumulator:
         )
         self.destinations_by_region[region].add(destination_key)
         self.row_count_by_destination[destination_key] += 1
+        origin_key = record.origin_fias or (
+            f"name:{record.origin_name or record.origin_town_source or '<missing>'}"
+        )
+        route_key = f"{origin_key}->{destination_key}"
+        self.row_count_by_route[route_key] += 1
+        if record.period_id:
+            self.periods_by_route[route_key].add(record.period_id)
         if record.trip_count is not None and record.trip_count > 0:
             self.trip_count_by_destination[destination_key] += record.trip_count
 
@@ -125,6 +233,7 @@ class AuditAccumulator:
 
     def report(self, *, source_path: Path, source: str) -> dict[str, Any]:
         total = self.total_rows
+        route_month_counts = [len(periods) for periods in self.periods_by_route.values()]
         period_range = {
             "min": min(self.period_ids) if self.period_ids else None,
             "max": max(self.period_ids) if self.period_ids else None,
@@ -139,21 +248,50 @@ class AuditAccumulator:
                 "unique": total - self.duplicate_rows,
                 "duplicates": self.duplicate_rows,
                 "duplicate_pct": _percent(self.duplicate_rows, total),
+                "duplicate_candidate_business_keys": self.duplicate_business_keys,
+                "duplicate_candidate_business_key_pct": _percent(
+                    self.duplicate_business_keys, total
+                ),
+            },
+            "schema": {
+                "source_column_count": len(PULSE_COLUMNS),
+                "source_columns": list(PULSE_COLUMNS),
+                "canonical_field_count": len(AUDITED_FIELDS),
+                "canonical_fields": list(AUDITED_FIELDS),
             },
             "entities": {
                 "unique_origin_fias": len(self.origin_fias),
                 "unique_destination_fias": len(self.destination_fias),
+                "unique_routes": len(self.row_count_by_route),
             },
             "periods": {
                 "range": period_range,
+                "count": len(self.period_ids),
                 "types": dict(sorted(self.period_types.items())),
+                "tech_ts_range": {
+                    "min": min(self.tech_timestamps) if self.tech_timestamps else None,
+                    "max": max(self.tech_timestamps) if self.tech_timestamps else None,
+                },
             },
             "price_types": dict(sorted(self.price_types.items())),
+            "currencies": dict(sorted(self.currencies.items())),
+            "route_types": dict(sorted(self.route_types.items())),
+            "vehicle_types": dict(sorted(self.vehicle_types.items())),
+            "tonnage_ids": dict(sorted(self.tonnage_ids.items())),
+            "cardinality": {
+                field: len(values) for field, values in self.unique_values.items()
+            },
             "nulls": {
-                key: {"count": count, "pct": _percent(count, total)}
-                for key, count in sorted(self.nulls.items())
+                field: {
+                    "count": self.nulls[field],
+                    "pct": _percent(self.nulls[field], total),
+                }
+                for field in AUDITED_FIELDS
             },
             "invalid_values": dict(sorted(self.invalids.items())),
+            "parse_errors": dict(sorted(self.validation_errors.items())),
+            "price": _distribution(self.price),
+            "route_length": _distribution(self.route_length),
             "rub_per_km": _distribution(self.rub_per_km),
             "destination_regions": {
                 region: {
@@ -168,10 +306,38 @@ class AuditAccumulator:
             "rows_per_destination": _distribution(
                 [float(value) for value in self.row_count_by_destination.values()]
             ),
+            "route_history": {
+                "rows_per_route": _distribution(
+                    [float(value) for value in self.row_count_by_route.values()]
+                ),
+                "months_per_route": _distribution(
+                    [float(value) for value in route_month_counts]
+                ),
+                "routes_seen_1_month": sum(value == 1 for value in route_month_counts),
+                "routes_seen_ge_3_months": sum(value >= 3 for value in route_month_counts),
+                "routes_seen_ge_6_months": sum(value >= 6 for value in route_month_counts),
+                "routes_seen_ge_12_months": sum(value >= 12 for value in route_month_counts),
+            },
             "contract": {
                 "rub_per_km_formula": "price / route_length for price > 0 and route_length > 0",
                 "coordinate_status": "optional; expected to be joined by FIAS when absent",
                 "duplicate_definition": "identical normalized business fields",
+                "candidate_business_key": (
+                    "origin_fias + destination_fias + period_id + period_type + price_type + "
+                    "route_type + tonnage_id + vehicle_type + currency"
+                ),
+                "row_grain_status": "candidate_only_pending_business_confirmation",
+            },
+            "predictive_ml": {
+                "status": "blocked_pending_target_and_point_in_time_semantics",
+                "feature_policy": PREDICTIVE_FEATURE_POLICY,
+                "forecast_training_policy": "period_type=forecast is excluded from labels",
+                "blocking_questions": [
+                    "What business value does units represent?",
+                    "How is period_type=forecast produced?",
+                    "Are bid_count and confidence known at prediction time?",
+                    "What is the first product prediction scenario?",
+                ],
             },
         }
 

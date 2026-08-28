@@ -7,7 +7,14 @@ import os
 from collections.abc import Iterator
 from pathlib import Path
 
-from ml.data.schema import LogisticsRecord, clean_text, parse_float, parse_int
+from ml.data.schema import (
+    LogisticsRecord,
+    clean_text,
+    parse_datetime,
+    parse_float,
+    parse_int,
+)
+from ml.data.validation import pulse_row_validation_errors
 
 PULSE_COLUMNS = (
     "shipment_point_locality_fias_id",
@@ -86,6 +93,16 @@ def _pulse_record(row: dict[str, str], source: str) -> LogisticsRecord:
         price_type=clean_text(row.get("price_type")),
         currency=clean_text(row.get("currency")),
         confidence=clean_text(row.get("confidence")),
+        origin_town_source=clean_text(row.get("shipment_point_town_source")),
+        origin_point_type=clean_text(row.get("shipment_point_point_type")),
+        origin_address=clean_text(row.get("shipment_point_address")),
+        destination_region_source=clean_text(row.get("delivery_point_region_source")),
+        destination_address=clean_text(row.get("delivery_point_address")),
+        destination_point_type=clean_text(row.get("delivery_point_point_type")),
+        nanos=parse_int(row.get("nanos")),
+        route_type=clean_text(row.get("route_type")),
+        tech_ts=parse_datetime(row.get("tech_load_ts")),
+        validation_errors=pulse_row_validation_errors(row),
     )
 
 

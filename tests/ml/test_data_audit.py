@@ -25,12 +25,15 @@ def _row(**overrides):
             "period_type": "retro",
             "bid_count": "3",
             "confidence": "medium",
+            "nanos": "0",
             "units": "12000",
             "price_type": "tender",
             "route_length": "200",
+            "route_type": "default",
             "tonnage_id": "7",
             "vehicle_body_type": "tent truck",
             "currency": "RUB",
+            "tech_load_ts": "2026-01-15 12:30:00",
         }
     )
     row.update(overrides)
@@ -48,6 +51,10 @@ def test_loader_builds_canonical_record_and_calculates_rub_per_km(tmp_path):
     assert record.trip_count == 3
     assert record.rub_per_km == 60
     assert record.latitude is None
+    assert record.route_type == "default"
+    assert record.tech_ts.isoformat() == "2026-01-15T12:30:00"
+    assert record.nanos == 0
+    assert record.validation_errors == ()
 
 
 def test_audit_reports_quality_metrics_and_writes_both_formats(tmp_path):
@@ -69,8 +76,46 @@ def test_audit_reports_quality_metrics_and_writes_both_formats(tmp_path):
     assert report["rows"]["duplicates"] == 1
     assert report["entities"]["unique_destination_fias"] == 1
     assert report["nulls"]["destination_fias"]["count"] == 1
-    assert report["invalid_values"] == {"price_le_zero": 1, "route_length_le_zero": 1}
+    assert report["invalid_values"] == {"price_zero": 1, "route_length_zero": 1}
     assert report["rub_per_km"]["median"] == 60
+    assert report["price"]["min"] == 0
+    assert report["periods"]["tech_ts_range"]["min"] == "2026-01-15T12:30:00"
+    assert report["route_history"]["routes_seen_1_month"] == 2
+    assert report["schema"]["source_column_count"] == 25
+    assert report["predictive_ml"]["status"].startswith("blocked")
     assert report["trips_per_destination"]["count"] == 2
     assert json_path.exists()
     assert csv_path.exists()
+
+
+def test_loader_distinguishes_invalid_values_from_source_nulls(tmp_path):
+    source = tmp_path / "pulse.csv"
+    _write_csv(
+        source,
+        [
+            _row(
+                units="broken",
+                route_length="?",
+                bid_count="many",
+                nanos="fraction",
+                period_id="January",
+                tech_load_ts="not-a-timestamp",
+            )
+        ],
+    )
+
+    record = next(iter_records(source))
+    report = audit_file(source)
+
+    assert record.price is None
+    assert record.route_length is None
+    assert set(record.validation_errors) == {
+        "invalid_units",
+        "invalid_route_length",
+        "invalid_bid_count",
+        "invalid_nanos",
+        "invalid_period_id",
+        "invalid_tech_load_ts",
+    }
+    assert report["nulls"]["price"]["count"] == 1
+    assert report["parse_errors"] == {error: 1 for error in record.validation_errors}

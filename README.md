@@ -53,6 +53,12 @@ py -3.11 -m venv .venv
 Путь к другому источнику можно передать первым аргументом; для быстрой проверки
 доступен параметр `--limit N`.
 
+Predictive-ML ветка пока находится на этапе data contract: loader сохраняет все 25
+исходных полей Pulse, audit отдельно считает source null и malformed values, а
+`forecast`, `confidence` и `bid_count` защищены консервативной leakage-политикой.
+Обучение модели заблокировано до подтверждения семантики target и point-in-time правил;
+контракт описан в `docs/predictive_ml_contract.md`.
+
 Воспроизведение текущего расчёта для пилотного региона запускается отдельно:
 
 ```powershell
@@ -100,6 +106,22 @@ Spatial core устанавливается отдельно от runtime Flask:
   --output-dir reports\clustering\leningrad_region `
   --k-min 2 --k-max 10
 ```
+
+Если получен утверждённый официальный GeoJSON границы региона, тот же runner строит
+полностью покрывающие регион зоны и сохраняет `zones.geojson` для каждого `K`:
+
+```powershell
+.\.venv\Scripts\python.exe -m ml.experiments.clustering_experiment `
+  --locations reports\locations\leningrad_region\locations.json `
+  --output-dir reports\clustering\leningrad_region `
+  --k-min 2 --k-max 10 `
+  --boundary путь\к\official_boundary.geojson `
+  --cell-size-m 2000
+```
+
+Для GeoJSON с несколькими субъектами дополнительно указывается точное значение свойства
+региона через `--boundary-region-name`. Загрузчик принимает только валидные WGS84
+`Polygon`/`MultiPolygon`; bbox и неофициальные запасные границы не подставляются.
 
 Baseline использует только метрические `x/y`; ставки и `₽/км` остаются исключительно
 для последующей business evaluation. Polygon coverage, WAPE и stability в leaderboard

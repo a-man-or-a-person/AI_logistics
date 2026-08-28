@@ -13,7 +13,9 @@ from typing import Any
 
 from ml.clustering.base import ClusterPoint, ClusterResult
 from ml.clustering.kmeans import KMeansClusterer
+from ml.spatial.boundaries import load_region_boundary
 from ml.spatial.projection import LocalProjection
+from ml.spatial.territorialize import TerritorializationResult, territorialize
 
 
 def _file_hash(path: Path) -> str:
@@ -110,6 +112,7 @@ def _write_run(
     metadata: dict[str, Any],
     points: list[ClusterPoint],
     raw_locations: list[dict[str, Any]],
+    territorialization: TerritorializationResult | None = None,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     location_by_id = {str(location["id"]): location for location in raw_locations}
@@ -127,6 +130,11 @@ def _write_run(
         ]}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    if territorialization is not None:
+        (output_dir / "zones.geojson").write_text(
+            json.dumps(territorialization.zones_geojson, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
     fieldnames = [
         "id",
         "name",
@@ -169,12 +177,21 @@ def run_kmeans_sweep(
     random_state: int = 42,
     region: str | None = None,
     origin_fias: str | None = None,
+    boundary_path: str | Path | None = None,
+    boundary_region_name: str | None = None,
+    cell_size_m: float = 2_000,
 ) -> list[dict[str, Any]]:
     source_path = Path(locations_path)
     destination = Path(output_dir)
     points, raw_locations, projection = _load_points(source_path)
     selected_region = region or points[0].region
     dataset_hash = _file_hash(source_path)
+    boundary_source = Path(boundary_path) if boundary_path is not None else None
+    boundary = (
+        load_region_boundary(boundary_source, region_name=boundary_region_name)
+        if boundary_source is not None
+        else None
+    )
     clusterer = KMeansClusterer()
     leaderboard: list[dict[str, Any]] = []
     for k in k_values:
@@ -190,7 +207,29 @@ def run_kmeans_sweep(
             origin_fias=origin_fias,
             projection=projection,
         )
-        _write_run(destination / f"kmeans_k{k}", result, metadata, points, raw_locations)
+        territorialization = None
+        if boundary is not None:
+            territorialization = territorialize(
+                points,
+                result,
+                boundary,
+                projection,
+                cell_size_m=cell_size_m,
+            )
+            metadata["boundary"] = {
+                "source_path": str(boundary_source.resolve()),
+                "dataset_hash": _file_hash(boundary_source),
+                "region_name_selector": boundary_region_name,
+            }
+            metadata["territorialization"] = territorialization.metrics
+        _write_run(
+            destination / f"kmeans_k{k}",
+            result,
+            metadata,
+            points,
+            raw_locations,
+            territorialization,
+        )
         leaderboard.append(
             {
                 "experiment_id": metadata["experiment_id"],
@@ -209,10 +248,23 @@ def run_kmeans_sweep(
                     float(result.metrics["max_distance_to_medoid_m"]) / 1000, 4
                 ),
                 "point_coverage_pct": result.metrics["point_coverage_pct"],
-                "polygon_coverage_pct": None,
+                "polygon_coverage_pct": (
+                    territorialization.metrics["coverage_pct"]
+                    if territorialization is not None
+                    else None
+                ),
+                "polygon_overlap_pct": (
+                    territorialization.metrics["overlap_pct"]
+                    if territorialization is not None
+                    else None
+                ),
                 "wape": None,
                 "stability": None,
-                "fragmentation": None,
+                "fragmentation": (
+                    territorialization.metrics["fragmented_zone_count"]
+                    if territorialization is not None
+                    else None
+                ),
             }
         )
     destination.mkdir(parents=True, exist_ok=True)
@@ -234,6 +286,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument("--region")
     parser.add_argument("--origin-fias")
+    parser.add_argument(
+        "--boundary",
+        type=Path,
+        help="Approved WGS84 Polygon/MultiPolygon GeoJSON used to build zones",
+    )
+    parser.add_argument(
+        "--boundary-region-name",
+        help="Exact region property value when --boundary contains multiple features",
+    )
+    parser.add_argument("--cell-size-m", type=float, default=2_000)
     return parser
 
 
@@ -247,6 +309,9 @@ def main() -> int:
         random_state=args.random_state,
         region=args.region,
         origin_fias=args.origin_fias,
+        boundary_path=args.boundary,
+        boundary_region_name=args.boundary_region_name,
+        cell_size_m=args.cell_size_m,
     )
     print(f"Completed {len(leaderboard)} K-Means experiments")
     print(f"Leaderboard: {args.output_dir / 'leaderboard.csv'}")
