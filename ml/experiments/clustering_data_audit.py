@@ -75,25 +75,17 @@ def build_clustering_data_audit(
                     >= threshold
                     for route in routes
                 ),
-                "reliable_ge_3_trip_count": sum(
-                    route.trip_count >= 3
-                    and (relative_rate_delta(route.weighted_rub_per_km, regional_rate) or 0)
-                    >= threshold
-                    for route in routes
-                ),
             }
             for threshold in thresholds
         },
-        "reliability": {
+        "economic_weight_availability": {
             "zero_or_missing_trip_count_points": sum(route.trip_count <= 0 for route in routes),
-            "trip_count_1_2_points": sum(1 <= route.trip_count < 3 for route in routes),
-            "trip_count_ge_3_points": sum(route.trip_count >= 3 for route in routes),
-            "trip_count_ge_5_points": sum(route.trip_count >= 5 for route in routes),
+            "weighted_rub_per_km_unavailable_points": sum(
+                route.weighted_rub_per_km is None for route in routes
+            ),
         },
         "recommendations": {
             "bear_threshold": None,
-            "reliability_threshold": None,
-            "singleton_min_trip_count": None,
             "status": "pending_analytics_review",
         },
         "coordinates": location_report["coordinates"],

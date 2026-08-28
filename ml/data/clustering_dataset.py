@@ -175,6 +175,7 @@ def build_clustering_routes(
         "raw_rows": raw_rows,
         "filtered_source_rows": filtered_rows,
         "unusable_rows_excluded": unusable_rows,
+        "excluded_missing_fias_rows": unusable_rows,
         "canonical_destination_rows": len(routes),
         "trip_count_total": sum(route.trip_count for route in routes),
         "filters": {

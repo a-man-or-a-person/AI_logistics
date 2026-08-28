@@ -59,10 +59,13 @@ def test_locations_are_unique_by_fias_and_do_not_use_region_center(tmp_path):
     assert points[0].weighted_price == 1120
     assert points[0].weighted_rub_per_km == 11.2
     assert points[0].x is not None
-    assert points[0].coordinate_source == "cache_exact"
+    assert points[0].coordinate_source == "unverified_cache"
+    assert points[0].coordinate_status == "resolved"
+    assert points[0].coordinate_match == "cache_exact"
     assert points[1].latitude is None
     assert report["coordinates"]["location_coverage_pct"] == 50
     assert report["coordinates"]["trip_coverage_pct"] == 55.5556
+    assert report["data_quality"]["excluded_missing_fias"] == 0
 
 
 def test_missing_fias_fallback_is_rejected_by_contract_v1(tmp_path):

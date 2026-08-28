@@ -100,3 +100,17 @@ def test_single_origin_and_destination_region_are_required(tmp_path):
         build_clustering_routes(source, destination_region="Region A")
     with pytest.raises(ValueError, match="destination_region"):
         build_clustering_routes(source, origin_fias="origin-a")
+
+
+def test_missing_destination_fias_is_counted_and_not_guessed(tmp_path):
+    source = tmp_path / "pulse.csv"
+    missing = _row("current", 1000, 2)
+    missing["delivery_point_locality_fias_id"] = ""
+    _write(source, [_row("current", 1000, 2), missing])
+
+    routes, audit = build_clustering_routes(
+        source, origin_fias="origin-a", destination_region="Region A"
+    )
+
+    assert len(routes) == 1
+    assert audit["excluded_missing_fias_rows"] == 1

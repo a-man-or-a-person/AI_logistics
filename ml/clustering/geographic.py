@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import statistics
 from dataclasses import replace
 from typing import Any
 
@@ -104,23 +105,102 @@ def _quality(
     }
 
 
-def _candidate_rank(candidates: list[dict[str, float | int | None]]) -> int:
-    keys = (("silhouette", True), ("calinski_harabasz", True), ("davies_bouldin", False), ("p95_radius", False))
-    scores = [0] * len(candidates)
-    for key, descending in keys:
-        ordered = sorted(
-            range(len(candidates)),
-            key=lambda index: (
-                candidates[index][key] is None,
-                -(float(candidates[index][key])) if descending and candidates[index][key] is not None else (
-                    float(candidates[index][key]) if candidates[index][key] is not None else 0
-                ),
-                int(candidates[index]["k"]),
-            ),
+def cluster_size_diagnostics(result: ClusterResult) -> dict[str, float | int]:
+    sizes = [cluster.point_count for cluster in result.clusters]
+    mean_size = statistics.fmean(sizes) if sizes else 0.0
+    return {
+        "tiny_cluster_count": sum(size <= 2 for size in sizes),
+        "tiny_cluster_share": (
+            sum(size <= 2 for size in sizes) / len(sizes) if sizes else 0.0
+        ),
+        "cluster_size_cv": (
+            statistics.pstdev(sizes) / mean_size
+            if len(sizes) > 1 and mean_size
+            else 0.0
+        ),
+    }
+
+
+def _dominates(
+    left: dict[str, Any], right: dict[str, Any]
+) -> bool:
+    maximize = ("silhouette",)
+    minimize = (
+        "p95_radius_m",
+        "tiny_cluster_share",
+        "cluster_size_cv",
+        "excessive_k_penalty",
+    )
+    def metric(candidate: dict[str, Any], key: str, missing: float) -> float:
+        value = candidate.get(key)
+        return float(value) if value is not None else missing
+
+    better_or_equal = all(
+        metric(left, key, float("-inf"))
+        >= metric(right, key, float("-inf"))
+        for key in maximize
+    ) and all(
+        metric(left, key, float("inf"))
+        <= metric(right, key, float("inf"))
+        for key in minimize
+    )
+    strictly_better = any(
+        metric(left, key, float("-inf"))
+        > metric(right, key, float("-inf"))
+        for key in maximize
+    ) or any(
+        metric(left, key, float("inf"))
+        < metric(right, key, float("inf"))
+        for key in minimize
+    )
+    return better_or_equal and strictly_better
+
+
+def select_auto_k(
+    candidates: list[dict[str, Any]],
+    *,
+    quality_key: str = "silhouette",
+    tolerance: float = 0.02,
+) -> int:
+    """Pareto-filter, reject avoidable tiny fragmentation, then prefer lower K."""
+    pareto = [
+        candidate
+        for candidate in candidates
+        if not any(
+            other is not candidate and _dominates(other, candidate)
+            for other in candidates
         )
-        for rank, index in enumerate(ordered):
-            scores[index] += rank
-    return min(range(len(candidates)), key=lambda index: (scores[index], int(candidates[index]["k"])))
+    ]
+    for candidate in candidates:
+        candidate["pareto_shortlist"] = candidate in pareto
+    minimum_tiny_count = min(
+        int(candidate["tiny_cluster_count"]) for candidate in pareto
+    )
+    sane = [
+        candidate
+        for candidate in pareto
+        if int(candidate["tiny_cluster_count"]) == minimum_tiny_count
+    ]
+    available_quality = [
+        float(candidate[quality_key])
+        for candidate in sane
+        if candidate.get(quality_key) is not None
+    ]
+    if available_quality:
+        best_quality = max(available_quality)
+        near_best = [
+            candidate
+            for candidate in sane
+            if candidate.get(quality_key) is not None
+            and float(candidate[quality_key]) >= best_quality - tolerance
+        ]
+    else:
+        near_best = sane
+    selected = min(near_best, key=lambda candidate: int(candidate["k"]))
+    for candidate in candidates:
+        candidate["selection_eligible"] = candidate in near_best
+        candidate["selected"] = candidate is selected
+    return int(selected["k"])
 
 
 class GeographicClusterer(Clusterer):
@@ -141,10 +221,10 @@ class GeographicClusterer(Clusterer):
             raise ValueError("Spatial graph contains no clusterable points")
 
         requested = parameters.get("n_clusters")
-        candidates: list[dict[str, float | int | None]] = []
+        candidates: list[dict[str, Any]] = []
         if requested is None or requested == "auto":
             k_min = max(int(parameters.get("k_min", 2)), component_count)
-            k_max = min(int(parameters.get("k_max", 10)), available - 1)
+            k_max = min(int(parameters.get("k_max", 20)), available - 1)
             if k_min > k_max:
                 k_min = k_max = max(component_count, min(available, 2))
             for k in range(k_min, k_max + 1):
@@ -158,10 +238,14 @@ class GeographicClusterer(Clusterer):
                     {
                         "k": k,
                         **quality,
-                        "p95_radius": compactness["p95_distance_to_medoid_m"],
+                        "mean_radius_m": compactness["mean_distance_to_medoid_m"],
+                        "p95_radius_m": compactness["p95_distance_to_medoid_m"],
+                        "max_radius_m": compactness["max_distance_to_medoid_m"],
+                        **cluster_size_diagnostics(trial),
+                        "excessive_k_penalty": k / available,
                     }
                 )
-            selected_k = int(candidates[_candidate_rank(candidates)]["k"])
+            selected_k = select_auto_k(candidates)
             k_mode = "auto"
         else:
             selected_k = int(requested)
@@ -186,6 +270,8 @@ class GeographicClusterer(Clusterer):
             )
             for cluster in base.clusters
         )
+        summaries = tuple(replace(cluster, connected=True) for cluster in base.clusters)
+        base = replace(base, clusters=summaries)
         metrics = {
             **point_compactness_metrics(points, base),
             **_quality(points, assignments, matrix),

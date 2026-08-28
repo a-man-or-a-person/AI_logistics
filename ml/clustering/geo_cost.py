@@ -15,7 +15,11 @@ from ml.clustering.economics import (
     weighted_absolute_deviation,
     weighted_mean,
 )
-from ml.clustering.geographic import constrained_assignments
+from ml.clustering.geographic import (
+    cluster_size_diagnostics,
+    constrained_assignments,
+    select_auto_k,
+)
 from ml.evaluation.geographic import point_compactness_metrics
 from ml.spatial.graph import SpatialGraph, SpatialGraphBuilder
 
@@ -76,8 +80,9 @@ def build_geo_cost_matrix(
 
 def _economic_metrics(
     points: list[ClusterPoint], result: ClusterResult
-) -> dict[str, float | None]:
+) -> dict[str, Any]:
     deviations: list[tuple[float | None, int]] = []
+    variances: list[tuple[float | None, int]] = []
     cluster_rates: list[float] = []
     for cluster in result.clusters:
         members = [
@@ -93,13 +98,52 @@ def _economic_metrics(
             cluster.weighted_rub_per_km,
         )
         deviations.append((deviation, cluster.trip_count))
+        variance = weighted_mean(
+            (
+                (
+                    (point.weighted_rub_per_km - cluster.weighted_rub_per_km) ** 2
+                    if point.weighted_rub_per_km is not None
+                    and cluster.weighted_rub_per_km is not None
+                    else None
+                ),
+                point.trip_count,
+            )
+            for point in members
+        )
+        variances.append((variance, cluster.trip_count))
         if cluster.weighted_rub_per_km is not None:
             cluster_rates.append(cluster.weighted_rub_per_km)
+    regional_rate = weighted_mean(
+        (point.weighted_rub_per_km, point.trip_count) for point in points
+    )
+    within_variance = weighted_mean(variances)
+    between_variance = weighted_mean(
+        (
+            (
+                (cluster.weighted_rub_per_km - regional_rate) ** 2
+                if cluster.weighted_rub_per_km is not None
+                and regional_rate is not None
+                else None
+            ),
+            cluster.trip_count,
+        )
+        for cluster in result.clusters
+    )
     return {
         "within_cluster_weighted_rubkm_mad": weighted_mean(deviations),
+        "within_cluster_weighted_rubkm_variance": within_variance,
+        "between_cluster_weighted_rubkm_variance": between_variance,
+        "between_within_variance_ratio": (
+            between_variance / within_variance
+            if between_variance is not None
+            and within_variance is not None
+            and within_variance > 0
+            else None
+        ),
         "between_cluster_rate_spread": (
             max(cluster_rates) - min(cluster_rates) if cluster_rates else None
         ),
+        "cluster_weighted_rub_per_km": cluster_rates,
     }
 
 
@@ -134,10 +178,10 @@ class GeoCostClusterer(Clusterer):
             raise ValueError("Spatial graph contains no clusterable points")
 
         requested = parameters.get("n_clusters")
-        candidates: list[dict[str, float | int | None]] = []
+        candidates: list[dict[str, Any]] = []
         if requested is None or requested == "auto":
             k_min = max(int(parameters.get("k_min", 2)), component_count)
-            k_max = min(int(parameters.get("k_max", 10)), available - 1)
+            k_max = min(int(parameters.get("k_max", 20)), available - 1)
             if k_min > k_max:
                 k_min = k_max = max(component_count, min(available, 2))
             for k in range(k_min, k_max + 1):
@@ -159,10 +203,24 @@ class GeoCostClusterer(Clusterer):
                     if 1 < len(set(labels)) < len(labels)
                     else None
                 )
+                compactness = point_compactness_metrics(points, trial)
                 candidates.append(
                     {
                         "k": k,
+                        "silhouette": geo_score,
                         "geographic_silhouette": geo_score,
+                        **compactness,
+                        "mean_radius_m": compactness[
+                            "mean_distance_to_medoid_m"
+                        ],
+                        "p95_radius_m": compactness[
+                            "p95_distance_to_medoid_m"
+                        ],
+                        "max_radius_m": compactness[
+                            "max_distance_to_medoid_m"
+                        ],
+                        **cluster_size_diagnostics(trial),
+                        "excessive_k_penalty": k / available,
                         **_economic_metrics(points, trial),
                     }
                 )
@@ -194,15 +252,13 @@ class GeoCostClusterer(Clusterer):
                 item["selection_score"] = (
                     scaling["geography_weight"] * geo_norm
                     + scaling["economics_weight"] * econ_norm
+                    - 0.10 * float(item["excessive_k_penalty"])
+                    - 0.20 * float(item["tiny_cluster_share"])
                 )
-            selected_k = int(
-                max(
-                    candidates,
-                    key=lambda item: (
-                        float(item["selection_score"]),
-                        -int(item["k"]),
-                    ),
-                )["k"]
+            selected_k = select_auto_k(
+                candidates,
+                quality_key="selection_score",
+                tolerance=0.03,
             )
             k_mode = "auto"
         else:
@@ -235,6 +291,7 @@ class GeoCostClusterer(Clusterer):
                 relative_rate_delta=relative_rate_delta(
                     cluster.weighted_rub_per_km, regional_rate
                 ),
+                connected=True,
             )
             for cluster in base.clusters
         )

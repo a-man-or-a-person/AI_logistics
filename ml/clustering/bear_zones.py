@@ -28,16 +28,9 @@ class BearZoneDetector(Clusterer):
             else self.graph_builder.build(points)
         )
         bear_threshold = float(parameters.get("bear_threshold", 0.35))
-        min_trip_count = int(parameters.get("min_trip_count", 3))
         singleton_threshold = float(parameters.get("singleton_threshold", 0.70))
-        singleton_min_value = parameters.get("singleton_min_trip_count")
-        singleton_min_trip_count = (
-            int(singleton_min_value) if singleton_min_value is not None else None
-        )
         if bear_threshold < 0 or singleton_threshold < bear_threshold:
             raise ValueError("Thresholds must satisfy 0 <= bear <= singleton")
-        if min_trip_count < 1:
-            raise ValueError("min_trip_count must be positive")
 
         regional_rate = weighted_mean(
             (point.weighted_rub_per_km, point.trip_count) for point in points
@@ -54,17 +47,10 @@ class BearZoneDetector(Clusterer):
             for point in points
             if deltas[point.id] is not None and deltas[point.id] >= bear_threshold
         }
-        reliable = {
-            point_id
-            for point_id in candidates
-            if point_by_id[point_id].trip_count >= min_trip_count
-        }
-
         assignments = {point.id: -1 for point in points}
         cluster_types: dict[int, str] = {}
         next_cluster = 0
-        candidate_components = graph.induced_components(reliable)
-        accepted_zone_ids: set[str] = set()
+        candidate_components = graph.induced_components(candidates)
         singleton_ids: set[str] = set()
         for component in candidate_components:
             if len(component) < 2:
@@ -85,22 +71,16 @@ class BearZoneDetector(Clusterer):
                 continue
             for point_id in component:
                 assignments[point_id] = next_cluster
-                accepted_zone_ids.add(point_id)
             cluster_types[next_cluster] = "bear_zone"
             next_cluster += 1
 
-        promoted_singletons: set[str] = set()
         for point_id in sorted(singleton_ids):
-            point = point_by_id[point_id]
             if (
                 deltas[point_id] is not None
                 and deltas[point_id] >= singleton_threshold
-                and singleton_min_trip_count is not None
-                and point.trip_count >= singleton_min_trip_count
             ):
                 assignments[point_id] = next_cluster
                 cluster_types[next_cluster] = "expensive_singleton"
-                promoted_singletons.add(point_id)
                 next_cluster += 1
 
         base = summarize_assignments(
@@ -109,9 +89,9 @@ class BearZoneDetector(Clusterer):
             algorithm=self.algorithm,
             parameters={
                 "bear_threshold": bear_threshold,
-                "min_trip_count": min_trip_count,
+                "bear_threshold_pct": 100 * bear_threshold,
                 "singleton_threshold": singleton_threshold,
-                "singleton_min_trip_count": singleton_min_trip_count,
+                "singleton_threshold_pct": 100 * singleton_threshold,
                 "graph_method": graph.method,
                 "graph_parameters": graph.parameters,
             },
@@ -124,6 +104,7 @@ class BearZoneDetector(Clusterer):
                 relative_rate_delta=relative_rate_delta(
                     cluster.weighted_rub_per_km, regional_rate
                 ),
+                connected=True,
             )
             for cluster in base.clusters
         )
@@ -145,33 +126,33 @@ class BearZoneDetector(Clusterer):
             {"point_id": point_id, "type": "spatial_outlier"}
             for point_id in graph.isolated_point_ids
         ]
-        for point_id in sorted(candidates - reliable):
-            typed_outliers.append(
-                {
-                    "point_id": point_id,
-                    "type": "low_reliability_candidate",
-                    "relative_rate_delta": deltas[point_id],
-                }
-            )
-        for point_id in sorted(singleton_ids - promoted_singletons):
-            typed_outliers.append(
-                {
-                    "point_id": point_id,
-                    "type": "singleton_candidate",
-                    "relative_rate_delta": deltas[point_id],
-                }
-            )
-
         assigned_trips = sum(
             point.trip_count for point in points if assignments[point.id] >= 0
         )
         total_trips = sum(max(point.trip_count, 0) for point in points)
+        zone_sizes = [
+            cluster.point_count
+            for cluster in summaries
+            if cluster.cluster_type == "bear_zone"
+        ]
         metrics = {
             **graph.audit,
             "candidate_count": len(candidates),
-            "reliable_candidate_count": len(reliable),
             "bear_zone_count": sum(value == "bear_zone" for value in cluster_types.values()),
-            "expensive_singleton_count": len(promoted_singletons),
+            "singleton_count": sum(
+                value == "expensive_singleton" for value in cluster_types.values()
+            ),
+            "covered_point_count": sum(assignments[point.id] >= 0 for point in points),
+            "covered_trip_count": assigned_trips,
+            "mean_zone_size": (
+                sum(zone_sizes) / len(zone_sizes) if zone_sizes else 0.0
+            ),
+            "max_zone_size": max(zone_sizes, default=0),
+            "zone_relative_rate_deltas": [
+                cluster.relative_rate_delta
+                for cluster in summaries
+                if cluster.cluster_type == "bear_zone"
+            ],
             "trip_coverage_pct": (
                 100 * assigned_trips / total_trips if total_trips else 0.0
             ),

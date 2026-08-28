@@ -43,18 +43,12 @@ def candidate_recurrence(results: Iterable[ClusterResult]) -> dict[str, float]:
     occurrences: dict[str, int] = {}
     for result in values:
         candidates = {
-            str(item["point_id"])
-            for item in result.outliers
-            if item.get("type")
-            in {"low_reliability_candidate", "singleton_candidate"}
-        }
-        candidates.update(
             point_id
             for cluster in result.clusters
             if cluster.cluster_type in {"bear_zone", "expensive_singleton"}
             for point_id, cluster_id in result.point_assignments.items()
             if cluster_id == cluster.cluster_id
-        )
+        }
         for point_id in candidates:
             occurrences[point_id] = occurrences.get(point_id, 0) + 1
     return {

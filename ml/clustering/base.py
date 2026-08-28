@@ -35,6 +35,11 @@ class ClusterSummary:
     weighted_rub_per_km: float | None = None
     regional_weighted_rub_per_km: float | None = None
     relative_rate_delta: float | None = None
+    point_ids: tuple[str, ...] = ()
+    mean_radius_km: float | None = None
+    p95_radius_km: float | None = None
+    max_radius_km: float | None = None
+    connected: bool | None = None
 
     @property
     def shipment_count(self) -> int:
@@ -53,7 +58,7 @@ class ClusterResult:
     point_assignments: dict[str, int]
     clusters: tuple[ClusterSummary, ...]
     noise_point_ids: tuple[str, ...]
-    metrics: dict[str, float | int | None]
+    metrics: dict[str, Any]
     mode: str = "legacy"
     internal_algorithm: str | None = None
     regional_weighted_rub_per_km: float | None = None
@@ -63,9 +68,11 @@ class ClusterResult:
     vehicle_types: tuple[str, ...] = ()
     tonnage_ids: tuple[str, ...] = ()
     contains_forecast: bool = False
-    mixed_tariff_segments: dict[str, bool] | None = None
+    mixed_tariff_segments: bool = False
+    mixed_segment_details: dict[str, bool] | None = None
     outliers: tuple[dict[str, Any], ...] = ()
     data_quality: dict[str, Any] | None = None
+    warnings: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -84,9 +91,11 @@ class ClusterResult:
             "vehicle_types": list(self.vehicle_types),
             "tonnage_ids": list(self.tonnage_ids),
             "contains_forecast": self.contains_forecast,
-            "mixed_tariff_segments": self.mixed_tariff_segments or {},
+            "mixed_tariff_segments": self.mixed_tariff_segments,
+            "mixed_segment_details": self.mixed_segment_details or {},
             "outliers": list(self.outliers),
             "data_quality": self.data_quality or {},
+            "warnings": list(self.warnings),
         }
 
 
@@ -107,13 +116,21 @@ def _medoid(points: list[ClusterPoint]) -> ClusterPoint:
     )
 
 
+def _p95(values: list[float]) -> float:
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * 0.95
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
+
+
 def summarize_assignments(
     points: list[ClusterPoint],
     assignments: dict[str, int],
     *,
     algorithm: str,
     parameters: dict[str, Any],
-    metrics: dict[str, float | int | None] | None = None,
+    metrics: dict[str, Any] | None = None,
 ) -> ClusterResult:
     point_ids = {point.id for point in points}
     if set(assignments) != point_ids:
@@ -139,6 +156,10 @@ def summarize_assignments(
             sum(point.y for point in cluster_points) / len(cluster_points),
         )
         medoid = _medoid(cluster_points)
+        radii_m = [
+            math.hypot(point.x - medoid.x, point.y - medoid.y)
+            for point in cluster_points
+        ]
         summaries.append(
             ClusterSummary(
                 cluster_id=cluster_id,
@@ -159,6 +180,10 @@ def summarize_assignments(
                 weighted_rub_per_km=weighted_mean(
                     (point.weighted_rub_per_km, point.trip_count) for point in cluster_points
                 ),
+                point_ids=tuple(sorted(point.id for point in cluster_points)),
+                mean_radius_km=sum(radii_m) / len(radii_m) / 1000,
+                p95_radius_km=_p95(radii_m) / 1000,
+                max_radius_km=max(radii_m) / 1000,
             )
         )
     return ClusterResult(

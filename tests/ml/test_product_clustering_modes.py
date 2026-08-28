@@ -51,6 +51,24 @@ def test_geography_auto_k_and_spatial_outlier():
     assert result.parameters["auto_k_candidates"]
 
 
+def test_auto_k_sweeps_to_20_without_selecting_search_ceiling():
+    points = [
+        _point(f"{group}-{offset}", group * 100 + offset)
+        for group in range(3)
+        for offset in range(10)
+    ]
+
+    result = GeographicClusterer().fit(
+        points, {"n_clusters": "auto", "k_max": 20}
+    )
+    candidates = result.parameters["auto_k_candidates"]
+
+    assert candidates[-1]["k"] == 20
+    assert result.parameters["n_clusters"] < 20
+    assert all("tiny_cluster_share" in candidate for candidate in candidates)
+    assert sum(candidate["selected"] for candidate in candidates) == 1
+
+
 def test_geo_cost_preserves_connectivity_and_reports_70_30():
     points = [
         _point("a", 0, rate=100),
@@ -68,6 +86,9 @@ def test_geo_cost_preserves_connectivity_and_reports_70_30():
     assert result.parameters["geography_weight"] == 0.7
     assert result.parameters["economics_weight"] == 0.3
     assert result.regional_weighted_rub_per_km == 200
+    assert sorted(result.metrics["cluster_weighted_rub_per_km"]) == [100, 300]
+    assert result.metrics["within_cluster_weighted_rubkm_variance"] == 0
+    assert result.metrics["between_cluster_weighted_rubkm_variance"] == 10000
 
 
 def test_cost_changes_merge_priority_without_changing_spatial_edges():
@@ -133,34 +154,80 @@ def test_connected_expensive_points_create_valid_bear_zone():
     assert result.metrics["connectivity_violations"] == 0
 
 
-def test_low_volume_spike_does_not_seed_zone_and_singleton_is_candidate():
+def test_bear_zone_accepts_trip_count_one():
     points = [
         _point("low-a", 0, trips=50, rate=100),
         _point("low-b", 1, trips=50, rate=100),
-        _point("spike", 2, trips=1, rate=300),
+        _point("high-a", 2, trips=1, rate=300),
+        _point("high-b", 3, trips=1, rate=300),
     ]
 
     result = BearZoneDetector().fit(points, {})
 
-    assert not result.clusters
-    assert any(
-        item["point_id"] == "spike"
-        and item["type"] == "low_reliability_candidate"
-        for item in result.outliers
-    )
+    zone = next(cluster for cluster in result.clusters if cluster.cluster_type == "bear_zone")
+    assert zone.point_ids == ("high-a", "high-b")
+    assert zone.trip_count == 2
+    assert "min_trip_count" not in result.parameters
 
 
-def test_70_percent_singleton_stays_candidate_without_volume_default():
+def test_connected_expensive_points_are_not_filtered_by_volume():
+    points = _bear_points()
+    points[-2] = replace(points[-2], trip_count=1)
+    points[-1] = replace(points[-1], trip_count=2)
+
+    result = BearZoneDetector().fit(points, {})
+
+    assert any(cluster.cluster_type == "bear_zone" for cluster in result.clusters)
+
+
+def test_singleton_70_percent_does_not_require_min_trip_count():
     points = [
         _point("low-a", 0, trips=50, rate=100),
         _point("low-b", 1, trips=50, rate=100),
-        _point("high", 2, trips=5, rate=300),
+        _point("high", 2, trips=1, rate=300),
     ]
 
     result = BearZoneDetector().fit(points, {})
 
-    assert any(
-        item["point_id"] == "high" and item["type"] == "singleton_candidate"
-        for item in result.outliers
+    singleton = next(
+        cluster
+        for cluster in result.clusters
+        if cluster.cluster_type == "expensive_singleton"
     )
-    assert result.parameters["singleton_min_trip_count"] is None
+    assert singleton.point_ids == ("high",)
+    assert singleton.trip_count == 1
+    assert "singleton_min_trip_count" not in result.parameters
+
+
+def test_trip_count_changes_weighted_rate_but_not_eligibility():
+    points = [
+        _point("low-a", 0, trips=50, rate=100),
+        _point("low-b", 1, trips=50, rate=100),
+        _point("high-a", 2, trips=1, rate=300),
+        _point("high-b", 3, trips=1, rate=300),
+    ]
+    changed = [
+        replace(point, trip_count=2 if point.id.startswith("high") else point.trip_count)
+        for point in points
+    ]
+
+    first = BearZoneDetector().fit(points, {})
+    second = BearZoneDetector().fit(changed, {})
+
+    assert first.point_assignments["high-a"] >= 0
+    assert second.point_assignments["high-a"] >= 0
+    assert first.regional_weighted_rub_per_km != second.regional_weighted_rub_per_km
+
+
+def test_trip_count_zero_does_not_create_division_error():
+    points = [
+        _point("low-a", 0, trips=50, rate=100),
+        _point("low-b", 1, trips=50, rate=100),
+        ClusterPoint("zero", "zero", "R", 2, 0, 0, None, None),
+    ]
+
+    result = BearZoneDetector().fit(points, {})
+    geography = GeographicClusterer().fit(points, {"n_clusters": 2})
+
+    assert result.point_assignments["zero"] == -1
+    assert geography.point_assignments["zero"] >= 0

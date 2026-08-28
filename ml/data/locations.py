@@ -49,8 +49,11 @@ class LocationPoint:
     trip_count: int
     weighted_price: float | None
     weighted_rub_per_km: float | None
+    economic_status: str
     active_period_count: int
     coordinate_source: str
+    coordinate_status: str
+    coordinate_match: str
     data_quality_flags: tuple[str, ...]
 
 
@@ -68,7 +71,7 @@ def _valid_coordinates(value: Any) -> tuple[float, float] | None:
 
 def _resolve_coordinates(
     cache: dict[str, Any], name: str, region: str
-) -> tuple[float | None, float | None, str]:
+) -> tuple[float | None, float | None, str, str]:
     keys = (
         (f"{name}::{region}", "cache_exact"),
         (f"{normalize_location_name(name)}::{region}", "cache_normalized"),
@@ -80,8 +83,13 @@ def _resolve_coordinates(
         present = True
         coordinates = _valid_coordinates(cache[key])
         if coordinates is not None:
-            return coordinates[0], coordinates[1], source
-    return None, None, "cache_null" if present else "unresolved"
+            return coordinates[0], coordinates[1], "unverified_cache", source
+    return (
+        None,
+        None,
+        "unresolved",
+        "cache_null" if present else "not_in_cache",
+    )
 
 
 def build_location_dataset(
@@ -111,15 +119,19 @@ def build_location_dataset(
         tonnage_ids=tonnage_ids,
     )
 
-    resolved_rows: list[tuple[Any, float | None, float | None, str]] = []
+    resolved_rows: list[
+        tuple[Any, float | None, float | None, str, str]
+    ] = []
     for route in routes:
-        latitude, longitude, source = _resolve_coordinates(
+        latitude, longitude, source, coordinate_match = _resolve_coordinates(
             cache, route.destination_name, route.destination_region
         )
-        resolved_rows.append((route, latitude, longitude, source))
+        resolved_rows.append(
+            (route, latitude, longitude, source, coordinate_match)
+        )
     projection_coordinates = [
         (latitude, longitude)
-        for _, latitude, longitude, _ in resolved_rows
+        for _, latitude, longitude, _, _ in resolved_rows
         if latitude is not None and longitude is not None
     ]
     projection = (
@@ -129,7 +141,13 @@ def build_location_dataset(
     )
 
     points: list[LocationPoint] = []
-    for route, latitude, longitude, coordinate_source in resolved_rows:
+    for (
+        route,
+        latitude,
+        longitude,
+        coordinate_source,
+        coordinate_match,
+    ) in resolved_rows:
         x = y = None
         flags = set(route.data_quality_flags)
         if latitude is not None and longitude is not None and projection is not None:
@@ -151,8 +169,17 @@ def build_location_dataset(
                 trip_count=route.trip_count,
                 weighted_price=route.weighted_price,
                 weighted_rub_per_km=route.weighted_rub_per_km,
+                economic_status=(
+                    "available"
+                    if route.weighted_rub_per_km is not None
+                    else "insufficient_weight"
+                ),
                 active_period_count=route.active_period_count,
                 coordinate_source=coordinate_source,
+                coordinate_status=(
+                    "resolved" if latitude is not None else "unresolved"
+                ),
+                coordinate_match=coordinate_match,
                 data_quality_flags=tuple(sorted(flags)),
             )
         )
@@ -190,6 +217,25 @@ def build_location_dataset(
             for point in points
             if point.x is None
         ],
+        "data_quality": {
+            "excluded_missing_fias": route_report[
+                "excluded_missing_fias_rows"
+            ],
+            "destination_points_total": len(points),
+            "resolved_points": len(resolved),
+            "unresolved_points": len(points) - len(resolved),
+            "point_coverage_pct": (
+                round(100 * len(resolved) / len(points), 4) if points else 0
+            ),
+            "trip_weight_coverage_pct": (
+                round(100 * resolved_trips / total_trips, 4)
+                if total_trips
+                else 0
+            ),
+            "coordinate_source_distribution": dict(
+                Counter(point.coordinate_source for point in points)
+            ),
+        },
     }
     return points, report
 
