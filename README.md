@@ -42,22 +42,27 @@ py -3.11 -m venv .venv
 
 ## Исследовательский ML-слой
 
-Аналитический код изолирован в `ml/` и не меняет существующие API и карту. Первый
-этап формирует аудит исходного CSV и единый контракт данных:
+Аналитический код изолирован в `ml/` и не меняет существующие API и карту. Текущий
+milestone формирует воспроизводимые географические кластеры с корректным бизнес-весом:
 
 ```powershell
 .\.venv\Scripts\python.exe -m ml.data.audit
 ```
 
-Результаты сохраняются в `reports/data_audit.json` и `reports/data_audit.csv`.
-Путь к другому источнику можно передать первым аргументом; для быстрой проверки
-доступен параметр `--limit N`.
+`PulseRawRecord` буквально сохраняет 25 колонок. Для clustering `units` означает
+`shipment_count`; `bid_count` и `confidence` остаются diagnostic-only, а `forecast`
+полностью исключается. Контракт описан в `docs/clustering_data_contract.md`.
 
-Predictive-ML ветка пока находится на этапе data contract: loader сохраняет все 25
-исходных полей Pulse, audit отдельно считает source null и malformed values, а
-`forecast`, `confidence` и `bid_count` защищены консервативной leakage-политикой.
-Обучение модели заблокировано до подтверждения семантики target и point-in-time правил;
-контракт описан в `docs/predictive_ml_contract.md`.
+```powershell
+.\.venv\Scripts\python.exe -m ml.data.clustering_dataset `
+  --output-dir reports\clustering_data
+.\.venv\Scripts\python.exe -m ml.experiments.clustering_data_audit
+```
+
+Predictive price ML и E0–E3 сохранены как deferred-треки. H1 заблокирован без trusted
+distance, actual-validation H2 — без destination-level ground truth.
+
+### Исторические price-proxy эксперименты (deferred)
 
 Воспроизведение текущего расчёта для пилотного региона запускается отдельно:
 
@@ -66,8 +71,8 @@ Predictive-ML ветка пока находится на этапе data contra
   --destination-region "Ленинградская область"
 ```
 
-Отчёт одновременно показывает совместимый с backend расчёт и вариант, взвешенный
-по `bid_count`; это делает различие методик явным до проверки внутренних километражей.
+Этот отчёт сохранён только для воспроизводимости старого price-proxy исследования и не
+используется при выборе кластеров.
 
 Для проверки гипотезы километража нужен отдельный CSV внутренних перевозок по
 контракту `ml/configs/internal_trips.example.csv`. После его получения:
@@ -98,13 +103,14 @@ Spatial core устанавливается отдельно от runtime Flask:
 явно маркирует fallback и unresolved coordinates и не подставляет центр региона.
 Проекция `ml.spatial.projection` переводит WGS84 в локальные метры через AEQD.
 
-Географический K-Means baseline запускается sweep-ом, а не ручным подбором:
+K-Means запускается sweep-ом сразу в geo-only и shipment-weighted режимах:
 
 ```powershell
 .\.venv\Scripts\python.exe -m ml.experiments.clustering_experiment `
   --locations reports\locations\leningrad_region\locations.json `
   --output-dir reports\clustering\leningrad_region `
-  --k-min 2 --k-max 10
+  --k-min 2 --k-max 10 `
+  --weight-mode both --stability-runs 5
 ```
 
 Если получен утверждённый официальный GeoJSON границы региона, тот же runner строит
@@ -122,16 +128,37 @@ Spatial core устанавливается отдельно от runtime Flask:
 Для GeoJSON с несколькими субъектами дополнительно указывается точное значение свойства
 региона через `--boundary-region-name`. Загрузчик принимает только валидные WGS84
 `Polygon`/`MultiPolygon`; bbox и неофициальные запасные границы не подставляются.
+Полигон является optional post-processing и не влияет на point assignments. Для production
+используется локально выгруженная официальная граница НСПД/ЕГРН с
+`boundary_manifest.json`; provenance и shipment-weighted containment проверяются командой:
 
-Baseline использует только метрические `x/y`; ставки и `₽/км` остаются исключительно
-для последующей business evaluation. Polygon coverage, WAPE и stability в leaderboard
-остаются пустыми до соответствующих этапов и не подменяются proxy-метриками.
+```powershell
+.\.venv\Scripts\python.exe -m ml.experiments.boundary_audit `
+  --boundary путь\к\official_boundary.geojson `
+  --manifest путь\к\boundary_manifest.json `
+  --locations reports\locations\leningrad_region\locations.json `
+  --require-official --output reports\clustering\leningrad_region\boundary_audit.json
+```
+
+Неоднозначные origin FIAS выносятся в приватную очередь ручной проверки, отсортированную
+по `shipment_count`:
+
+```powershell
+.\.venv\Scripts\python.exe -m ml.experiments.origin_fias_audit
+```
+
+Матрица всегда использует только метрические `x/y`. `shipment_count` передаётся отдельно
+как optional sample weight. Leaderboard содержит geographic, shipment balance, coverage,
+ARI stability и Pareto-shortlist; price и WAPE в нём отсутствуют.
 
 Универсальный `ml.spatial.territorialize` принимает утверждённую границу региона,
 результат любого `Clusterer` и строит grid-based зоны с проверками coverage, overlap
 и connected components. Граница региона не подменяется bbox или центром региона.
 
-Out-of-time economic evaluation запускается отдельно от clustering:
+`decision_gate_clustering.json` — текущий gate. `decision_gate_2.json` сохранён как
+исторический price-proxy artifact.
+
+Out-of-time economic evaluation (deferred) запускается отдельно от clustering:
 
 ```powershell
 .\.venv\Scripts\python.exe -m ml.experiments.business_evaluation `
@@ -144,7 +171,7 @@ Out-of-time economic evaluation запускается отдельно от clu
 Ставки обучаются только на train. Прогнозные периоды Pulse явно считаются proxy,
 а не заменой фактическим ATI/internal ценам.
 
-### Actual-price evaluation
+### Actual-price evaluation (deferred / blocked)
 
 Конфиденциальный actual-файл, private mapping и производные отчёты не хранятся в Git.
 Сначала создайте conservative mapping-кандидаты:

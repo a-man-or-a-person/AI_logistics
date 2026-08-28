@@ -1,5 +1,9 @@
 # Контракт аналитической оценки стоимости
 
+> **СТАТУС: DEFERRED / BLOCKED.** Текущий milestone посвящён качеству кластеризации.
+> H1 заблокирован отсутствием trusted distance; actual-validation H2/E2/E3 — отсутствием
+> destination-level ground truth. Этот документ сохранён как контракт будущего ценового трека.
+
 Версия методологии: `analytics-evaluation-v1`.
 
 ## Назначение

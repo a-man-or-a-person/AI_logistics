@@ -1,7 +1,11 @@
-# Predictive ML contract v0
+# Predictive ML contract v0 — DEFERRED
 
-This document defines the implementation boundary for the price-prediction plan. It does
-not declare that `units` is a realized shipment price; that business meaning remains open.
+> **STATUS: DEFERRED. NOT PART OF THE CURRENT CLUSTERING MILESTONE.**
+> `units` is now confirmed as shipment volume for clustering and must not be treated as
+> a candidate price target. Any future price-prediction track needs a different target contract.
+
+This document preserves the earlier price-prediction investigation for historical context.
+It is not an active roadmap.
 
 ## Current status
 
@@ -24,7 +28,7 @@ deduplicating them.
 
 ## Target and temporal policy
 
-- `units` is only a target candidate.
+- `units` is shipment volume and is prohibited as a price target.
 - `period_type=forecast` is never accepted as an ordinary training label.
 - `tech_load_ts` establishes what was available at prediction time.
 - Random train/test splitting is prohibited.
@@ -35,7 +39,7 @@ deduplicating them.
 
 | Source field | Status | Reason |
 |---|---|---|
-| `units` | target candidate only | Its exact business meaning is not confirmed. |
+| `units` | prohibited price target | Confirmed as shipment volume for clustering. |
 | `period_type` | split control | Forecast rows can be external predictions. |
 | `confidence` | blocked | It may be derived from the external price calculation. |
 | `bid_count` | blocked | Availability at prediction time is unknown. |
@@ -46,10 +50,9 @@ candidates, not automatically approved production features.
 
 ## Required answers before dataset building or training
 
-1. What does one Pulse row represent, and what exactly does `units` measure?
-2. How is `period_type=forecast` produced?
-3. Are `bid_count` and `confidence` known at prediction time?
-4. Is the first product a monthly batch forecast or an on-demand route quotation?
+1. What separate source supplies a realized price target?
+2. What point-in-time product scenario would a future price model serve?
+3. Which fields are truly available at that prediction time?
 
 ## Stage-0 artifacts
 
