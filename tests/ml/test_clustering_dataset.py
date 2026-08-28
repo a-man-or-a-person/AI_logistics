@@ -1,5 +1,7 @@
 import csv
 
+import pytest
+
 from ml.data.clustering_dataset import build_clustering_routes
 from ml.data.loader import PULSE_COLUMNS
 
@@ -11,7 +13,15 @@ def _write(path, rows):
         writer.writerows(rows)
 
 
-def _row(period_type, units, bid_count="999"):
+def _row(
+    period_type,
+    price,
+    bid_count,
+    *,
+    price_type="tender",
+    vehicle="tent",
+    tonnage="7",
+):
     row = {column: "" for column in PULSE_COLUMNS}
     row.update(
         {
@@ -22,33 +32,71 @@ def _row(period_type, units, bid_count="999"):
             "delivery_point_town": "Town A",
             "period_id": "202601",
             "period_type": period_type,
-            "units": str(units),
-            "bid_count": bid_count,
-            "price_type": "tender",
+            "units": str(price),
+            "bid_count": str(bid_count),
+            "price_type": price_type,
             "route_length": "100",
+            "vehicle_body_type": vehicle,
+            "tonnage_id": tonnage,
         }
     )
     return row
 
 
-def test_clustering_dataset_excludes_forecast_and_aggregates_units(tmp_path):
+def test_destination_economics_are_weighted_by_trip_count_and_include_forecast(tmp_path):
     source = tmp_path / "pulse.csv"
-    _write(source, [_row("current", 2), _row("retro", 3), _row("forecast", 1000)])
+    _write(
+        source,
+        [
+            _row("current", 1000, 2),
+            _row("retro", 2000, 3),
+            _row("forecast", 4000, 5),
+        ],
+    )
 
-    routes, audit = build_clustering_routes(source)
+    routes, audit = build_clustering_routes(
+        source, origin_fias="origin-a", destination_region="Region A"
+    )
 
     assert len(routes) == 1
-    assert routes[0].shipment_count == 5
-    assert audit["forecast_rows_excluded"] == 1
-    assert audit["shipment_count_total"] == 5
-    assert audit["contract"]["diagnostic_only"] == ["bid_count", "confidence"]
+    assert routes[0].trip_count == 10
+    assert routes[0].weighted_price == 2800
+    assert routes[0].weighted_rub_per_km == 28
+    assert audit["metadata"]["contains_forecast"] is True
+    assert audit["contract"]["price_source"] == "Pulse.units"
+    assert audit["contract"]["trip_count_source"] == "Pulse.bid_count"
 
 
-def test_unknown_period_type_is_not_silently_included(tmp_path):
+def test_period_and_segment_filters_are_multiselect(tmp_path):
     source = tmp_path / "pulse.csv"
-    _write(source, [_row("future_kind", 10)])
+    _write(
+        source,
+        [
+            _row("current", 1000, 2, price_type="tender", vehicle="tent", tonnage="7"),
+            _row("forecast", 3000, 4, price_type="spot", vehicle="box", tonnage="10"),
+        ],
+    )
 
-    routes, audit = build_clustering_routes(source)
+    routes, audit = build_clustering_routes(
+        source,
+        origin_fias="origin-a",
+        destination_region="Region A",
+        period_types={"current"},
+        price_types={"tender", "other"},
+        vehicle_types={"tent", "other"},
+        tonnage_ids={"7", "20"},
+    )
 
-    assert routes == []
-    assert audit["unsupported_period_type_rows_excluded"] == 1
+    assert routes[0].trip_count == 2
+    assert routes[0].weighted_price == 1000
+    assert audit["metadata"]["contains_forecast"] is False
+
+
+def test_single_origin_and_destination_region_are_required(tmp_path):
+    source = tmp_path / "pulse.csv"
+    _write(source, [_row("current", 1000, 2)])
+
+    with pytest.raises(ValueError, match="origin_fias"):
+        build_clustering_routes(source, destination_region="Region A")
+    with pytest.raises(ValueError, match="destination_region"):
+        build_clustering_routes(source, origin_fias="origin-a")

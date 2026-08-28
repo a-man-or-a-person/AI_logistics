@@ -32,17 +32,16 @@ AUDITED_FIELDS = (
     "longitude",
     "period_id",
     "period_type",
-    "units",
-    "shipment_count",
+    "price",
     "route_length",
-    "pulse_bid_count",
+    "trip_count",
     "nanos",
     "route_type",
     "vehicle_type",
     "tonnage_id",
     "price_type",
     "currency",
-    "pulse_confidence",
+    "confidence",
     "tech_ts",
 )
 
@@ -127,11 +126,13 @@ class AuditAccumulator:
         self.unique_values: dict[str, set[object]] = {
             field: set() for field in CARDINALITY_FIELDS
         }
-        self.shipment_count_by_destination: Counter[str] = Counter()
+        self.trip_count_by_destination: Counter[str] = Counter()
         self.row_count_by_destination: Counter[str] = Counter()
         self.row_count_by_route: Counter[str] = Counter()
         self.periods_by_route: dict[str, set[str]] = defaultdict(set)
-        self.units: list[float] = []
+        self.prices: list[float] = []
+        self.rub_per_km: list[float] = []
+        self.trip_counts: list[float] = []
         self.route_length: list[float] = []
         self.tech_timestamps: list[str] = []
         self.validation_errors: Counter[str] = Counter()
@@ -170,18 +171,22 @@ class AuditAccumulator:
 
         self.validation_errors.update(record.validation_errors)
 
-        if record.units is not None:
-            self.units.append(record.units)
-            if record.units < 0:
-                self.invalids["units_negative"] += 1
+        if record.price is not None:
+            self.prices.append(record.price)
+            if record.price < 0:
+                self.invalids["price_negative"] += 1
+        if record.rub_per_km is not None:
+            self.rub_per_km.append(record.rub_per_km)
         if record.route_length is not None:
             self.route_length.append(record.route_length)
             if record.route_length == 0:
                 self.invalids["route_length_zero"] += 1
             elif record.route_length < 0:
                 self.invalids["route_length_negative"] += 1
-        if record.pulse_bid_count is not None and record.pulse_bid_count < 0:
-            self.invalids["pulse_bid_count_lt_zero"] += 1
+        if record.trip_count is not None:
+            self.trip_counts.append(float(record.trip_count))
+            if record.trip_count < 0:
+                self.invalids["trip_count_lt_zero"] += 1
 
         if record.origin_fias:
             self.origin_fias.add(record.origin_fias)
@@ -222,8 +227,8 @@ class AuditAccumulator:
         self.row_count_by_route[route_key] += 1
         if record.period_id:
             self.periods_by_route[route_key].add(record.period_id)
-        if record.shipment_count is not None and record.shipment_count > 0:
-            self.shipment_count_by_destination[destination_key] += record.shipment_count
+        if record.trip_count is not None and record.trip_count > 0:
+            self.trip_count_by_destination[destination_key] += record.trip_count
 
     def report(self, *, source_path: Path, source: str) -> dict[str, Any]:
         total = self.total_rows
@@ -284,7 +289,9 @@ class AuditAccumulator:
             },
             "invalid_values": dict(sorted(self.invalids.items())),
             "parse_errors": dict(sorted(self.validation_errors.items())),
-            "units": _distribution(self.units),
+            "price": _distribution(self.prices),
+            "rub_per_km": _distribution(self.rub_per_km),
+            "trip_count": _distribution(self.trip_counts),
             "route_length": _distribution(self.route_length),
             "destination_regions": {
                 region: {
@@ -293,8 +300,8 @@ class AuditAccumulator:
                 }
                 for region, count in self.rows_by_destination_region.most_common()
             },
-            "shipments_per_destination": _distribution(
-                [float(value) for value in self.shipment_count_by_destination.values()]
+            "trips_per_destination": _distribution(
+                [float(value) for value in self.trip_count_by_destination.values()]
             ),
             "rows_per_destination": _distribution(
                 [float(value) for value in self.row_count_by_destination.values()]
@@ -323,8 +330,9 @@ class AuditAccumulator:
             "clustering": {
                 "status": "current_milestone",
                 "feature_policy": CLUSTERING_FIELD_POLICY,
-                "shipment_count_source": "Pulse.units",
-                "period_policy": "current/retro only; forecast excluded",
+                "price_source": "Pulse.units",
+                "trip_count_source": "Pulse.bid_count",
+                "period_policy": "retro/current/forecast selectable",
             },
         }
 

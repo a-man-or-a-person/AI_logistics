@@ -40,7 +40,7 @@ def _row(**overrides):
     return row
 
 
-def test_loader_maps_units_to_shipment_count_and_keeps_bids_diagnostic(tmp_path):
+def test_loader_maps_units_to_price_and_bids_to_trip_count(tmp_path):
     source = tmp_path / "pulse.csv"
     _write_csv(source, [_row()])
 
@@ -48,10 +48,9 @@ def test_loader_maps_units_to_shipment_count_and_keeps_bids_diagnostic(tmp_path)
 
     assert record.source == "pulse"
     assert record.destination_fias == "destination-1"
-    assert record.units == 12000
-    assert record.shipment_count == 12000
-    assert record.pulse_bid_count == 3
-    assert not hasattr(record, "rub_per_km")
+    assert record.price == 12000
+    assert record.trip_count == 3
+    assert record.rub_per_km == 60
     assert record.latitude is None
     assert record.route_type == "default"
     assert record.tech_ts.isoformat() == "2026-01-15T12:30:00"
@@ -79,13 +78,13 @@ def test_audit_reports_quality_metrics_and_writes_both_formats(tmp_path):
     assert report["entities"]["unique_destination_fias"] == 1
     assert report["nulls"]["destination_fias"]["count"] == 1
     assert report["invalid_values"] == {"route_length_zero": 1}
-    assert report["units"]["median"] == 12000
-    assert report["units"]["min"] == 0
+    assert report["price"]["median"] == 12000
+    assert report["price"]["min"] == 0
     assert report["periods"]["tech_ts_range"]["min"] == "2026-01-15T12:30:00"
     assert report["route_history"]["routes_seen_1_month"] == 2
     assert report["schema"]["source_column_count"] == 25
     assert report["clustering"]["status"] == "current_milestone"
-    assert report["shipments_per_destination"]["count"] == 1
+    assert report["trips_per_destination"]["count"] == 2
     assert json_path.exists()
     assert csv_path.exists()
 
@@ -109,8 +108,8 @@ def test_loader_distinguishes_invalid_values_from_source_nulls(tmp_path):
     record = next(iter_records(source))
     report = audit_file(source)
 
-    assert record.units is None
-    assert record.shipment_count is None
+    assert record.price is None
+    assert record.trip_count is None
     assert record.route_length is None
     assert set(record.validation_errors) == {
         "invalid_units",
@@ -120,5 +119,5 @@ def test_loader_distinguishes_invalid_values_from_source_nulls(tmp_path):
         "invalid_period_id",
         "invalid_tech_load_ts",
     }
-    assert report["nulls"]["units"]["count"] == 1
+    assert report["nulls"]["price"]["count"] == 1
     assert report["parse_errors"] == {error: 1 for error in record.validation_errors}

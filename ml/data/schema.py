@@ -69,15 +69,16 @@ class LogisticsRecord:
     longitude: float | None
     period_id: str | None
     period_type: str | None
-    units: float | None
-    shipment_count: float | None
+    price: float | None
     route_length: float | None
-    pulse_bid_count: int | None
+    trip_count: int | None
     vehicle_type: str | None
     tonnage_id: str | None
     price_type: str | None
     currency: str | None
-    pulse_confidence: str | None
+    confidence: str | None
+    raw_units: float | None = None
+    raw_bid_count: int | None = None
     origin_town_source: str | None = None
     origin_point_type: str | None = None
     origin_address: str | None = None
@@ -107,11 +108,10 @@ class LogisticsRecord:
             self.destination_point_type,
             self.period_id,
             self.period_type,
-            self.units,
-            self.shipment_count,
+            self.price,
             self.route_length,
-            self.pulse_bid_count,
-            self.pulse_confidence,
+            self.trip_count,
+            self.confidence,
             self.nanos,
             self.route_type,
             self.vehicle_type,
@@ -122,3 +122,12 @@ class LogisticsRecord:
         )
         payload = "\x1f".join("" if value is None else str(value) for value in values)
         return hashlib.blake2b(payload.encode("utf-8"), digest_size=16).digest()
+
+    @property
+    def rub_per_km(self) -> float | None:
+        """Return the canonical rate only for positive price and distance."""
+        if self.price is None or self.price <= 0:
+            return None
+        if self.route_length is None or self.route_length <= 0:
+            return None
+        return self.price / self.route_length

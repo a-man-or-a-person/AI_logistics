@@ -47,27 +47,37 @@ def test_locations_are_unique_by_fias_and_do_not_use_region_center(tmp_path):
         json.dumps({"г Тихвин::Ленинградская область": [59.64, 33.54]}), encoding="utf-8"
     )
 
-    points, report = build_location_dataset(source, coordinate_cache_path=cache)
+    points, report = build_location_dataset(
+        source,
+        coordinate_cache_path=cache,
+        origin_fias="origin-1",
+        destination_region="Ленинградская область",
+    )
 
     assert len(points) == 2
-    assert points[0].shipment_count == 2200
+    assert points[0].trip_count == 5
+    assert points[0].weighted_price == 1120
+    assert points[0].weighted_rub_per_km == 11.2
+    assert points[0].x is not None
     assert points[0].coordinate_source == "cache_exact"
     assert points[1].latitude is None
     assert report["coordinates"]["location_coverage_pct"] == 50
-    assert report["coordinates"]["shipment_coverage_pct"] == 68.75
-    assert report["contract"]["region_center_fallback"] is False
+    assert report["coordinates"]["trip_coverage_pct"] == 55.5556
 
 
-def test_missing_fias_uses_explicit_name_region_fallback(tmp_path):
+def test_missing_fias_fallback_is_rejected_by_contract_v1(tmp_path):
     source = tmp_path / "pulse.csv"
     cache = tmp_path / "cache.json"
     _write_csv(source, [_row("", "поселок Тестовый", 1)])
     cache.write_text("{}", encoding="utf-8")
 
-    points, report = build_location_dataset(
-        source, coordinate_cache_path=cache, allow_name_fallback=True
-    )
+    import pytest
 
-    assert points[0].id_source == "name_region_fallback"
-    assert points[0].id.startswith("fallback:")
-    assert report["locations"]["fallback"] == 1
+    with pytest.raises(ValueError, match="destination FIAS"):
+        build_location_dataset(
+            source,
+            coordinate_cache_path=cache,
+            origin_fias="origin-1",
+            destination_region="Ленинградская область",
+            allow_name_fallback=True,
+        )

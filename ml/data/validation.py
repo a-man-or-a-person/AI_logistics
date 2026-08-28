@@ -11,15 +11,15 @@ PERIOD_ID_PATTERN = re.compile(r"^\d{6}$")
 
 CLUSTERING_FIELD_POLICY = {
     "units": {
-        "role": "shipment_volume",
-        "allowed_as_feature": False,
-        "allowed_as_weight": True,
-        "reason": "Confirmed source of shipment_count; never part of the x/y feature matrix.",
+        "role": "price",
+        "allowed_as_feature": True,
+        "allowed_as_weight": False,
+        "reason": "Canonical trip price; used through rub_per_km in geo_cost and bear modes.",
     },
     "period_type": {
         "role": "split_control",
         "allowed_as_feature": False,
-        "reason": "Only current and retro rows enter the clustering dataset.",
+        "reason": "Retro, current and forecast are explicit selectable slices.",
     },
     "confidence": {
         "role": "diagnostic_only",
@@ -27,9 +27,10 @@ CLUSTERING_FIELD_POLICY = {
         "reason": "Pulse-derived confidence is not a clustering feature or weight.",
     },
     "bid_count": {
-        "role": "diagnostic_only",
+        "role": "trip_count",
         "allowed_as_feature": False,
-        "reason": "Pulse-derived bid_count is not shipment volume.",
+        "allowed_as_weight": True,
+        "reason": "Canonical trip count and the sole economic aggregation weight.",
     },
     "tech_load_ts": {
         "role": "point_in_time_control",

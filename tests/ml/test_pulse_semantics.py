@@ -46,14 +46,14 @@ def test_raw_contract_contains_exact_source_columns(tmp_path):
     assert raw.bid_count == "900"
 
 
-def test_units_are_shipments_while_bid_and_confidence_stay_diagnostic(tmp_path):
+def test_units_are_price_and_bid_count_is_trip_count(tmp_path):
     source = tmp_path / "pulse.csv"
     _write(source, [_row()])
 
     record = next(iter_records(source))
 
-    assert record.shipment_count == 17.5
-    assert record.pulse_bid_count == 900
-    assert record.pulse_confidence == "derived"
-    assert not hasattr(record, "price")
-    assert not hasattr(record, "trip_count")
+    assert record.price == 17.5
+    assert record.trip_count == 900
+    assert record.confidence == "derived"
+    assert record.rub_per_km == 0.175
+    assert not hasattr(record, "shipment_count")

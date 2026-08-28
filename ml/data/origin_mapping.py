@@ -24,7 +24,7 @@ class OriginFiasCandidate:
     normalized_town: str
     source_names: tuple[str, ...]
     candidate_fias: tuple[str, ...]
-    shipment_count: float
+    trip_count: int
     status: str
 
 
@@ -45,15 +45,15 @@ def build_origin_fias_candidates(
             names[town].add(source_name)
         if record.origin_fias:
             fias[town].add(record.origin_fias)
-        shipments[town] += max(record.shipment_count or 0, 0)
+        shipments[town] += max(record.trip_count or 0, 0)
     result = [
         OriginFiasCandidate(
             normalized_town=town,
             source_names=tuple(sorted(names[town])),
             candidate_fias=tuple(sorted(fias[town])),
-            shipment_count=round(shipments[town], 4),
+            trip_count=int(shipments[town]),
             status="auto_unique" if len(fias[town]) == 1 else "manual_required",
         )
         for town in names
     ]
-    return sorted(result, key=lambda item: (-item.shipment_count, item.normalized_town))
+    return sorted(result, key=lambda item: (-item.trip_count, item.normalized_town))

@@ -31,7 +31,7 @@ def write_origin_fias_audit(
                     "source_names": " | ".join(candidate.source_names),
                     "candidate_fias": " | ".join(candidate.candidate_fias),
                     "candidate_count": len(candidate.candidate_fias),
-                    "shipment_count": candidate.shipment_count,
+                    "shipment_count": candidate.trip_count,
                     "status": candidate.status,
                     "selected_fias": candidate.candidate_fias[0]
                     if candidate.status == "auto_unique"
