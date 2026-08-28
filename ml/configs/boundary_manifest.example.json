@@ -1,0 +1,10 @@
+{
+  "region": "Region A",
+  "authority": "Rosreestr / NSPD",
+  "source_type": "EGRN/NSPD",
+  "retrieved_at": "2026-08-28",
+  "effective_date": "2026-08-01",
+  "crs": "EPSG:4326",
+  "sha256": "replace-with-sha256-of-boundary-geojson",
+  "status": "official"
+}
