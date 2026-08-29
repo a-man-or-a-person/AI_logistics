@@ -292,7 +292,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
   .workspace.mode-cluster { grid-template-columns: var(--controls-width) minmax(360px, 1fr); }
   .analysis-inspector { position: fixed; top: var(--header-height); right: 0; bottom: 0; z-index: 1800; width: min(var(--inspector-width), 92vw); box-shadow: var(--shadow); transform: translateX(105%); transition: transform .22s ease; }
   .analysis-inspector.open { transform: none; }
-  .mobile-sheet-button.secondary { display: inline-flex !important; }
+  .analysis-inspector .panel-close { display: inline-flex !important; align-items: center; justify-content: center; }
+  .mobile-sheet-button.secondary { position: absolute; right: 12px; bottom: 24px; z-index: 900; min-height: 42px; display: inline-flex !important; align-items: center; padding: 9px 13px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); font-weight: 650; box-shadow: var(--shadow); }
 }
 
 @media (max-width: 820px) {

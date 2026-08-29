@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Логистика AI — территориальный анализ</title>
-  <meta name="description" content="Рабочее место для анализа логистических данных и расчёта территориальных зон.">
+  <title>Логистика AI — территориальные зоны</title>
+  <meta name="description" content="Карта логистических данных и территориальный анализ направлений Pulse.">
   <link rel="stylesheet" href="/css/ol.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -15,125 +15,126 @@
       <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
       <span>Логистика <strong>AI</strong></span>
     </a>
-
     <nav class="mode-nav" aria-label="Рабочий режим">
       <button class="mode-tab" data-mode="data" type="button">Карта данных</button>
-      <button class="mode-tab active" data-mode="cluster" type="button" aria-current="page">Кластеризация</button>
+      <button class="mode-tab active" data-mode="cluster" type="button" aria-current="page">Территориальные зоны</button>
     </nav>
-
     <div class="topbar-actions">
       <span class="source-chip">Источник: <strong>Pulse</strong></span>
       <span class="system-status"><span id="status-dot" class="status-dot loading"></span><span id="status-text">Инициализация</span></span>
-      <button id="theme-toggle-header" class="icon-button theme-toggle-btn" type="button" aria-label="Переключить тему" title="Переключить тему">
-        <span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Тема</span>
-      </button>
+      <button id="theme-toggle-header" class="icon-button theme-toggle-btn" type="button" aria-label="Переключить тему"><span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Тема</span></button>
     </div>
   </header>
 
   <section id="workspace" class="workspace mode-cluster">
     <aside id="sidebar" class="control-panel" aria-label="Параметры анализа">
       <div class="panel-heading">
-        <div><span class="eyebrow" id="controls-eyebrow">Настройка анализа</span><h1 id="controls-title">Территориальные зоны</h1></div>
+        <div><span class="eyebrow">Настройка</span><h1 id="controls-title">Территориальные зоны</h1></div>
         <button class="panel-close mobile-only" data-close-panel="controls" type="button" aria-label="Закрыть настройки">×</button>
       </div>
 
       <div id="data-controls" class="controls-view hidden">
-        <p class="panel-intro">Отберите исходные точки для исследования рынка и проверки данных.</p>
-
+        <p class="panel-intro">Фильтры исходной карты ставок сохранены без изменений.</p>
         <div class="panel-section" id="section-ship">
           <button class="section-header" type="button" aria-expanded="true"><span><span class="section-index">01</span> Откуда</span><span class="section-chevron">⌄</span></button>
           <div class="section-body"><div class="selected-tags" id="tags-ship"></div><label class="search-field"><span class="sr-only">Поиск региона отгрузки</span><input id="search-ship" type="search" placeholder="Найти регион…" autocomplete="off"></label><div class="region-list" id="region-list-ship"></div></div>
         </div>
-
         <div class="panel-section collapsed" id="section-del">
           <button class="section-header" type="button" aria-expanded="false"><span><span class="section-index">02</span> Куда</span><span class="section-chevron">⌄</span></button>
           <div class="section-body"><div class="selected-tags" id="tags-del"></div><label class="search-field"><span class="sr-only">Поиск региона доставки</span><input id="search-del" type="search" placeholder="Найти регион…" autocomplete="off"></label><div class="region-list" id="region-list-del"></div></div>
         </div>
-
         <div class="panel-section collapsed" id="section-period">
           <button class="section-header" type="button" aria-expanded="false"><span><span class="section-index">03</span> Период</span><span class="section-chevron">⌄</span></button>
           <div class="section-body"><div class="toggle-group" id="period-toggles"></div></div>
         </div>
-
         <div class="panel-section collapsed" id="section-ptype">
           <button class="section-header" type="button" aria-expanded="false"><span><span class="section-index">04</span> Тип цены</span><span class="section-chevron">⌄</span></button>
           <div class="section-body"><div class="toggle-group" id="price-toggles"></div></div>
         </div>
-
         <div class="panel-actions sticky-actions"><button id="btn-apply" class="primary-button" type="button">Показать на карте</button><button id="btn-reset" class="text-button" type="button">Сбросить фильтры</button></div>
       </div>
 
       <form id="cluster-controls" class="controls-view" novalidate>
-        <p class="panel-intro">Выберите направление Pulse и способ анализа точек назначения.</p>
-
+        <p class="panel-intro">Выберите точку отправления, регион доставки и параметры исходной выборки.</p>
         <section class="form-section">
-          <div class="form-section-title"><span class="section-index">01</span> Территория</div>
+          <div class="form-section-title"><span class="section-index">01</span> Направление</div>
           <label class="field-label" for="cluster-origin">Откуда</label>
-          <select id="cluster-origin" class="select-input" required><option value="">Выберите origin…</option></select>
-          <label class="field-label" for="cluster-region">Куда</label>
-          <select id="cluster-region" class="select-input" required disabled><option value="">Сначала выберите origin</option></select>
+          <input id="cluster-origin" class="select-input" type="search" list="cluster-origin-options" placeholder="Начните вводить населённый пункт…" autocomplete="off" required>
+          <datalist id="cluster-origin-options"></datalist>
+          <small id="cluster-origin-meta" class="field-hint">Поиск по названию, региону или FIAS</small>
+          <label class="field-label" for="cluster-region">Регион доставки</label>
+          <select id="cluster-region" class="select-input" required disabled><option value="">Сначала выберите точку отправления</option></select>
         </section>
 
         <section class="form-section">
-          <div class="form-section-title"><span class="section-index">02</span> Данные</div>
+          <div class="form-section-title"><span class="section-index">02</span> Отбор данных</div>
           <div class="source-row"><span>Источник данных</span><strong>Pulse</strong></div>
           <fieldset class="field-group"><legend>Период</legend><div id="cluster-periods" class="filter-check-grid"></div></fieldset>
           <fieldset class="field-group"><legend>Тип цены</legend><div id="cluster-prices" class="filter-check-grid"></div></fieldset>
-          <fieldset class="field-group"><legend>Тип кузова</legend><div id="cluster-vehicles" class="filter-check-grid scrollable-options"></div></fieldset>
-          <fieldset class="field-group"><legend>Тоннаж</legend><div id="cluster-tonnages" class="filter-check-grid scrollable-options"></div></fieldset>
+          <p class="field-hint">Фильтры определяют исходную выборку. Цена не используется как признак географической кластеризации.</p>
         </section>
 
         <section class="form-section">
-          <div class="form-section-title"><span class="section-index">03</span> Тип анализа</div>
-          <select id="cluster-mode" class="select-input"><option value="geography">По географии</option><option value="geo_cost">География + стоимость</option><option value="bear_zones">Медвежьи зоны</option></select>
-          <div id="cluster-k-settings">
-            <fieldset class="field-group k-mode-group"><legend>Количество зон</legend><label class="radio-row"><input type="radio" name="cluster-k-mode" value="auto" checked><span><strong>Автоматически</strong><small>Research curve 2–20</small></span></label><label class="radio-row"><input type="radio" name="cluster-k-mode" value="manual"><span><strong>Вручную</strong><small>Выбрать K от 2 до 20</small></span></label></fieldset>
-            <div id="cluster-k-stepper" class="stepper hidden" aria-label="Количество зон"><button id="cluster-k-minus" type="button" aria-label="Уменьшить количество зон">−</button><output id="cluster-k-value">5</output><button id="cluster-k-plus" type="button" aria-label="Увеличить количество зон">+</button></div>
-          </div>
-          <div id="cluster-bear-settings" class="hidden"><label class="field-label" for="cluster-bear-threshold">Порог дорогой зоны</label><select id="cluster-bear-threshold" class="select-input"><option value="20">+20%</option><option value="25">+25%</option><option value="30">+30%</option><option value="35" selected>+35%</option><option value="40">+40%</option><option value="50">+50%</option></select><small class="field-hint">Аномальная одиночная точка: +70%</small></div>
+          <div class="form-section-title"><span class="section-index">03</span> Разбиение</div>
+          <div class="source-row"><span>Алгоритм</span><strong>K-Means</strong></div>
+          <label class="field-label" for="cluster-k-value">Количество зон</label>
+          <input id="cluster-k-value" class="select-input" type="number" min="2" max="10" value="5" required>
+          <details class="advanced-settings">
+            <summary>Дополнительные настройки</summary>
+            <fieldset class="field-group"><legend>Вес точек</legend>
+              <label class="radio-row"><input type="radio" name="cluster-weight-mode" value="none" checked><span><strong>Все точки одинаково</strong></span></label>
+              <label class="radio-row"><input type="radio" name="cluster-weight-mode" value="trip_count"><span><strong>По количеству перевозок</strong></span></label>
+            </fieldset>
+          </details>
         </section>
 
-        <section class="calculation-preview" aria-labelledby="preview-title"><div id="preview-title" class="preview-title">Будет рассчитано</div><div class="preview-route"><span id="preview-origin">Origin не выбран</span><span aria-hidden="true">→</span><span id="preview-region">Регион не выбран</span></div><strong id="preview-mode">По географии</strong><div id="preview-filters" class="preview-chips"><span>Pulse</span><span>Текущий</span></div></section>
-        <div id="cluster-forecast-warning" class="state-banner warning hidden">В анализ включены прогнозные данные Pulse.</div>
-        <div id="analysis-stale" class="state-banner warning hidden" role="status"><strong>Параметры анализа изменены</strong><span id="stale-description">Результат на карте рассчитан для других настроек.</span></div>
+        <section class="calculation-preview" aria-labelledby="preview-title">
+          <div id="preview-title" class="preview-title">Будет рассчитано</div>
+          <div class="preview-route"><span id="preview-origin">Точка не выбрана</span><span aria-hidden="true">→</span><span id="preview-region">Регион не выбран</span></div>
+          <strong id="preview-mode">K-Means · 5 зон</strong>
+          <div id="preview-filters" class="preview-chips"><span>Pulse</span><span>Текущий</span><span>Спот</span></div>
+          <p id="preview-quality" class="field-hint">После выбора направления на карте появятся исходные точки.</p>
+        </section>
+        <div id="analysis-stale" class="state-banner warning hidden" role="status"><strong>Параметры изменены</strong><span>На карте показан предыдущий результат.</span></div>
         <div id="analysis-form-error" class="state-banner error hidden" role="alert"></div>
-        <div class="panel-actions sticky-actions"><button id="btn-run-ml" class="primary-button" type="submit">Рассчитать зоны</button><span id="run-caption" class="button-caption">По географии · Auto K</span><button id="btn-compare-clustering" class="text-button" type="button">Сравнить режимы</button><button id="btn-reset-ml" class="text-button hidden" type="button">Очистить результат</button></div>
+        <div class="panel-actions sticky-actions"><button id="btn-run-ml" class="primary-button" type="submit">Рассчитать зоны</button><span id="run-caption" class="button-caption">K-Means · 5 зон</span><button id="btn-reset-ml" class="text-button hidden" type="button">Очистить результат</button></div>
       </form>
     </aside>
 
     <main id="map-container" aria-label="Карта">
       <div id="map"></div>
       <div id="layer-switcher" class="map-control base-layer-control"><label for="layer-select">Подложка</label><select id="layer-select"><option value="2gis">Карта</option><option value="hybrid">Спутник</option></select></div>
-      <div id="cluster-layer-control" class="map-control layer-control"><strong>Слои</strong><label><input type="checkbox" data-clustering-layer="points" checked> Точки</label><label><input type="checkbox" data-clustering-layer="labels" checked> Подписи</label><label><input type="checkbox" data-clustering-layer="centers"> Центры</label><label><input type="checkbox" data-clustering-layer="outliers" checked> Изолированные</label><label class="bear-layer"><input type="checkbox" data-clustering-layer="candidates" checked> Кандидаты</label></div>
+      <div id="cluster-layer-control" class="map-control layer-control"><strong>Слои</strong><label><input type="checkbox" data-clustering-layer="zones" checked> Зоны</label><label><input type="checkbox" data-clustering-layer="points" checked> Точки</label><label><input type="checkbox" data-clustering-layer="labels" checked> Метки Z</label></div>
       <div id="popup" class="ol-popup hidden"><button id="popup-closer" class="ol-popup-closer" type="button" aria-label="Закрыть">×</button><div id="popup-content"></div></div>
-      <div id="empty-state" class="map-empty-state"><div class="empty-graphic" aria-hidden="true"><span></span><span></span><span></span></div><div class="empty-title">Создайте первое разбиение региона</div><div class="empty-sub">Выберите территорию и параметры анализа, затем рассчитайте зоны.</div><ol><li>Выберите регион</li><li>Проверьте параметры</li><li>Рассчитайте зоны</li></ol></div>
-      <section id="map-info" class="map-info hidden" aria-label="Данные на карте"><div class="map-info-title">Данные на карте</div><div class="info-row"><span>Точек отгрузки</span><strong id="info-ship">—</strong></div><div class="info-row"><span>Точек доставки</span><strong id="info-del">—</strong></div><div class="info-row"><span>С координатами</span><strong id="info-geocoded">—</strong></div></section>
-      <section id="map-legend" class="map-legend hidden" aria-label="Условные обозначения"><strong>Условные обозначения</strong><span><i class="legend-dot ship"></i> Отгрузка</span><span><i class="legend-dot del"></i> Доставка</span></section>
+      <div id="empty-state" class="map-empty-state"><div class="empty-graphic" aria-hidden="true"><span></span><span></span><span></span></div><div class="empty-title">Настройте территориальный анализ</div><div class="empty-sub">Выберите точку отправления и регион доставки.</div><ol><li>Найдите точку отправления</li><li>Выберите регион доставки</li><li>Рассчитайте зоны</li></ol></div>
+      <section id="map-info" class="map-info hidden"><div class="map-info-title">Данные на карте</div><div class="info-row"><span>Точек отгрузки</span><strong id="info-ship">—</strong></div><div class="info-row"><span>Точек доставки</span><strong id="info-del">—</strong></div><div class="info-row"><span>С координатами</span><strong id="info-geocoded">—</strong></div></section>
+      <section id="map-legend" class="map-legend hidden"><strong>Обозначения</strong><span><i class="legend-dot ship"></i> Отгрузка</span><span><i class="legend-dot del"></i> Доставка</span></section>
       <div id="loading-overlay" class="loading-overlay hidden" aria-live="polite"><div class="loading-spinner"></div><strong id="loading-text">Загружаем данные…</strong><span id="loading-sub"></span></div>
-      <button id="mobile-controls-btn" class="mobile-sheet-button mobile-only" type="button">Настроить анализ</button><button id="mobile-inspector-btn" class="mobile-sheet-button secondary mobile-only" type="button">Результат</button>
+      <button id="mobile-controls-btn" class="mobile-sheet-button mobile-only" type="button">Настроить</button><button id="mobile-inspector-btn" class="mobile-sheet-button secondary mobile-only" type="button">Результат</button>
     </main>
 
     <aside id="analysis-inspector" class="analysis-inspector" aria-label="Результат анализа">
       <div class="panel-heading"><div><span class="eyebrow">Результат</span><h2>Анализ зон</h2></div><button class="panel-close mobile-only" data-close-panel="inspector" type="button" aria-label="Закрыть результат">×</button></div>
-      <div id="inspector-empty" class="inspector-empty"><div class="inspector-empty-mark">Z</div><strong>Результат появится здесь</strong><p>После расчёта вы увидите параметры эксперимента, метрики и состав каждой зоны.</p></div>
+      <div id="inspector-empty" class="inspector-empty"><div class="inspector-empty-mark">Z</div><strong>Результат появится здесь</strong><p>После расчёта будут доступны метрики, качество данных и состав каждой зоны.</p></div>
       <div id="inspector-result" class="inspector-content hidden">
-        <section class="result-hero"><div><span id="result-mode-badge" class="algorithm-badge">По географии</span><h3><span id="result-k">—</span> зон</h3></div><span id="result-mode" class="subtle-chip">Auto K</span></section>
+        <section class="result-hero"><div><span class="algorithm-badge">K-Means</span><h3><span id="result-k">—</span> зон</h3></div><span id="result-mode" class="subtle-chip">География</span></section>
         <section class="summary-grid"><div><strong id="result-cities">—</strong><span>точек</span></div><div><strong id="result-bids">—</strong><span>перевозок</span></div></section>
         <section id="result-warnings" class="inspector-section warning-list hidden"></section>
-        <section class="inspector-section"><h4>Параметры</h4><dl class="parameter-list"><div><dt>Направление</dt><dd id="result-region">—</dd></div><div><dt>Режим</dt><dd id="result-type">—</dd></div><div><dt>Данные</dt><dd id="result-data">—</dd></div><div><dt>K / порог</dt><dd id="result-k-detail">—</dd></div></dl></section>
-        <details id="metrics-section" class="inspector-section"><summary>Расширенные метрики</summary><div class="metric-row"><span>Silhouette</span><strong id="result-silhouette">—</strong></div></details>
-        <section class="inspector-section data-quality-section"><h4>Качество данных</h4><div class="quality-line"><span><strong id="quality-used">—</strong> использовано</span><span id="quality-ratio">—</span></div><div class="quality-bar"><i id="quality-fill"></i></div><p id="quality-note">Проверяем доступность координат.</p></section>
+        <section class="inspector-section"><h4>Параметры</h4><dl class="parameter-list"><div><dt>Направление</dt><dd id="result-region">—</dd></div><div><dt>Данные</dt><dd id="result-data">—</dd></div><div><dt>Вес</dt><dd id="result-weight">—</dd></div></dl></section>
+        <section class="inspector-section"><h4>Географическое качество</h4><div class="metric-row"><span>Silhouette</span><strong id="result-silhouette">—</strong></div><div class="metric-row"><span>Среднее до medoid</span><strong id="result-mean-distance">—</strong></div><div class="metric-row"><span>P95 до medoid</span><strong id="result-p95-distance">—</strong></div><div class="metric-row"><span>Максимум</span><strong id="result-max-distance">—</strong></div></section>
+        <section id="territorial-metrics" class="inspector-section hidden"><h4>Территориальное качество</h4><div class="metric-row"><span>Покрытие региона</span><strong id="territorial-coverage">—</strong></div><div class="metric-row"><span>Перекрытие</span><strong id="territorial-overlap">—</strong></div><div class="metric-row"><span>Фрагментированных зон</span><strong id="territorial-fragmented">—</strong></div></section>
+        <section class="inspector-section data-quality-section"><h4>Качество данных</h4><div class="quality-line"><span><strong id="quality-used">—</strong> с координатами</span><span id="quality-ratio">—</span></div><div class="quality-bar"><i id="quality-fill"></i></div><p id="quality-note">—</p><details id="quality-unresolved"><summary id="quality-unresolved-summary">Нет исключённых точек</summary><div id="quality-unresolved-list" class="point-table"></div></details></section>
         <section class="inspector-section zones-section"><div class="section-row"><h4>Зоны</h4><span id="zones-count">—</span></div><div id="zone-list" class="zone-list"></div></section>
-        <section id="zone-details" class="zone-details hidden" aria-live="polite"><button id="zone-details-close" class="back-button" type="button">← Все зоны</button><div class="zone-details-heading"><span id="zone-details-swatch"></span><h4 id="zone-details-title">Зона</h4></div><div class="zone-detail-stats"><div><strong id="zone-details-cities">—</strong><span>точек</span></div><div><strong id="zone-details-bids">—</strong><span>перевозок</span></div></div><dl id="zone-economics" class="parameter-list"></dl><h5>Населённые пункты</h5><div id="zone-details-towns" class="point-table"></div></section>
-        <section id="comparison-section" class="inspector-section hidden"><div class="section-row"><h4>Сравнение режимов</h4><span>без winner</span></div><div id="comparison-cards" class="comparison-cards"></div></section>
+        <section id="zone-details" class="zone-details hidden"><button id="zone-details-close" class="back-button" type="button">← Все зоны</button><div class="zone-details-heading"><span id="zone-details-swatch"></span><h4 id="zone-details-title">Зона</h4></div><div class="zone-detail-stats"><div><strong id="zone-details-cities">—</strong><span>точек</span></div><div><strong id="zone-details-bids">—</strong><span>перевозок</span></div></div><dl class="parameter-list"><div><dt>Medoid</dt><dd id="zone-medoid">—</dd></div></dl><h5>Точки зоны</h5><div id="zone-details-towns" class="point-table"></div></section>
       </div>
     </aside>
   </section>
 </div>
 
-<div id="records-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-overlay" id="modal-overlay"></div><div class="modal-content"><div class="modal-header"><div><span class="eyebrow">Исходные данные</span><h2 id="modal-title">Данные города</h2></div><button id="modal-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><div class="modal-body"><div id="modal-loading" class="hidden">Загрузка…</div><div id="modal-error" class="hidden error-text"></div><div class="table-container"><table id="records-table"><thead><tr><th>Цена, ₽</th><th>Км</th><th>₽/км</th><th>Заявки</th><th>Период</th><th>Тип цены</th><th>Достоверность</th><th>Отгрузка</th><th>Доставка</th></tr></thead><tbody id="records-tbody"></tbody></table></div></div></div></div>
+<div id="records-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-overlay" id="modal-overlay"></div><div class="modal-content"><div class="modal-header"><div><span class="eyebrow">Исходные данные</span><h2 id="modal-title">Данные города</h2></div><button id="modal-close" class="modal-close" type="button" aria-label="Закрыть">×</button></div><div class="modal-body"><div id="modal-error" class="hidden error-text"></div><div class="table-container"><table><thead><tr><th>Цена, ₽</th><th>Км</th><th>₽/км</th><th>Заявки</th><th>Период</th><th>Тип цены</th><th>Достоверность</th><th>Отгрузка</th><th>Доставка</th></tr></thead><tbody id="records-tbody"></tbody></table></div></div></div></div>
 <div id="geocode-status" class="geocode-status hidden"><div class="loading-spinner small"></div><span id="geocode-status-text">Обновляем координаты…</span><div class="geocode-progress-bar"><i id="geocode-progress-fill"></i></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="/js/ol.js"></script><script type="module" src="/js/app.js"></script>
+<script src="/js/ol.js"></script>
+<script type="module" src="/js/app.js"></script>
 </body>
 </html>

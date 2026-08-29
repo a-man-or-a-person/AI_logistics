@@ -403,134 +403,53 @@ const ML_PALETTE = [
   { fill: 'rgba(117,166,44,.18)', stroke: '#75a62c' },
 ];
 
-export function renderMlClusters(clustersData) {
-  clearMarkers();
-
-  if (!clustersData || clustersData.length === 0) return;
-
-  const features = [];
-
-  clustersData.forEach((c, idx) => {
-    const pal = ML_PALETTE[idx % ML_PALETTE.length];
-
-    // ── Полигон кластера ─────────────────────────────────────────
-    // Бэкенд отдаёт координаты как [lat, lon] → конвертируем в [lon, lat] для fromLonLat
-    if (c.polygon && c.polygon.length >= 3) {
-      const polygonCoords = c.polygon.map(p => ol.proj.fromLonLat([p[1], p[0]]));
-      // Замыкаем контур
-      if (polygonCoords[0][0] !== polygonCoords[polygonCoords.length - 1][0] ||
-          polygonCoords[0][1] !== polygonCoords[polygonCoords.length - 1][1]) {
-        polygonCoords.push(polygonCoords[0]);
-      }
-
-      // Основной полигон
-      const polyFeature = new ol.Feature({
-        geometry: new ol.geom.Polygon([polygonCoords]),
-        isMlPolygon: true,
-        fillColor: pal.fill,
-        strokeColor: pal.stroke,
-        clusterId: Number(c.id),
-        clusterData: c,
-      });
-      features.push(polyFeature);
-    }
-
-    // ── Точки внутри кластера ────────────────────────────────────
-    if (c.points) {
-      c.points.forEach(pt => {
-        const coords = ol.proj.fromLonLat([pt.lon, pt.lat]);
-        const ptFeature = new ol.Feature({
-          geometry: new ol.geom.Point(coords),
-          isMlPoint:   true,
-          strokeColor: pal.stroke,
-          fillColor:   pal.fill,
-          // Данные города — для попапа при клике
-          ptTown:      pt.town || '',
-          ptRubKm:     pt.rub_per_km || 0,
-          ptBids:      pt.bid_count || 0,
-          ptHasData:   pt.has_data ?? true,
-          clusterId:   Number(c.id),
-        });
-        features.push(ptFeature);
-      });
-    }
-
-    // ── Метка в центре масс кластера ─────────────────────────────
-    // center[0]=lat, center[1]=lon (взвешенный по bid_count)
-    if (c.center) {
-      const centerCoords = ol.proj.fromLonLat([c.center[1], c.center[0]]);
-      const labelFeature = new ol.Feature({
-        geometry: new ol.geom.Point(centerCoords),
-        isMlLabel: true,
-        clusterId:   Number(c.id),
-        zoneLabel:   `Z${Number(c.id) + 1}`,
-        avgRubKm:    c.avg_rub_km,
-        totalBids:   c.total_bids,
-        citiesCount: c.points_count,
-        strokeColor: pal.stroke,
-        fillColor:   pal.fill,
-      });
-      features.push(labelFeature);
-
-      const centerFeature = new ol.Feature({
-        geometry: new ol.geom.Point(centerCoords),
-        isMlCenter: true,
-        clusterId: Number(c.id),
-        strokeColor: pal.stroke,
-      });
-      features.push(centerFeature);
-    }
-  });
-
-  _mlVectorSource.addFeatures(features);
-
-  if (features.length > 0) {
-    const extent = _mlVectorSource.getExtent();
-    if (!ol.extent.isEmpty(extent)) {
-      _map.getView().fit(extent, {
-        padding: [60, 60, 60, 60],
-        maxZoom: 10,
-        duration: 600,
-      });
-    }
-  }
-}
-
-/** Render Product v1 as points and medoid centers only; polygons are intentionally absent. */
+/** Render canonical points and approved territorial GeoJSON when available. */
 export function renderClusteringPoints(result) {
   clearMarkers();
   const features = [];
   const clusters = new Map((result.clusters || []).map((cluster, index) => [
     Number(cluster.cluster_id), { ...cluster, color: ML_PALETTE[index % ML_PALETTE.length].stroke },
   ]));
+  if (result.zones?.available && result.zones.geojson) {
+    const zoneFeatures = new ol.format.GeoJSON().readFeatures(result.zones.geojson, {
+      dataProjection: 'EPSG:4326',
+      featureProjection: 'EPSG:3857',
+    });
+    for (const feature of zoneFeatures) {
+      const clusterId = Number(feature.get('cluster_id'));
+      const cluster = clusters.get(clusterId);
+      feature.setProperties({
+        isMlPolygon: true,
+        clusterId,
+        fillColor: cluster?.color ? cluster.color + '33' : 'rgba(123,135,152,.18)',
+        strokeColor: cluster?.color || '#7b8798',
+      });
+    }
+    features.push(...zoneFeatures);
+  }
   for (const point of result.points || []) {
-    if (point.latitude == null || point.longitude == null) continue;
+    if (point.lat == null || point.lon == null) continue;
     const cluster = point.cluster_id == null ? null : clusters.get(Number(point.cluster_id));
     let color = cluster?.color || '#7b8798';
-    if (point.cluster_type === 'bear_zone') color = '#d84f4f';
-    if (point.cluster_type === 'expensive_singleton') color = '#8f2d56';
-    if (point.status === 'bear_candidate') color = '#d28a18';
     const feature = new ol.Feature({
-      geometry: new ol.geom.Point(ol.proj.fromLonLat([point.longitude, point.latitude])),
+      geometry: new ol.geom.Point(ol.proj.fromLonLat([point.lon, point.lat])),
       isProductPoint: true,
       pointId: point.id,
       clusterId: point.cluster_id,
-      pointStatus: point.status,
-      clusterType: point.cluster_type,
       pointData: point,
       strokeColor: color,
     });
     features.push(feature);
   }
   for (const cluster of clusters.values()) {
-    if (cluster.medoid?.latitude == null || cluster.medoid?.longitude == null) continue;
-    const coordinates = ol.proj.fromLonLat([cluster.medoid.longitude, cluster.medoid.latitude]);
+    const medoid = (result.points || []).find(point => point.id === cluster.medoid_point_id);
+    if (medoid?.lat == null || medoid?.lon == null) continue;
+    const coordinates = ol.proj.fromLonLat([medoid.lon, medoid.lat]);
     features.push(new ol.Feature({
       geometry: new ol.geom.Point(coordinates),
       isProductLabel: true,
       clusterId: cluster.cluster_id,
-      zoneLabel: cluster.cluster_type === 'bear_zone' ? 'МЗ' :
-        cluster.cluster_type === 'expensive_singleton' ? '!' : `Z${Number(cluster.cluster_id) + 1}`,
+      zoneLabel: `Z${Number(cluster.cluster_id) + 1}`,
       strokeColor: cluster.color,
     }));
     features.push(new ol.Feature({
