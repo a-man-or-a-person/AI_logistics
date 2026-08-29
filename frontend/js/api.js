@@ -107,19 +107,31 @@ export async function regeocodeTown(town, region) {
   });
 }
 
-/**
- * ML-кластеризация для региона
- */
-export async function fetchMlClusters({ region, type, k, weightMode = 'trip_count', filters = {} }) {
+/** Product v1 options, optionally narrowed by origin and destination region. */
+export async function fetchClusteringOptions({ originFias, destinationRegion } = {}) {
   const params = new URLSearchParams();
-  params.append('region', region);
-  params.append('town_type', type);
-  params.append('k', k);
-  params.append('weight_mode', weightMode);
-  
-  if (filters.periodTypes?.length) params.set('period_types', filters.periodTypes.join(','));
-  if (filters.priceTypes?.length)  params.set('price_types', filters.priceTypes.join(','));
+  if (originFias) params.set('origin_fias', originFias);
+  if (destinationRegion) params.set('destination_region', destinationRegion);
+  const suffix = params.toString() ? `?${params.toString()}` : '';
+  return requestJson(`${API_BASE}/api/clustering/options${suffix}`);
+}
 
-  const url = `${API_BASE}/api/ml-cluster?${params.toString()}`;
-  return requestJson(url);
+/** Run exactly one Product v1 clustering mode. */
+export async function runClustering(request, { signal } = {}) {
+  return requestJson(`${API_BASE}/api/clustering/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+    signal,
+  });
+}
+
+/** Compare the three defaults without selecting an automatic winner. */
+export async function compareClusteringModes(request, { signal } = {}) {
+  return requestJson(`${API_BASE}/api/clustering/compare`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+    signal,
+  });
 }
