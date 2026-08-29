@@ -23,6 +23,7 @@ let _selectedMlZoneId = null;
 let _hoveredMlZoneId = null;
 let _mlResultIsStale = false;
 const _mlLayerVisibility = { zones: true, cities: true, labels: true, centers: false };
+const _clusteringLayerVisibility = { points: true, labels: true, centers: false, outliers: true, candidates: true };
 
 // ── Init ──────────────────────────────────────────────────────
 
@@ -129,6 +130,15 @@ export function initMap(containerId) {
     });
 
     if (feature) {
+      if (feature.get('isProductPoint') || feature.get('isProductCenter') || feature.get('isProductLabel')) {
+        const clusterId = feature.get('clusterId');
+        if (clusterId != null) selectMlZone(Number(clusterId), false);
+        window.dispatchEvent(new CustomEvent('clustering-point-select', {
+          detail: { clusterId: clusterId == null ? null : Number(clusterId), pointId: feature.get('pointId') || null },
+        }));
+        _overlay.setPosition(undefined);
+        return;
+      }
       if (feature.get('isMlPolygon') || feature.get('isMlLabel') || feature.get('isMlCenter')) {
         const clusterId = Number(feature.get('clusterId'));
         selectMlZone(clusterId, false);
@@ -312,7 +322,8 @@ export function initMap(containerId) {
     const feature = _map.forEachFeatureAtPixel(pixel, candidate => candidate);
     const hit = Boolean(feature);
     const zoneFeature = feature && (
-      feature.get('isMlPolygon') || feature.get('isMlLabel') || feature.get('isMlCenter')
+      feature.get('isMlPolygon') || feature.get('isMlLabel') || feature.get('isMlCenter') ||
+      feature.get('isProductPoint') || feature.get('isProductLabel') || feature.get('isProductCenter')
     );
     const nextHover = zoneFeature ? Number(feature.get('clusterId')) : null;
     if (_hoveredMlZoneId !== nextHover) {
@@ -485,7 +496,105 @@ export function renderMlClusters(clustersData) {
   }
 }
 
+/** Render Product v1 as points and medoid centers only; polygons are intentionally absent. */
+export function renderClusteringPoints(result) {
+  clearMarkers();
+  const features = [];
+  const clusters = new Map((result.clusters || []).map((cluster, index) => [
+    Number(cluster.cluster_id), { ...cluster, color: ML_PALETTE[index % ML_PALETTE.length].stroke },
+  ]));
+  for (const point of result.points || []) {
+    if (point.latitude == null || point.longitude == null) continue;
+    const cluster = point.cluster_id == null ? null : clusters.get(Number(point.cluster_id));
+    let color = cluster?.color || '#7b8798';
+    if (point.cluster_type === 'bear_zone') color = '#d84f4f';
+    if (point.cluster_type === 'expensive_singleton') color = '#8f2d56';
+    if (point.status === 'bear_candidate') color = '#d28a18';
+    const feature = new ol.Feature({
+      geometry: new ol.geom.Point(ol.proj.fromLonLat([point.longitude, point.latitude])),
+      isProductPoint: true,
+      pointId: point.id,
+      clusterId: point.cluster_id,
+      pointStatus: point.status,
+      clusterType: point.cluster_type,
+      pointData: point,
+      strokeColor: color,
+    });
+    features.push(feature);
+  }
+  for (const cluster of clusters.values()) {
+    if (cluster.medoid?.latitude == null || cluster.medoid?.longitude == null) continue;
+    const coordinates = ol.proj.fromLonLat([cluster.medoid.longitude, cluster.medoid.latitude]);
+    features.push(new ol.Feature({
+      geometry: new ol.geom.Point(coordinates),
+      isProductLabel: true,
+      clusterId: cluster.cluster_id,
+      zoneLabel: cluster.cluster_type === 'bear_zone' ? 'МЗ' :
+        cluster.cluster_type === 'expensive_singleton' ? '!' : `Z${Number(cluster.cluster_id) + 1}`,
+      strokeColor: cluster.color,
+    }));
+    features.push(new ol.Feature({
+      geometry: new ol.geom.Point(coordinates),
+      isProductCenter: true,
+      clusterId: cluster.cluster_id,
+      strokeColor: cluster.color,
+    }));
+  }
+  _mlVectorSource.addFeatures(features);
+  if (features.length) {
+    const extent = _mlVectorSource.getExtent();
+    if (!ol.extent.isEmpty(extent)) {
+      _map.getView().fit(extent, { padding: [60, 60, 60, 60], maxZoom: 10, duration: 500 });
+    }
+  }
+}
+
 function mlClusterStyleFunction(feature) {
+  if (feature.get('isProductPoint')) {
+    const status = feature.get('pointStatus');
+    if (!_clusteringLayerVisibility.points) return null;
+    if (status === 'spatial_outlier' && !_clusteringLayerVisibility.outliers) return null;
+    if (status === 'bear_candidate' && !_clusteringLayerVisibility.candidates) return null;
+    const clusterId = feature.get('clusterId');
+    const selected = _selectedMlZoneId;
+    const active = selected != null && Number(clusterId) === selected;
+    const dimmed = selected != null && Number(clusterId) !== selected;
+    const unavailable = ['spatial_outlier', 'economic_unavailable'].includes(status);
+    return new ol.style.Style({
+      image: new ol.style.Circle({
+        radius: active ? 7 : feature.get('clusterType') === 'expensive_singleton' ? 6.5 : 5,
+        fill: new ol.style.Fill({ color: dimmed ? 'rgba(123,135,152,.28)' : feature.get('strokeColor') }),
+        stroke: new ol.style.Stroke({ color: '#fff', width: active ? 2.5 : 1.2, lineDash: unavailable ? [3, 2] : undefined }),
+      }),
+    });
+  }
+
+  if (feature.get('isProductLabel')) {
+    if (!_clusteringLayerVisibility.labels) return null;
+    const active = Number(feature.get('clusterId')) === _selectedMlZoneId;
+    return new ol.style.Style({
+      text: new ol.style.Text({
+        text: feature.get('zoneLabel'),
+        font: `${active ? '700 13px' : '700 11px'} "Inter", "Segoe UI", sans-serif`,
+        fill: new ol.style.Fill({ color: '#fff' }),
+        backgroundFill: new ol.style.Fill({ color: feature.get('strokeColor') }),
+        padding: [4, 6, 4, 6],
+        offsetY: -18,
+      }),
+    });
+  }
+
+  if (feature.get('isProductCenter')) {
+    if (!_clusteringLayerVisibility.centers) return null;
+    return new ol.style.Style({
+      image: new ol.style.RegularShape({
+        points: 4, radius: 7, angle: Math.PI / 4,
+        fill: new ol.style.Fill({ color: '#fff' }),
+        stroke: new ol.style.Stroke({ color: feature.get('strokeColor'), width: 2 }),
+      }),
+    });
+  }
+
   if (feature.get('isMlPolygon')) {
     if (!_mlLayerVisibility.zones) return null;
     const zoneId = Number(feature.get('clusterId'));
@@ -554,6 +663,15 @@ export function selectMlZone(clusterId, fit = false) {
 
 export function focusMlZone(clusterId) {
   if (!_map || !_mlVectorSource) return;
+  const productFeatures = _mlVectorSource.getFeatures().filter(feature =>
+    feature.get('isProductPoint') && Number(feature.get('clusterId')) === Number(clusterId)
+  );
+  if (productFeatures.length) {
+    const extent = ol.extent.createEmpty();
+    productFeatures.forEach(feature => ol.extent.extend(extent, feature.getGeometry().getExtent()));
+    _map.getView().fit(extent, { padding: [70, 70, 70, 70], maxZoom: 11, duration: 450 });
+    return;
+  }
   const polygon = _mlVectorSource.getFeatures().find(feature =>
     feature.get('isMlPolygon') && Number(feature.get('clusterId')) === Number(clusterId)
   );
@@ -571,6 +689,20 @@ export function setMlLayerVisibility(layer, visible) {
 
 export function setMlResultStale(stale) {
   _mlResultIsStale = Boolean(stale);
+  _mlVectorLayer?.changed();
+}
+
+export function highlightCluster(clusterId, fit = false) {
+  selectMlZone(clusterId, fit);
+}
+
+export function clearClusteringResult() {
+  clearMlClusters();
+}
+
+export function setClusteringLayers(layer, visible) {
+  if (!(layer in _clusteringLayerVisibility)) return;
+  _clusteringLayerVisibility[layer] = Boolean(visible);
   _mlVectorLayer?.changed();
 }
 
