@@ -42,6 +42,18 @@ py -3.11 -m venv .venv
 
 ## Исследовательский ML-слой
 
+Продуктовый экран «Территориальные зоны» использует отдельный canonical API:
+
+- `GET /api/clustering/options`;
+- `GET /api/clustering/origins`;
+- `POST /api/clustering/preview`;
+- `POST /api/clustering/run`.
+
+Production MVP запускает только geography-only K-Means из `ml/` с ручным `K=2…10`.
+Цена не является clustering feature. При отсутствии настроенного утверждённого GeoJSON
+API возвращает точки и кластеры со статусом `boundary_unavailable`, не создавая
+Voronoi/bbox-подмену. Подробности: `docs/clustering_product_v1_contract.md`.
+
 Аналитический код изолирован в `ml/` и не меняет существующие API и карту. Текущий
 milestone формирует воспроизводимые географические кластеры с корректным бизнес-весом:
 
@@ -220,13 +232,15 @@ distance или destination-level ground truth возвращает `blocked`, �
 | `LOGISTICS_PORT` | Порт прямого запуска | `5000` |
 | `LOGISTICS_DEBUG` | Включить Flask debug (`1`) | выключен |
 | `LOGISTICS_CORS_ORIGINS` | Разрешённые CORS-origin через запятую | CORS выключен |
+| `LOGISTICS_REGION_BOUNDARIES_FILE` | Локальный утверждённый GeoJSON границ регионов | не задан |
 
 ## Структура
 
 - `backend/app.py` — HTTP API и раздача интерфейса;
 - `backend/data_processor.py` — чтение CSV, фильтрация и агрегация;
 - `backend/geocoder.py` — координаты и постоянный JSON-кэш;
-- `backend/ml_clustering.py` — KMeans и полигоны Voronoi;
+- `backend/services/clustering_service.py` — product orchestration поверх `ml/`;
+- `backend/services/boundary_provider.py` — доступ только к настроенному GeoJSON;
 - `frontend/` — статический интерфейс OpenLayers;
 - `tests/` — проверки расчётов, API-валидации и отсутствия мутаций ML.
 

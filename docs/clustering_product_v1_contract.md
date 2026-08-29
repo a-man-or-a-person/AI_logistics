@@ -1,48 +1,53 @@
-# Clustering Product v1 contract
+# Canonical clustering product contract
 
-Дата: 2026-08-28.
+Дата: 2026-08-29.
 
 ## Назначение
 
-Product v1 предоставляет три пользовательских режима для grain
-`one origin FIAS × one destination region`:
-
-- Geography;
-- Geo + Cost;
-- Bear Zones.
-
-Research Contract v1 считается frozen dependency. Product-layer переиспользует
-его data aggregation, local AEQD projection, spatial graph и алгоритмы без
-изменения их исследовательских defaults.
-
-## Coordinate policy
+Продукт решает один сценарий:
 
 ```text
-coordinate_policy = accepted_existing_cache_v1
-coordinate_source = cache
+origin FIAS → destination region → canonical destination locations → K-Means → zones
 ```
 
-Существующие координаты `backend/cache/coords_cache.json` принимаются как
-доверенный operational input для Product v1. Их историческое происхождение не
-подтверждено, поэтому они не называются `verified`, а принятие cache фиксируется
-отдельной policy.
+Production-слой оркестрирует исследовательские компоненты и не реализует отдельный
+алгоритм кластеризации. Единственный production-алгоритм текущего MVP — geography-only
+`ml.clustering.kmeans.KMeansClusterer`.
 
-Product-layer:
+Цена и ₽/км могут фильтровать или оценивать исходную выборку, но не попадают в
+`ClusterPoint` и не являются признаками K-Means. `trip_count` может использоваться
+только как вес точки.
 
-- использует только существующие валидные координаты из strict research resolver;
-- оставляет неизвестные destination FIAS в статусе `unresolved`;
-- не вызывает legacy `geocode_town()`;
-- не подставляет центр региона;
-- не добавляет jitter;
-- не применяет fuzzy FIAS matching;
-- не изменяет coordinate cache во время чтения или выполнения clustering.
+## Координаты
 
-Неполное покрытие координат возвращается в `data_quality` и warning
-`incomplete_coordinate_coverage`, но отсутствие provenance больше не блокирует
-Product API или UI.
+Используется существующий `backend/cache/coords_cache.json`. Неизвестная координата
+остаётся `unresolved`, учитывается в `data_quality` и исключается из ML.
 
-## Product boundaries
+Запрещены:
 
-Product v1 не строит polygons, не использует ATI/actual, не выбирает лучший режим
-автоматически и не удаляет legacy `/api/ml-cluster`. Production API располагается
-под `/api/clustering/*` и не зависит от legacy clustering backend.
+- подстановка центра региона;
+- jitter;
+- fuzzy FIAS;
+- пользовательское геокодирование во время расчёта зон.
+
+## Границы
+
+`BoundaryProvider` читает только локальный GeoJSON, явно заданный через
+`LOGISTICS_REGION_BOUNDARIES_FILE`. При отсутствии утверждённой геометрии кластеры и
+точки возвращаются, а API сообщает:
+
+```json
+{"available": false, "status": "boundary_unavailable", "geojson": null}
+```
+
+Bbox, искусственный прямоугольник и legacy Voronoi не используются как замена границы.
+
+## Product scope
+
+- источник: Pulse;
+- algorithm: `kmeans`;
+- ручной `n_clusters`: 2–10;
+- `weight_mode`: `none | trip_count`;
+- без Auto K;
+- без ATI, CatBoost и фиктивных вариантов алгоритма;
+- Data Map остаётся отдельным рабочим режимом.
