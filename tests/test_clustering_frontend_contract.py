@@ -10,61 +10,67 @@ def _read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
-def test_product_controls_replace_legacy_clustering_controls():
+def test_territorial_controls_match_canonical_mvp():
     html = _read("frontend/index.html")
 
     for required in (
         'id="cluster-origin"',
+        'id="cluster-origin-options"',
         'id="cluster-region"',
-        'id="cluster-mode"',
         'id="cluster-periods"',
         'id="cluster-prices"',
-        'id="cluster-vehicles"',
-        'id="cluster-tonnages"',
+        'id="cluster-k-value"',
+        'name="cluster-weight-mode"',
     ):
         assert required in html
-    for removed in ("ml-type-control", "ml-weight", "ml-seed", "K-Means"):
+    for removed in (
+        "cluster-mode",
+        "Auto K",
+        "geo_cost",
+        "bear_zones",
+        "Сравнить режимы",
+        "ATI",
+    ):
         assert removed not in html
 
 
-def test_frontend_uses_product_api_and_keeps_legacy_backend_only():
+def test_frontend_uses_only_canonical_clustering_api():
     api = _read("frontend/js/api.js")
     app = _read("frontend/js/app.js")
 
     assert "/api/clustering/options" in api
-    assert "/api/clustering/run" in api
-    assert "/api/clustering/compare" in api
+    assert "/api/clustering/origins" in api
+    assert "postClustering('preview'" in api
+    assert "postClustering('run'" in api
     assert "/api/ml-cluster" not in api
+    assert "/api/clustering/compare" not in api
+    assert "previewClustering" in app
     assert "runClustering" in app
-    assert "compareClusteringModes" in app
 
 
-def test_product_map_is_point_based_and_has_no_polygon_flow():
+def test_product_map_supports_raw_points_and_approved_zones():
     app = _read("frontend/js/app.js")
     map_module = _read("frontend/js/map.js")
-
-    assert "renderClusteringPoints" in app
-    product_renderer = map_module.split(
+    renderer = map_module.split(
         "export function renderClusteringPoints", maxsplit=1
     )[1].split("function mlClusterStyleFunction", maxsplit=1)[0]
-    assert "ol.geom.Point" in product_renderer
-    assert "ol.geom.Polygon" not in product_renderer
+
+    assert "renderClusteringPoints(preview)" in app
+    assert "result.zones?.available" in renderer
+    assert "ol.format.GeoJSON" in renderer
+    assert "ol.geom.Point" in renderer
+    assert "polygonCoords" not in renderer
 
 
-def test_client_cache_signature_includes_product_context():
-    module = _read("frontend/js/clustering.js")
+def test_stale_state_and_data_quality_are_first_class():
+    html = _read("frontend/index.html")
+    app = _read("frontend/js/app.js")
 
-    for field in (
-        "origin_fias",
-        "destination_region",
-        "period_types",
-        "price_types",
-        "vehicle_types",
-        "tonnage_ids",
-        "parameters",
-    ):
-        assert field in module
-    assert "best_mode" not in module
+    assert 'id="analysis-stale"' in html
+    assert 'id="quality-unresolved-list"' in html
+    assert "requestSignature" in app
+    assert "result.zones.available" in app
+    assert "coordinates_unresolved" in app
 
 
 def test_clustering_app_references_existing_dom_ids():
