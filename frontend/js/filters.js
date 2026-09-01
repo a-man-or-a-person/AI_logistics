@@ -1,276 +1,128 @@
-/**
- * filters.js — панель фильтров: регионы, типы периода, типы цены
- */
+/** Independent legacy Data Map filters. Product clustering never imports this state. */
 
-const PERIOD_LABELS = {
-  retro:    'Архив',
-  current:  'Текущий',
-  forecast: 'Прогноз',
-};
-
-const PTYPE_LABELS = {
-  spot:   'Спот',
-  tender: 'Тендер',
-};
-
-/** Состояние фильтров */
+const PERIOD_LABELS = { retro: 'Архив', current: 'Текущий', forecast: 'Прогноз' };
+const PRICE_LABELS = { spot: 'Спот', tender: 'Тендер' };
+const $ = id => document.getElementById(id);
 const state = {
   fromRegions: new Set(),
-  toRegions:   new Set(),
+  toRegions: new Set(),
   periodTypes: new Set(['retro', 'current', 'forecast']),
-  priceTypes:  new Set(['spot', 'tender']),
+  priceTypes: new Set(['spot', 'tender']),
 };
+let shipRegions = [];
+let deliveryRegions = [];
+let onChange = () => {};
 
-let _allShipRegions = [];
-let _allDelRegions  = [];
-let _onChangeCallback = null;
-
-// ── DOM References ────────────────────────────────────────────
-
-const $ = id => document.getElementById(id);
-
-// ── Init ──────────────────────────────────────────────────────
-
-/**
- * Инициализирует панель фильтров.
- * @param {string[]} shipRegions
- * @param {string[]} delRegions
- * @param {Function} onFilterChange — колбэк при изменении фильтров
- */
-export function initFilters(shipRegions, delRegions, onFilterChange) {
-  _allShipRegions = shipRegions;
-  _allDelRegions  = delRegions;
-  _onChangeCallback = onFilterChange;
-
-  _buildPeriodToggles();
-  _buildPriceToggles();
-  _buildRegionList('ship', shipRegions);
-  _buildRegionList('del', delRegions);
-  _wireSearch('ship');
-  _wireSearch('del');
-  _wireCollapseSections();
+export function initFilters(ship, delivery, callback = () => {}) {
+  shipRegions = ship;
+  deliveryRegions = delivery;
+  onChange = callback;
+  renderToggles('period-toggles', PERIOD_LABELS, state.periodTypes, 'period');
+  renderToggles('price-toggles', PRICE_LABELS, state.priceTypes, 'ptype');
+  renderRegions('ship', shipRegions);
+  renderRegions('del', deliveryRegions);
+  wireSearch('ship');
+  wireSearch('del');
+  document.querySelectorAll('.section-header').forEach(header => header.addEventListener('click', () => {
+    const section = header.closest('.legacy-section');
+    if (!section) return;
+    section.classList.toggle('collapsed');
+    header.setAttribute('aria-expanded', String(!section.classList.contains('collapsed')));
+  }));
 }
 
-// ── Period Toggles ────────────────────────────────────────────
-
-function _buildPeriodToggles() {
-  const container = $('period-toggles');
-  if (!container) return;
+function renderToggles(id, labels, selected, dataName) {
+  const container = $(id);
   container.innerHTML = '';
-
-  for (const [key, label] of Object.entries(PERIOD_LABELS)) {
-    const btn = document.createElement('button');
-    btn.className = 'toggle-btn active';
-    btn.dataset.period = key;
-    btn.id = `toggle-period-${key}`;
-    btn.innerHTML = `<span class="btn-dot" data-period="${key}"></span>${label}`;
-    btn.addEventListener('click', () => {
-      if (state.periodTypes.has(key)) {
-        state.periodTypes.delete(key);
-        btn.classList.remove('active');
-      } else {
-        state.periodTypes.add(key);
-        btn.classList.add('active');
-      }
+  Object.entries(labels).forEach(([value, label]) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `toggle-btn ${selected.has(value) ? 'active' : ''}`;
+    button.dataset[dataName] = value;
+    button.textContent = label;
+    button.addEventListener('click', () => {
+      if (selected.has(value)) selected.delete(value);
+      else selected.add(value);
+      button.classList.toggle('active', selected.has(value));
+      onChange(getFilters());
     });
-    container.appendChild(btn);
-  }
+    container.appendChild(button);
+  });
 }
 
-// ── Price Toggles ─────────────────────────────────────────────
-
-function _buildPriceToggles() {
-  const container = $('price-toggles');
-  if (!container) return;
+function renderRegions(kind, regions) {
+  const container = $(`region-list-${kind}`);
   container.innerHTML = '';
-
-  for (const [key, label] of Object.entries(PTYPE_LABELS)) {
-    const btn = document.createElement('button');
-    btn.className = 'toggle-btn active';
-    btn.dataset.ptype = key;
-    btn.id = `toggle-ptype-${key}`;
-    btn.innerHTML = `${label}`;
-    btn.addEventListener('click', () => {
-      if (state.priceTypes.has(key)) {
-        state.priceTypes.delete(key);
-        btn.classList.remove('active');
-      } else {
-        state.priceTypes.add(key);
-        btn.classList.add('active');
-      }
-    });
-    container.appendChild(btn);
-  }
+  regions.forEach(region => container.appendChild(regionButton(kind, region)));
+  renderTags(kind);
 }
 
-// ── Region Lists ──────────────────────────────────────────────
-
-function _buildRegionList(kind, regions) {
-  const listEl = $(`region-list-${kind}`);
-  if (!listEl) return;
-  listEl.innerHTML = '';
-
-  for (const region of regions) {
-    listEl.appendChild(_makeChip(kind, region));
-  }
-  _refreshTags(kind);
-}
-
-function _makeChip(kind, region) {
-  const chip = document.createElement('button');
-  chip.type = 'button';
-  chip.className = 'region-chip';
-  chip.dataset.region = region;
-  chip.dataset.kind = kind;
-
-  const set = kind === 'ship' ? state.fromRegions : state.toRegions;
-  const activeClass = kind === 'ship' ? 'selected' : 'selected-del';
-
-  if (set.has(region)) chip.classList.add(activeClass);
-
-  const check = document.createElement('div');
-  check.className = 'chip-check';
-  check.textContent = set.has(region) ? '✓' : '';
-  const label = document.createElement('span');
-  label.textContent = region;
-  chip.append(check, label);
-
-  chip.addEventListener('click', () => {
-    if (set.has(region)) {
-      set.delete(region);
-      chip.classList.remove(activeClass);
-      chip.querySelector('.chip-check').textContent = '';
-    } else {
-      set.add(region);
-      chip.classList.add(activeClass);
-      chip.querySelector('.chip-check').textContent = '✓';
-    }
-    _refreshTags(kind);
+function regionButton(kind, region) {
+  const selected = kind === 'ship' ? state.fromRegions : state.toRegions;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = `region-chip ${selected.has(region) ? 'selected' : ''}`;
+  button.dataset.region = region;
+  button.innerHTML = `<span class="chip-check">${selected.has(region) ? '✓' : ''}</span><span></span>`;
+  button.lastElementChild.textContent = region;
+  button.addEventListener('click', () => {
+    if (selected.has(region)) selected.delete(region);
+    else selected.add(region);
+    button.classList.toggle('selected', selected.has(region));
+    button.querySelector('.chip-check').textContent = selected.has(region) ? '✓' : '';
+    renderTags(kind);
+    onChange(getFilters());
   });
-
-  return chip;
+  return button;
 }
 
-function _wireSearch(kind) {
-  const searchInput = $(`search-${kind}`);
-  const listEl = $(`region-list-${kind}`);
-  if (!searchInput || !listEl) return;
-
-  searchInput.addEventListener('input', () => {
-    const q = searchInput.value.toLowerCase().trim();
-    const regions = kind === 'ship' ? _allShipRegions : _allDelRegions;
-    const filtered = q ? regions.filter(r => r.toLowerCase().includes(q)) : regions;
-    listEl.innerHTML = '';
-    for (const region of filtered) {
-      listEl.appendChild(_makeChip(kind, region));
-    }
+function wireSearch(kind) {
+  $(`search-${kind}`).addEventListener('input', event => {
+    const query = event.target.value.trim().toLocaleLowerCase('ru');
+    const source = kind === 'ship' ? shipRegions : deliveryRegions;
+    renderRegions(kind, source.filter(region => region.toLocaleLowerCase('ru').includes(query)));
   });
 }
 
-function _refreshTags(kind) {
-  const tagsEl = $(`tags-${kind}`);
-  if (!tagsEl) return;
-  const set = kind === 'ship' ? state.fromRegions : state.toRegions;
-  tagsEl.innerHTML = '';
-
-  for (const region of set) {
-    const tag = document.createElement('div');
-    tag.className = `tag tag-${kind}`;
-    const label = document.createElement('span');
-    label.textContent = _shortRegionName(region);
-    const removeButton = document.createElement('span');
-    removeButton.className = 'tag-remove';
-    removeButton.textContent = '×';
-    tag.append(label, removeButton);
-    removeButton.addEventListener('click', () => {
-      set.delete(region);
-      _refreshTags(kind);
-      // Обновить чипы
-      const chip = document.querySelector(`#region-list-${kind} [data-region="${CSS.escape(region)}"]`);
-      if (chip) {
-        const activeClass = kind === 'ship' ? 'selected' : 'selected-del';
-        chip.classList.remove(activeClass);
-        chip.querySelector('.chip-check').textContent = '';
-      }
+function renderTags(kind) {
+  const container = $(`tags-${kind}`);
+  const selected = kind === 'ship' ? state.fromRegions : state.toRegions;
+  container.innerHTML = '';
+  selected.forEach(region => {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = region;
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `Убрать ${region}`);
+    remove.textContent = '×';
+    remove.addEventListener('click', () => {
+      selected.delete(region);
+      renderRegions(kind, kind === 'ship' ? shipRegions : deliveryRegions);
+      onChange(getFilters());
     });
-    tagsEl.appendChild(tag);
-  }
-}
-
-function _shortRegionName(name) {
-  return name
-    .replace('область', 'обл.')
-    .replace('Республика ', 'Респ. ')
-    .replace('Краснодарский край', 'Краснодарский кр.')
-    .replace('Пермский край', 'Пермский кр.')
-    .replace('Приморский край', 'Приморский кр.')
-    .replace('Хабаровский край', 'Хабаровский кр.')
-    .replace('Красноярский край', 'Красноярский кр.')
-    .replace('Ставропольский край', 'Ставропольский кр.');
-}
-
-// ── Collapse Sections ─────────────────────────────────────────
-
-function _wireCollapseSections() {
-  document.querySelectorAll('.section-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const section = header.closest('.panel-section');
-      section.classList.toggle('collapsed');
-      header.setAttribute('aria-expanded', String(!section.classList.contains('collapsed')));
-    });
+    tag.appendChild(remove);
+    container.appendChild(tag);
   });
 }
 
-// ── Public API ────────────────────────────────────────────────
-
-/** Возвращает текущее состояние фильтров */
 export function getFilters() {
   return {
     fromRegions: [...state.fromRegions],
-    toRegions:   [...state.toRegions],
+    toRegions: [...state.toRegions],
     periodTypes: [...state.periodTypes],
-    priceTypes:  [...state.priceTypes],
+    priceTypes: [...state.priceTypes],
   };
 }
 
-/** Сбрасывает все фильтры */
 export function resetFilters() {
   state.fromRegions.clear();
   state.toRegions.clear();
-  state.periodTypes = new Set(['retro', 'current', 'forecast']);
-  state.priceTypes  = new Set(['spot', 'tender']);
-
-  // Сбросить чипы
-  document.querySelectorAll('.region-chip').forEach(chip => {
-    const kind = chip.dataset.kind;
-    const activeClass = kind === 'ship' ? 'selected' : 'selected-del';
-    chip.classList.remove(activeClass);
-    const check = chip.querySelector('.chip-check');
-    if (check) check.textContent = '';
-  });
-
-  // Сбросить теги
-  ['ship', 'del'].forEach(kind => _refreshTags(kind));
-
-  // Сбросить period toggles
-  document.querySelectorAll('.toggle-btn[data-period]').forEach(btn => {
-    const key = btn.dataset.period;
-    state.periodTypes.add(key);
-    btn.classList.add('active');
-  });
-
-  // Сбросить price toggles
-  document.querySelectorAll('.toggle-btn[data-ptype]').forEach(btn => {
-    const key = btn.dataset.ptype;
-    state.priceTypes.add(key);
-    btn.classList.add('active');
-  });
-
-  // Очистить поиск
-  ['ship', 'del'].forEach(kind => {
-    const searchInput = $(`search-${kind}`);
-    if (searchInput) searchInput.value = '';
-    const regions = kind === 'ship' ? _allShipRegions : _allDelRegions;
-    _buildRegionList(kind, regions);
-  });
+  state.periodTypes = new Set(Object.keys(PERIOD_LABELS));
+  state.priceTypes = new Set(Object.keys(PRICE_LABELS));
+  renderToggles('period-toggles', PERIOD_LABELS, state.periodTypes, 'period');
+  renderToggles('price-toggles', PRICE_LABELS, state.priceTypes, 'ptype');
+  renderRegions('ship', shipRegions);
+  renderRegions('del', deliveryRegions);
+  onChange(getFilters());
 }

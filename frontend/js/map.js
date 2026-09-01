@@ -136,7 +136,16 @@ export function initMap(containerId) {
         window.dispatchEvent(new CustomEvent('clustering-point-select', {
           detail: { clusterId: clusterId == null ? null : Number(clusterId), pointId: feature.get('pointId') || null },
         }));
-        _overlay.setPosition(undefined);
+        if (feature.get('isProductPoint')) {
+          _popupContent.innerHTML = _productPointPopup(
+            feature.get('pointData'),
+            feature.get('analysisMode'),
+          );
+          _popupContainer.classList.remove('hidden');
+          _overlay.setPosition(evt.coordinate);
+        } else {
+          _overlay.setPosition(undefined);
+        }
         return;
       }
       if (feature.get('isMlPolygon') || feature.get('isMlLabel') || feature.get('isMlCenter')) {
@@ -403,53 +412,62 @@ const ML_PALETTE = [
   { fill: 'rgba(117,166,44,.18)', stroke: '#75a62c' },
 ];
 
-/** Render canonical points and approved territorial GeoJSON when available. */
+/** Render Product v1 analysis as points, representatives and outliers only. */
 export function renderClusteringPoints(result) {
   clearMarkers();
   const features = [];
-  const clusters = new Map((result.clusters || []).map((cluster, index) => [
-    Number(cluster.cluster_id), { ...cluster, color: ML_PALETTE[index % ML_PALETTE.length].stroke },
-  ]));
-  if (result.zones?.available && result.zones.geojson) {
-    const zoneFeatures = new ol.format.GeoJSON().readFeatures(result.zones.geojson, {
-      dataProjection: 'EPSG:4326',
-      featureProjection: 'EPSG:3857',
-    });
-    for (const feature of zoneFeatures) {
-      const clusterId = Number(feature.get('cluster_id'));
-      const cluster = clusters.get(clusterId);
-      feature.setProperties({
-        isMlPolygon: true,
-        clusterId,
-        fillColor: cluster?.color ? cluster.color + '33' : 'rgba(123,135,152,.18)',
-        strokeColor: cluster?.color || '#7b8798',
-      });
+  const clusters = new Map((result.clusters || []).map((cluster, index) => {
+    let color = ML_PALETTE[index % ML_PALETTE.length].stroke;
+    if (result.analysis?.mode === 'bear_zones') {
+      color = cluster.cluster_type === 'expensive_singleton' ? '#7c2f68' : '#b64040';
     }
-    features.push(...zoneFeatures);
-  }
+    if (result.analysis?.mode === 'bear_volume_zones') {
+      color = cluster.cluster_type === 'high_volume_singleton' ? '#5b4ca0' : '#176f8f';
+    }
+    return [Number(cluster.cluster_id), { ...cluster, color }];
+  }));
   for (const point of result.points || []) {
     if (point.lat == null || point.lon == null) continue;
     const cluster = point.cluster_id == null ? null : clusters.get(Number(point.cluster_id));
     let color = cluster?.color || '#7b8798';
+    if (result.analysis?.mode === 'bear_zones') {
+      if (cluster?.cluster_type === 'bear_zone') color = '#b64040';
+      else if (cluster?.cluster_type === 'expensive_singleton') color = '#7c2f68';
+      else if (point.status === 'bear_candidate') color = '#d28a18';
+      else if (point.status === 'ordinary') color = '#7b8798';
+    }
+    if (result.analysis?.mode === 'bear_volume_zones') {
+      if (cluster?.cluster_type === 'bear_volume_zone') color = '#176f8f';
+      else if (cluster?.cluster_type === 'high_volume_singleton') color = '#5b4ca0';
+      else if (point.status === 'bear_volume_candidate') color = '#2b9cb8';
+      else if (point.status === 'ordinary') color = '#7b8798';
+    }
     const feature = new ol.Feature({
       geometry: new ol.geom.Point(ol.proj.fromLonLat([point.lon, point.lat])),
       isProductPoint: true,
       pointId: point.id,
       clusterId: point.cluster_id,
       pointData: point,
+      pointStatus: point.status,
+      analysisMode: result.analysis?.mode,
+      clusterType: cluster?.cluster_type,
       strokeColor: color,
     });
     features.push(feature);
   }
   for (const cluster of clusters.values()) {
-    const medoid = (result.points || []).find(point => point.id === cluster.medoid_point_id);
+    const medoid = (result.points || []).find(point => point.id === (cluster.representative?.point_id || cluster.medoid_point_id));
     if (medoid?.lat == null || medoid?.lon == null) continue;
     const coordinates = ol.proj.fromLonLat([medoid.lon, medoid.lat]);
     features.push(new ol.Feature({
       geometry: new ol.geom.Point(coordinates),
       isProductLabel: true,
       clusterId: cluster.cluster_id,
-      zoneLabel: `Z${Number(cluster.cluster_id) + 1}`,
+      zoneLabel: result.analysis?.mode === 'bear_zones'
+        ? (cluster.cluster_type === 'expensive_singleton' ? 'B•' : `B${Number(cluster.cluster_id) + 1}`)
+        : result.analysis?.mode === 'bear_volume_zones'
+          ? (cluster.cluster_type === 'high_volume_singleton' ? 'V•' : `V${Number(cluster.cluster_id) + 1}`)
+          : `C${Number(cluster.cluster_id) + 1}`,
       strokeColor: cluster.color,
     }));
     features.push(new ol.Feature({
@@ -468,12 +486,44 @@ export function renderClusteringPoints(result) {
   }
 }
 
+function _productPointPopup(point, mode) {
+  const statuses = {
+    normal: 'В кластере', ordinary: 'Обычная точка', bear_candidate: 'Кандидат',
+    bear_zone: 'Медвежья зона', expensive_singleton: 'Аномально дорогая точка',
+    bear_volume_candidate: 'Кандидат по объёму', bear_volume_zone: 'Объёмная медвежья зона', high_volume_singleton: 'Аномально объёмная точка',
+    spatial_outlier: 'Пространственно изолирована', economic_unavailable: 'Нет экономики',
+    unresolved: 'Нет координат',
+  };
+  const fact = (label, value) => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
+  const economics = !['geo_cost', 'bear_zones'].includes(mode) ? '' : [
+    point.weighted_price == null ? '' : fact('Средневзвешенная цена', `${_fmt(point.weighted_price)} ₽`),
+    point.weighted_rub_per_km == null ? '' : fact('Средневзвешенный ₽/км', `${_fmt(point.weighted_rub_per_km, 1)} ₽/км`),
+    point.regional_weighted_rub_per_km == null ? '' : fact('Региональный ₽/км', `${_fmt(point.regional_weighted_rub_per_km, 1)} ₽/км`),
+    point.relative_rate_delta == null ? '' : fact('Отклонение', `${_fmt(point.relative_rate_delta * 100, 1)}%`),
+  ].join('');
+  const volume = !['geo_volume', 'bear_volume_zones'].includes(mode) ? '' : [
+    point.regional_mean_trip_count == null ? '' : fact('Средний объём региона', `${_fmt(point.regional_mean_trip_count, 1)} перевозки/точку`),
+    point.relative_volume_delta == null ? '' : fact('Отклонение объёма', `${_fmt(point.relative_volume_delta * 100, 1)}%`),
+  ].join('');
+  return `<article class="product-point-popup">
+    <span>Точка назначения</span>
+    <h3>${_escapeHtml(point.name)}</h3>
+    <dl>
+      ${fact('Статус', _escapeHtml(statuses[point.status] || point.status))}
+      ${fact('Кластер', point.cluster_id == null ? '—' : Number(point.cluster_id) + 1)}
+      ${fact('Перевозки', _fmt(point.trip_count))}
+      ${economics}
+      ${volume}
+    </dl>
+  </article>`;
+}
+
 function mlClusterStyleFunction(feature) {
   if (feature.get('isProductPoint')) {
     const status = feature.get('pointStatus');
     if (!_clusteringLayerVisibility.points) return null;
     if (status === 'spatial_outlier' && !_clusteringLayerVisibility.outliers) return null;
-    if (status === 'bear_candidate' && !_clusteringLayerVisibility.candidates) return null;
+    if (['bear_candidate', 'bear_volume_candidate'].includes(status) && !_clusteringLayerVisibility.candidates) return null;
     const clusterId = feature.get('clusterId');
     const selected = _selectedMlZoneId;
     const active = selected != null && Number(clusterId) === selected;
@@ -481,7 +531,7 @@ function mlClusterStyleFunction(feature) {
     const unavailable = ['spatial_outlier', 'economic_unavailable'].includes(status);
     return new ol.style.Style({
       image: new ol.style.Circle({
-        radius: active ? 7 : feature.get('clusterType') === 'expensive_singleton' ? 6.5 : 5,
+        radius: active ? 7 : ['expensive_singleton', 'high_volume_singleton'].includes(feature.get('clusterType')) ? 6.5 : 5,
         fill: new ol.style.Fill({ color: dimmed ? 'rgba(123,135,152,.28)' : feature.get('strokeColor') }),
         stroke: new ol.style.Stroke({ color: '#fff', width: active ? 2.5 : 1.2, lineDash: unavailable ? [3, 2] : undefined }),
       }),
@@ -609,6 +659,15 @@ export function setMlLayerVisibility(layer, visible) {
 export function setMlResultStale(stale) {
   _mlResultIsStale = Boolean(stale);
   _mlVectorLayer?.changed();
+}
+
+export function focusClusteringPoint(pointId) {
+  if (!_map || !_mlVectorSource) return;
+  const feature = _mlVectorSource.getFeatures().find(item => (
+    item.get('isProductPoint') && item.get('pointId') === pointId
+  ));
+  if (!feature) return;
+  _map.getView().animate({ center: feature.getGeometry().getCoordinates(), zoom: 11, duration: 350 });
 }
 
 export function highlightCluster(clusterId, fit = false) {

@@ -50,6 +50,54 @@ class SpatialGraph:
     def is_connected(self, point_ids: set[str]) -> bool:
         return len(point_ids) <= 1 or len(self.induced_components(point_ids)) == 1
 
+    def induced_subgraph(self, point_ids: set[str]) -> SpatialGraph:
+        """Return a node-induced graph without ever creating a new spatial edge."""
+        selected = tuple(point_id for point_id in self.node_ids if point_id in point_ids)
+        selected_set = set(selected)
+        edges = tuple(
+            edge
+            for edge in self.edges
+            if edge.first_id in selected_set and edge.second_id in selected_set
+        )
+        mutable_adjacency: dict[str, set[str]] = {point_id: set() for point_id in selected}
+        for edge in edges:
+            mutable_adjacency[edge.first_id].add(edge.second_id)
+            mutable_adjacency[edge.second_id].add(edge.first_id)
+        adjacency = {
+            point_id: frozenset(sorted(neighbors))
+            for point_id, neighbors in mutable_adjacency.items()
+        }
+        components = _components(selected, adjacency)
+        isolated = tuple(point_id for point_id in selected if not adjacency[point_id])
+        degrees = [float(len(adjacency[point_id])) for point_id in selected]
+        edge_lengths = [edge.distance_m for edge in edges]
+        audit: dict[str, float | int | None] = {
+            "node_count": len(selected),
+            "edge_count": len(edges),
+            "candidate_edge_count": len(edges),
+            "pruned_edge_count": 0,
+            "graph_component_count": len(components),
+            "isolated_point_count": len(isolated),
+            "mean_degree": statistics.fmean(degrees) if degrees else 0.0,
+            "p95_degree": _percentile(degrees, 0.95),
+            "mean_edge_m": statistics.fmean(edge_lengths) if edge_lengths else None,
+            "p95_edge_m": _percentile(edge_lengths, 0.95),
+            "max_edge_m": max(edge_lengths) if edge_lengths else None,
+            "adaptive_edge_threshold_m": self.audit.get("adaptive_edge_threshold_m"),
+            "induced_from_node_count": len(self.node_ids),
+            "induced_from_edge_count": len(self.edges),
+        }
+        return SpatialGraph(
+            node_ids=selected,
+            edges=edges,
+            adjacency=adjacency,
+            connected_components=components,
+            isolated_point_ids=isolated,
+            method=self.method,
+            parameters={**self.parameters, "induced_subgraph": True},
+            audit=audit,
+        )
+
 
 def _percentile(values: list[float], fraction: float) -> float | None:
     return float(np.percentile(values, fraction * 100)) if values else None

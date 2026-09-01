@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 def main():
     parser = argparse.ArgumentParser(description="Логистика AI — сервер карты перевозок")
-    parser.add_argument("--port",  type=int, default=5000, help="Порт сервера (по умолчанию: 5000)")
+    parser.add_argument("--port",  type=int, default=5055, help="Порт сервера (по умолчанию: 5000)")
     parser.add_argument("--host",  type=str, default="127.0.0.1", help="Адрес (по умолчанию: 127.0.0.1)")
     parser.add_argument("--debug", action="store_true", help="Режим отладки")
     parser.add_argument("--no-browser", action="store_true", help="Не открывать браузер автоматически")

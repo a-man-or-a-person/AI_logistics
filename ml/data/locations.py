@@ -12,6 +12,7 @@ from typing import Any
 
 from ml.data.clustering_dataset import (
     CLUSTERING_ALLOWED_PERIOD_TYPES,
+    ClusteringRoute,
     _csv_set,
     build_clustering_routes,
 )
@@ -108,7 +109,6 @@ def build_location_dataset(
         raise ValueError("Clustering Contract v1 requires destination FIAS identity")
     source_path = Path(path) if path is not None else default_csv_path()
     cache_path = Path(coordinate_cache_path)
-    cache = json.loads(cache_path.read_text(encoding="utf-8"))
     routes, route_report = build_clustering_routes(
         source_path,
         destination_region=destination_region,
@@ -118,6 +118,23 @@ def build_location_dataset(
         vehicle_types=vehicle_types,
         tonnage_ids=tonnage_ids,
     )
+
+    return resolve_location_routes(
+        routes,
+        route_report,
+        coordinate_cache_path=cache_path,
+    )
+
+
+def resolve_location_routes(
+    routes: list[ClusteringRoute],
+    route_report: dict[str, Any],
+    *,
+    coordinate_cache_path: str | Path = "backend/cache/coords_cache.json",
+) -> tuple[list[LocationPoint], dict[str, Any]]:
+    """Resolve repository-produced canonical routes without rescanning Pulse."""
+    cache_path = Path(coordinate_cache_path)
+    cache = json.loads(cache_path.read_text(encoding="utf-8"))
 
     resolved_rows: list[
         tuple[Any, float | None, float | None, str, str]
@@ -195,6 +212,8 @@ def build_location_dataset(
         "coordinates": {
             "resolved": len(resolved),
             "unresolved": len(points) - len(resolved),
+            "trip_count_resolved": resolved_trips,
+            "trip_count_total": total_trips,
             "location_coverage_pct": round(100 * len(resolved) / len(points), 4)
             if points
             else 0,

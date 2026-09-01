@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import logging
 import threading
+import uuid
 from typing import Any
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
 from backend.services.clustering_service import (
     ClusteringRequest,
@@ -19,6 +20,18 @@ clustering_blueprint = Blueprint("clustering_product", __name__, url_prefix="/ap
 
 _service: ClusteringService | None = None
 _service_lock = threading.Lock()
+
+
+@clustering_blueprint.before_request
+def _attach_request_id() -> None:
+    supplied = request.headers.get("X-Request-ID", "").strip()
+    g.clustering_request_id = supplied[:64] if supplied else uuid.uuid4().hex
+
+
+@clustering_blueprint.after_request
+def _return_request_id(response):
+    response.headers["X-Request-ID"] = g.clustering_request_id
+    return response
 
 
 def get_clustering_service() -> ClusteringService:
@@ -37,11 +50,22 @@ def set_clustering_service(service: ClusteringService | None) -> None:
 
 
 def _error(error: ProductClusteringError):
+    logger.warning(
+        "product_clustering_error request_id=%s endpoint=%s code=%s status=%s",
+        g.clustering_request_id,
+        request.path,
+        error.code,
+        error.status,
+    )
     return jsonify({"ok": False, "code": error.code, "error": str(error)}), error.status
 
 
 def _internal_error(endpoint: str):
-    logger.exception("Ошибка в %s", endpoint)
+    logger.exception(
+        "product_clustering_internal_error request_id=%s endpoint=%s",
+        g.clustering_request_id,
+        endpoint,
+    )
     return jsonify(
         {"ok": False, "code": "INTERNAL_ERROR", "error": "Внутренняя ошибка сервера"}
     ), 500
@@ -58,7 +82,13 @@ def _json_payload() -> dict[str, Any]:
 def clustering_options():
     try:
         origin_fias = request.args.get("origin_fias") or None
-        return jsonify({"ok": True, **get_clustering_service().options(origin_fias)})
+        destination_region = request.args.get("destination_region") or None
+        return jsonify(
+            {
+                "ok": True,
+                **get_clustering_service().options(origin_fias, destination_region),
+            }
+        )
     except ProductClusteringError as error:
         return _error(error)
     except Exception:
@@ -91,7 +121,14 @@ def clustering_origins():
 def preview_clustering():
     try:
         product_request = ClusteringRequest.from_payload(_json_payload())
-        return jsonify({"ok": True, **get_clustering_service().preview(product_request)})
+        return jsonify(
+            {
+                "ok": True,
+                **get_clustering_service().preview(
+                    product_request, request_id=g.clustering_request_id
+                ),
+            }
+        )
     except ProductClusteringError as error:
         return _error(error)
     except Exception:
@@ -102,8 +139,32 @@ def preview_clustering():
 def run_clustering():
     try:
         product_request = ClusteringRequest.from_payload(_json_payload())
-        return jsonify({"ok": True, **get_clustering_service().run(product_request)})
+        return jsonify(
+            {
+                "ok": True,
+                **get_clustering_service().run(
+                    product_request, request_id=g.clustering_request_id
+                ),
+            }
+        )
     except ProductClusteringError as error:
         return _error(error)
     except Exception:
         return _internal_error("/api/clustering/run")
+
+
+@clustering_blueprint.post("/compare")
+def compare_clustering():
+    try:
+        return jsonify(
+            {
+                "ok": True,
+                **get_clustering_service().compare(
+                    _json_payload(), request_id=g.clustering_request_id
+                ),
+            }
+        )
+    except ProductClusteringError as error:
+        return _error(error)
+    except Exception:
+        return _internal_error("/api/clustering/compare")

@@ -74,9 +74,10 @@ export function regeocodeTown(town, region) {
   });
 }
 
-export function fetchClusteringOptions(originFias = '') {
+export function fetchClusteringOptions(originFias = '', destinationRegion = '') {
   const params = new URLSearchParams();
   if (originFias) params.set('origin_fias', originFias);
+  if (destinationRegion) params.set('destination_region', destinationRegion);
   const suffix = params.toString() ? `?${params}` : '';
   return requestJson(`${API_BASE}/api/clustering/options${suffix}`);
 }
@@ -101,4 +102,13 @@ export function previewClustering(payload, options) {
 
 export function runClustering(payload, options) {
   return postClustering('run', payload, options);
+}
+
+export function fetchMlClusters(params = {}) {
+  return requestJson(`${API_BASE}/api/ml-cluster?${new URLSearchParams(params)}`);
+}
+
+/** Keep comparison transport in the API layer and one immutable dataset context. */
+export function runClusteringComparison(dataset, options = {}) {
+  return postClustering('compare', dataset, options);
 }

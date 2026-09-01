@@ -178,6 +178,11 @@ def _load_data_uncached() -> dict[str, Any]:
                 del_regions.add(del_region)
 
             record = {
+                "origin_fias": row[COL_SHIP_FIAS].strip(),
+                "origin_name": ship_town or _strip_prefix(ship_town_src),
+                "origin_region": ship_region,
+                "destination_fias": row[COL_DEL_FIAS].strip(),
+                "destination_name": del_town,
                 "price": units,
                 "route_length": route_length,
                 "bid_count": bid_count,
@@ -188,6 +193,8 @@ def _load_data_uncached() -> dict[str, Any]:
                 "confidence": confidence,
                 "ship_region": ship_region,
                 "del_region": del_region,
+                "vehicle_type": row[COL_VEHICLE_TYPE].strip() if len(row) > COL_VEHICLE_TYPE else "",
+                "tonnage_id": row[COL_TONNAGE_ID].strip() if len(row) > COL_TONNAGE_ID else "",
             }
 
             # Отгрузка — если name_town пусто, используем town_src (убираем префикс "г ", "гп ")

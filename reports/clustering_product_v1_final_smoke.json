@@ -1,0 +1,1918 @@
+{
+  "contract": "clustering-product-v1-real-data-smoke",
+  "winner": null,
+  "repository_load_seconds": 17.697735,
+  "pilot_count": 5,
+  "run_count": 95,
+  "completed_run_count": 95,
+  "error_run_count": 0,
+  "connectivity_violation_run_count": 0,
+  "acceptance_passed": true,
+  "pilots": [
+    {
+      "pilot": {
+        "profile": "dense-central",
+        "origin_fias": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+        "destination_region": "Московская область"
+      },
+      "runs": [
+        {
+          "mode": "geography",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto"
+          },
+          "status": "success",
+          "elapsed_seconds": 0.49972,
+          "selected_k": 11,
+          "cluster_count": 11,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 31290.1928,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "economics_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.083208,
+          "selected_k": 10,
+          "cluster_count": 10,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 37960.742,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "economics_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.082585,
+          "selected_k": 9,
+          "cluster_count": 9,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 42925.4868,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "economics_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.081645,
+          "selected_k": 12,
+          "cluster_count": 12,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 36261.9221,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "volume_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.079421,
+          "selected_k": 9,
+          "cluster_count": 9,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 37322.8189,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "volume_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.079835,
+          "selected_k": 9,
+          "cluster_count": 9,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 47435.6203,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "volume_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.079874,
+          "selected_k": 9,
+          "cluster_count": 9,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 47435.6203,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.007656,
+          "selected_k": null,
+          "cluster_count": 7,
+          "candidate_count": 27,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.007023,
+          "selected_k": null,
+          "cluster_count": 4,
+          "candidate_count": 18,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.00761,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 11,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006973,
+          "selected_k": null,
+          "cluster_count": 1,
+          "candidate_count": 5,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006711,
+          "selected_k": null,
+          "cluster_count": 1,
+          "candidate_count": 3,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "no_bears",
+          "elapsed_seconds": 0.007161,
+          "selected_k": null,
+          "cluster_count": 0,
+          "candidate_count": 1,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006905,
+          "selected_k": null,
+          "cluster_count": 15,
+          "candidate_count": 23,
+          "singleton_count": 11,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.007292,
+          "selected_k": null,
+          "cluster_count": 15,
+          "candidate_count": 23,
+          "singleton_count": 11,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.007115,
+          "selected_k": null,
+          "cluster_count": 15,
+          "candidate_count": 23,
+          "singleton_count": 11,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006996,
+          "selected_k": null,
+          "cluster_count": 15,
+          "candidate_count": 23,
+          "singleton_count": 11,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.007175,
+          "selected_k": null,
+          "cluster_count": 15,
+          "candidate_count": 23,
+          "singleton_count": 11,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006751,
+          "selected_k": null,
+          "cluster_count": 15,
+          "candidate_count": 23,
+          "singleton_count": 11,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 75.8621,
+          "trip_weight_coverage_pct": 90.8574,
+          "outlier_count": 9
+        }
+      ],
+      "cached_repeat": {
+        "mode": "geography",
+        "parameters": {
+          "k_mode": "auto",
+          "n_clusters": "auto"
+        },
+        "status": "success",
+        "elapsed_seconds": 0.003672,
+        "selected_k": 11,
+        "cluster_count": 11,
+        "candidate_count": null,
+        "singleton_count": null,
+        "connectivity_violations": 0,
+        "p95_radius_m": 31290.1928,
+        "point_coverage_pct": 75.8621,
+        "trip_weight_coverage_pct": 90.8574,
+        "outlier_count": 9
+      }
+    },
+    {
+      "pilot": {
+        "profile": "elongated-northwest",
+        "origin_fias": "c2deb16a-0330-4f05-821f-1d09c93331e6",
+        "destination_region": "Ленинградская область"
+      },
+      "runs": [
+        {
+          "mode": "geography",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto"
+          },
+          "status": "success",
+          "elapsed_seconds": 0.106415,
+          "selected_k": 13,
+          "cluster_count": 13,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 33267.9894,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "economics_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.050624,
+          "selected_k": 16,
+          "cluster_count": 16,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 24716.0984,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "economics_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.050937,
+          "selected_k": 14,
+          "cluster_count": 14,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 28322.1235,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "economics_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.050536,
+          "selected_k": 14,
+          "cluster_count": 14,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 28322.1235,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "volume_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.050022,
+          "selected_k": 13,
+          "cluster_count": 13,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 32199.8706,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "volume_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.049997,
+          "selected_k": 14,
+          "cluster_count": 14,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 25781.4735,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "volume_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.049983,
+          "selected_k": 14,
+          "cluster_count": 14,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 28847.7882,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006588,
+          "selected_k": null,
+          "cluster_count": 2,
+          "candidate_count": 44,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006833,
+          "selected_k": null,
+          "cluster_count": 2,
+          "candidate_count": 41,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.00633,
+          "selected_k": null,
+          "cluster_count": 2,
+          "candidate_count": 39,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.007585,
+          "selected_k": null,
+          "cluster_count": 2,
+          "candidate_count": 32,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006612,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 29,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006434,
+          "selected_k": null,
+          "cluster_count": 2,
+          "candidate_count": 21,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006493,
+          "selected_k": null,
+          "cluster_count": 12,
+          "candidate_count": 38,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006075,
+          "selected_k": null,
+          "cluster_count": 10,
+          "candidate_count": 30,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006549,
+          "selected_k": null,
+          "cluster_count": 10,
+          "candidate_count": 28,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006158,
+          "selected_k": null,
+          "cluster_count": 10,
+          "candidate_count": 25,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006026,
+          "selected_k": null,
+          "cluster_count": 10,
+          "candidate_count": 23,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006641,
+          "selected_k": null,
+          "cluster_count": 9,
+          "candidate_count": 17,
+          "singleton_count": 7,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 97.2477,
+          "trip_weight_coverage_pct": 97.8218,
+          "outlier_count": 16
+        }
+      ],
+      "cached_repeat": {
+        "mode": "geography",
+        "parameters": {
+          "k_mode": "auto",
+          "n_clusters": "auto"
+        },
+        "status": "success",
+        "elapsed_seconds": 0.002794,
+        "selected_k": 13,
+        "cluster_count": 13,
+        "candidate_count": null,
+        "singleton_count": null,
+        "connectivity_violations": 0,
+        "p95_radius_m": 33267.9894,
+        "point_coverage_pct": 97.2477,
+        "trip_weight_coverage_pct": 97.8218,
+        "outlier_count": 16
+      }
+    },
+    {
+      "pilot": {
+        "profile": "large-south",
+        "origin_fias": "93b3df57-4c89-44df-ac42-96f05e9cd3b9",
+        "destination_region": "Краснодарский край"
+      },
+      "runs": [
+        {
+          "mode": "geography",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto"
+          },
+          "status": "success",
+          "elapsed_seconds": 0.153616,
+          "selected_k": 11,
+          "cluster_count": 11,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 46730.3889,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "economics_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.086657,
+          "selected_k": 7,
+          "cluster_count": 7,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 74352.7282,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "economics_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.087863,
+          "selected_k": 7,
+          "cluster_count": 7,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 74352.7282,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "economics_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.088651,
+          "selected_k": 6,
+          "cluster_count": 6,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 104624.4385,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "volume_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.086152,
+          "selected_k": 8,
+          "cluster_count": 8,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 75082.4395,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "volume_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.088565,
+          "selected_k": 7,
+          "cluster_count": 7,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 68922.0539,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "volume_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.092961,
+          "selected_k": 7,
+          "cluster_count": 7,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 68379.8658,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006453,
+          "selected_k": null,
+          "cluster_count": 1,
+          "candidate_count": 12,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "no_bears",
+          "elapsed_seconds": 0.006782,
+          "selected_k": null,
+          "cluster_count": 0,
+          "candidate_count": 6,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "no_bears",
+          "elapsed_seconds": 0.006057,
+          "selected_k": null,
+          "cluster_count": 0,
+          "candidate_count": 3,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "no_bears",
+          "elapsed_seconds": 0.006417,
+          "selected_k": null,
+          "cluster_count": 0,
+          "candidate_count": 1,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "no_bears",
+          "elapsed_seconds": 0.005902,
+          "selected_k": null,
+          "cluster_count": 0,
+          "candidate_count": 0,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "no_bears",
+          "elapsed_seconds": 0.005919,
+          "selected_k": null,
+          "cluster_count": 0,
+          "candidate_count": 0,
+          "singleton_count": 0,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006214,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 6,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005993,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 6,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005963,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 6,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006083,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 6,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005652,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 6,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005766,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 6,
+          "singleton_count": 5,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 100.0,
+          "trip_weight_coverage_pct": 100.0,
+          "outlier_count": 8
+        }
+      ],
+      "cached_repeat": {
+        "mode": "geography",
+        "parameters": {
+          "k_mode": "auto",
+          "n_clusters": "auto"
+        },
+        "status": "success",
+        "elapsed_seconds": 0.00303,
+        "selected_k": 11,
+        "cluster_count": 11,
+        "candidate_count": null,
+        "singleton_count": null,
+        "connectivity_violations": 0,
+        "p95_radius_m": 46730.3889,
+        "point_coverage_pct": 100.0,
+        "trip_weight_coverage_pct": 100.0,
+        "outlier_count": 8
+      }
+    },
+    {
+      "pilot": {
+        "profile": "large-ural",
+        "origin_fias": "2763c110-cb8b-416a-9dac-ad28a55b4402",
+        "destination_region": "Свердловская область"
+      },
+      "runs": [
+        {
+          "mode": "geography",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto"
+          },
+          "status": "success",
+          "elapsed_seconds": 0.103649,
+          "selected_k": 10,
+          "cluster_count": 10,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 44166.3494,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "economics_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.044176,
+          "selected_k": 10,
+          "cluster_count": 10,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 41394.2609,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "economics_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.044093,
+          "selected_k": 12,
+          "cluster_count": 12,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 36784.7698,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "economics_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.044318,
+          "selected_k": 12,
+          "cluster_count": 12,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 36784.7698,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "volume_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.044168,
+          "selected_k": 10,
+          "cluster_count": 10,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 41394.2609,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "volume_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.042733,
+          "selected_k": 9,
+          "cluster_count": 9,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 75801.6721,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "volume_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.043103,
+          "selected_k": 9,
+          "cluster_count": 9,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 75801.6721,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.00625,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 39,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005729,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 39,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006449,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 37,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005724,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 37,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005717,
+          "selected_k": null,
+          "cluster_count": 5,
+          "candidate_count": 35,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.006071,
+          "selected_k": null,
+          "cluster_count": 6,
+          "candidate_count": 32,
+          "singleton_count": 3,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005213,
+          "selected_k": null,
+          "cluster_count": 6,
+          "candidate_count": 11,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005333,
+          "selected_k": null,
+          "cluster_count": 6,
+          "candidate_count": 11,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.00547,
+          "selected_k": null,
+          "cluster_count": 6,
+          "candidate_count": 11,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005141,
+          "selected_k": null,
+          "cluster_count": 6,
+          "candidate_count": 11,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005247,
+          "selected_k": null,
+          "cluster_count": 6,
+          "candidate_count": 10,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005606,
+          "selected_k": null,
+          "cluster_count": 6,
+          "candidate_count": 9,
+          "singleton_count": 4,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 77.5281,
+          "trip_weight_coverage_pct": 88.0988,
+          "outlier_count": 9
+        }
+      ],
+      "cached_repeat": {
+        "mode": "geography",
+        "parameters": {
+          "k_mode": "auto",
+          "n_clusters": "auto"
+        },
+        "status": "success",
+        "elapsed_seconds": 0.00251,
+        "selected_k": 10,
+        "cluster_count": 10,
+        "candidate_count": null,
+        "singleton_count": null,
+        "connectivity_violations": 0,
+        "p95_radius_m": 44166.3494,
+        "point_coverage_pct": 77.5281,
+        "trip_weight_coverage_pct": 88.0988,
+        "outlier_count": 9
+      }
+    },
+    {
+      "pilot": {
+        "profile": "sparse-siberia",
+        "origin_fias": "e3b0eae8-a4ce-4779-ae04-5c0797de66be",
+        "destination_region": "Новосибирская область"
+      },
+      "runs": [
+        {
+          "mode": "geography",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto"
+          },
+          "status": "success",
+          "elapsed_seconds": 0.113955,
+          "selected_k": 3,
+          "cluster_count": 3,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 48017.8716,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "economics_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.049763,
+          "selected_k": 3,
+          "cluster_count": 3,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 48017.8716,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "economics_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.050221,
+          "selected_k": 3,
+          "cluster_count": 3,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 48017.8716,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "geo_cost",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "economics_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.049001,
+          "selected_k": 3,
+          "cluster_count": 3,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 48017.8716,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.8,
+            "volume_weight": 0.2
+          },
+          "status": "success",
+          "elapsed_seconds": 0.048364,
+          "selected_k": 3,
+          "cluster_count": 3,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 48017.8716,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.7,
+            "volume_weight": 0.3
+          },
+          "status": "success",
+          "elapsed_seconds": 0.048388,
+          "selected_k": 3,
+          "cluster_count": 3,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 48017.8716,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "geo_volume",
+          "parameters": {
+            "k_mode": "auto",
+            "n_clusters": "auto",
+            "geography_weight": 0.6,
+            "volume_weight": 0.4
+          },
+          "status": "success",
+          "elapsed_seconds": 0.04836,
+          "selected_k": 3,
+          "cluster_count": 3,
+          "candidate_count": null,
+          "singleton_count": null,
+          "connectivity_violations": 0,
+          "p95_radius_m": 48017.8716,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.005068,
+          "selected_k": null,
+          "cluster_count": 4,
+          "candidate_count": 10,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004442,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 8,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004414,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 7,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004813,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 6,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004551,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 5,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_zones",
+          "parameters": {
+            "bear_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004285,
+          "selected_k": null,
+          "cluster_count": 2,
+          "candidate_count": 3,
+          "singleton_count": 2,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.2,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004141,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 4,
+          "singleton_count": 3,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.25,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004608,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 4,
+          "singleton_count": 3,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.3,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004166,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 4,
+          "singleton_count": 3,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004111,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 4,
+          "singleton_count": 3,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.4,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004109,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 4,
+          "singleton_count": 3,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        },
+        {
+          "mode": "bear_volume_zones",
+          "parameters": {
+            "volume_threshold": 0.5,
+            "singleton_threshold": 0.7
+          },
+          "status": "success",
+          "elapsed_seconds": 0.004556,
+          "selected_k": null,
+          "cluster_count": 3,
+          "candidate_count": 3,
+          "singleton_count": 3,
+          "connectivity_violations": 0,
+          "p95_radius_m": null,
+          "point_coverage_pct": 80.0,
+          "trip_weight_coverage_pct": 83.915,
+          "outlier_count": 13
+        }
+      ],
+      "cached_repeat": {
+        "mode": "geography",
+        "parameters": {
+          "k_mode": "auto",
+          "n_clusters": "auto"
+        },
+        "status": "success",
+        "elapsed_seconds": 0.001902,
+        "selected_k": 3,
+        "cluster_count": 3,
+        "candidate_count": null,
+        "singleton_count": null,
+        "connectivity_violations": 0,
+        "p95_radius_m": 48017.8716,
+        "point_coverage_pct": 80.0,
+        "trip_weight_coverage_pct": 83.915,
+        "outlier_count": 13
+      }
+    }
+  ]
+}

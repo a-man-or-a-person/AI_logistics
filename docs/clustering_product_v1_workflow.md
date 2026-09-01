@@ -1,63 +1,56 @@
-# Canonical clustering workflow
+# Clustering Product v1 workflow
 
 ## Контур
 
 ```text
-Pulse
-  → ml.data.locations.build_location_dataset
-  → coordinate quality audit
-  → LocalProjection
-  → geography-only ClusterPoint
-  → KMeansClusterer
-  → ClusterResult
-  → optional approved boundary + territorialize
-  → /api/clustering/*
-  → «Территориальные зоны»
+Pulse + coordinate cache
+  → single origin + single destination region
+  → period / price / vehicle / tonnage filters
+  → Geography | Geography + Cost | Geography + Volume | Bear Cost | Bear Volume
+  → points + representatives + outliers
+  → inspector
+  → comparison on one dataset snapshot
 ```
 
 ## API
 
-- `GET /api/clustering/options` — source, algorithm, weight/filter capabilities и
-  destination regions для выбранного `origin_fias`;
-- `GET /api/clustering/origins?q=&limit=` — ограниченный searchable origin catalog,
-  дедуплицированный по FIAS;
-- `POST /api/clustering/preview` — исходные destination locations и data quality до
-  запуска K-Means;
-- `POST /api/clustering/run` — canonical `ClusterResult`, UI-safe points/clusters,
-  metrics и optional zones.
+- `GET /api/clustering/options` — режимы, фильтры, K bounds, defaults и Bear thresholds;
+- `GET /api/clustering/origins?q=&limit=` — searchable origin catalog по FIAS;
+- `POST /api/clustering/run` — canonical point-only result;
+- `POST /api/clustering/compare` — пять фиксированных режимов на одном data slice,
+  `winner = null`;
+- `POST /api/clustering/preview` — совместимый диагностический preview.
 
-Пример запроса:
+Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
+Backend переиспользует location/spatial context и result LRU; UI переключает
+сохранённые варианты на карте без повторных запросов.
 
-```json
-{
-  "origin_fias": "…",
-  "destination_region": "Ленинградская область",
-  "period_types": ["current"],
-  "price_types": ["spot"],
-  "algorithm": "kmeans",
-  "parameters": {
-    "n_clusters": 5,
-    "weight_mode": "none"
-  }
-}
-```
+Все ответы canonical API возвращают `X-Request-ID`. Сервисные логи связывают этот
+идентификатор с фильтрами, размером выборки, покрытием координат, cache hit/miss и
+временем расчёта; ошибки сохраняют тот же идентификатор для трассировки одного запроса.
 
-Ошибки структуры и K возвращают HTTP 400. Нехватка resolved-точек возвращает HTTP 422
-с кодом `INSUFFICIENT_POINTS`. Отсутствие boundary не является ошибкой кластеризации.
+## Frontend
 
-## UI
+Верхняя навигация разделяет «Карту данных» и «Кластеризацию». Product workspace
+имеет три зоны: Controls → Map → Inspector.
 
-Интерфейс разделён на «Карту данных» и «Территориальные зоны». В территориальном режиме
-пользователь ищет origin, выбирает destination region, периоды, типы цены, K и вес.
-До расчёта показываются исходные resolved-точки. После расчёта inspector показывает
-географические метрики, data quality, unresolved-точки и список зон.
+Состояние и UI разделены по модулям в `frontend/js/clustering/`:
 
-Выбор зоны синхронизирован между картой и inspector. Изменение параметров после расчёта
-показывает stale-state. На планшете inspector становится drawer, на мобильном controls
-и result открываются поверх карты.
+- `state.js` — form state, result snapshot, stale и comparison context;
+- `controls.js` — динамические options и mode-specific controls;
+- `inspector.js` — summary, metrics, cluster/Bear details;
+- `comparison.js` — нейтральные карточки и одна переключаемая карта;
+- `controller.js` — orchestration и map ↔ inspector selection.
 
-## Проверки
+Изменение формы не удаляет предыдущий результат, а переводит его в stale-state.
+Повторный расчёт оставляет карту видимой. `no_bears` — успешный пустой результат,
+а connectedness violation — отдельный invalid state.
 
-Обязательные regression-тесты покрывают geography-only вход, все dataset-фильтры,
-unresolved policy, детерминированность, invalid/insufficient K, boundary
-available/unavailable, territorial metrics и сохранность Data Map API.
+Desktop использует три колонки. На tablet inspector становится drawer, на mobile
+controls и inspector открываются bottom-sheet поверх карты. Все drawers и dropdowns закрываются
+по Escape; cluster/Bear labels не зависят только от цвета.
+
+Перед запуском форма показывает полный preview направления, источника Pulse, сегмента,
+режима и параметров. Карточка результата фиксирует тот же data slice, а сравнение явно
+показывает общую выборку над пятью нейтральными карточками. Клик по продуктовой точке
+одновременно открывает popup на карте и подробности в inspector без повторного запроса.

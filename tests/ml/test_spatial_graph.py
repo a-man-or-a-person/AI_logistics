@@ -47,3 +47,25 @@ def test_mutual_knn_is_available_as_benchmark():
 
     assert graph.method == "mutual_knn"
     assert graph.audit["edge_count"] > 0
+
+
+def test_induced_subgraph_never_creates_new_edges():
+    points = [
+        _point("a", 0, 0),
+        _point("b", 1, 0),
+        _point("c", 0, 1),
+        _point("d", 1, 1),
+    ]
+    graph = SpatialGraphBuilder().build(points)
+    selected = {"a", "c", "d"}
+    induced = graph.induced_subgraph(selected)
+    original_edges = {
+        frozenset((edge.first_id, edge.second_id)) for edge in graph.edges
+    }
+    induced_edges = {
+        frozenset((edge.first_id, edge.second_id)) for edge in induced.edges
+    }
+
+    assert set(induced.node_ids) == selected
+    assert induced_edges <= original_edges
+    assert all(edge <= selected for edge in induced_edges)

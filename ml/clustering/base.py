@@ -35,6 +35,9 @@ class ClusterSummary:
     weighted_rub_per_km: float | None = None
     regional_weighted_rub_per_km: float | None = None
     relative_rate_delta: float | None = None
+    mean_trip_count: float | None = None
+    regional_mean_trip_count: float | None = None
+    relative_volume_delta: float | None = None
     point_ids: tuple[str, ...] = ()
     mean_radius_km: float | None = None
     p95_radius_km: float | None = None

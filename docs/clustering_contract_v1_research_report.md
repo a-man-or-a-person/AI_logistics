@@ -1,5 +1,8 @@
 # Clustering Contract v1 — research implementation report
 
+> **FROZEN RESEARCH REFERENCE.** Это основание ML-инвариантов, а не отдельный
+> Product v1 roadmap. Product workflow не зависит от boundary/actual/predictive треков.
+
 Дата прогона: 2026-08-28.
 
 ## Git и regression baseline

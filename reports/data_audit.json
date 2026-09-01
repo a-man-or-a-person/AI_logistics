@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-08-23T13:47:35.020254+00:00",
+  "generated_at_utc": "2026-08-25T19:25:31.487576+00:00",
   "source": "pulse",
   "source_path": "C:\\folder\\Python\\Проект ИИ Логистика\\v_pulse_prices.csv",
   "source_size_bytes": 308775183,
@@ -7,28 +7,149 @@
     "total": 543101,
     "unique": 543101,
     "duplicates": 0,
-    "duplicate_pct": 0.0
+    "duplicate_pct": 0.0,
+    "duplicate_candidate_business_keys": 0,
+    "duplicate_candidate_business_key_pct": 0.0
+  },
+  "schema": {
+    "source_column_count": 25,
+    "source_columns": [
+      "shipment_point_locality_fias_id",
+      "shipment_point_region",
+      "shipment_point_town_source",
+      "shipment_point_name_town",
+      "shipment_point_point_type",
+      "shipment_point_address",
+      "delivery_point_locality_fias_id",
+      "delivery_point_region_source",
+      "delivery_point_region_unified",
+      "delivery_point_town",
+      "delivery_point_address",
+      "delivery_point_point_type",
+      "period_id",
+      "period_type",
+      "bid_count",
+      "confidence",
+      "nanos",
+      "units",
+      "price_type",
+      "route_length",
+      "route_type",
+      "tonnage_id",
+      "vehicle_body_type",
+      "currency",
+      "tech_load_ts"
+    ],
+    "canonical_field_count": 27,
+    "canonical_fields": [
+      "origin_fias",
+      "origin_name",
+      "origin_town_source",
+      "origin_region",
+      "origin_point_type",
+      "origin_address",
+      "destination_fias",
+      "destination_name",
+      "destination_region",
+      "destination_region_source",
+      "destination_address",
+      "destination_point_type",
+      "latitude",
+      "longitude",
+      "period_id",
+      "period_type",
+      "price",
+      "route_length",
+      "trip_count",
+      "nanos",
+      "route_type",
+      "vehicle_type",
+      "tonnage_id",
+      "price_type",
+      "currency",
+      "confidence",
+      "tech_ts"
+    ]
   },
   "entities": {
     "unique_origin_fias": 108,
-    "unique_destination_fias": 3166
+    "unique_destination_fias": 3166,
+    "unique_routes": 134958
   },
   "periods": {
     "range": {
       "min": "202605",
       "max": "202611"
     },
+    "count": 7,
     "types": {
       "current": 133798,
       "forecast": 401394,
       "retro": 7909
+    },
+    "tech_ts_range": {
+      "min": "2026-08-10T00:00:15.909000",
+      "max": "2026-08-10T03:43:13.875000"
     }
   },
   "price_types": {
     "spot": 7909,
     "tender": 535192
   },
+  "currencies": {
+    "RUB": 543101
+  },
+  "route_types": {
+    "default": 543101
+  },
+  "vehicle_types": {
+    "tent truck": 543101
+  },
+  "tonnage_ids": {
+    "7": 543101
+  },
+  "cardinality": {
+    "origin_fias": 108,
+    "destination_fias": 3166,
+    "origin_region": 43,
+    "destination_region": 72,
+    "period_id": 7,
+    "period_type": 3,
+    "route_type": 1,
+    "vehicle_type": 1,
+    "tonnage_id": 1,
+    "price_type": 2,
+    "currency": 1
+  },
   "nulls": {
+    "origin_fias": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "origin_name": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "origin_town_source": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "origin_region": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "origin_point_type": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "origin_address": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "destination_fias": {
+      "count": 0,
+      "pct": 0.0
+    },
     "destination_name": {
       "count": 168,
       "pct": 0.0309
@@ -37,6 +158,18 @@
       "count": 168,
       "pct": 0.0309
     },
+    "destination_region_source": {
+      "count": 168,
+      "pct": 0.0309
+    },
+    "destination_address": {
+      "count": 168,
+      "pct": 0.0309
+    },
+    "destination_point_type": {
+      "count": 0,
+      "pct": 0.0
+    },
     "latitude": {
       "count": 543101,
       "pct": 100.0
@@ -44,16 +177,98 @@
     "longitude": {
       "count": 543101,
       "pct": 100.0
+    },
+    "period_id": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "period_type": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "price": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "route_length": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "trip_count": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "nanos": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "route_type": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "vehicle_type": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "tonnage_id": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "price_type": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "currency": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "confidence": {
+      "count": 0,
+      "pct": 0.0
+    },
+    "tech_ts": {
+      "count": 0,
+      "pct": 0.0
     }
   },
   "invalid_values": {},
+  "parse_errors": {},
+  "price": {
+    "count": 543101,
+    "min": 9840.0,
+    "p01": 20520.0,
+    "p05": 29820.0,
+    "p25": 54020.0,
+    "median": 84820.0,
+    "p75": 123510.0,
+    "p95": 190750.0,
+    "p99": 278490.0,
+    "max": 713940.0,
+    "mean": 94892.6738
+  },
+  "route_length": {
+    "count": 543101,
+    "min": 2.0,
+    "p01": 69.0,
+    "p05": 208.0,
+    "p25": 653.0,
+    "median": 1093.0,
+    "p75": 1658.0,
+    "p95": 2934.0,
+    "p99": 4051.0,
+    "max": 10272.0,
+    "mean": 1253.6947
+  },
   "rub_per_km": {
     "count": 543101,
     "min": 13.5194,
+    "p01": 40.2733,
+    "p05": 48.5841,
     "p25": 65.9212,
     "median": 82.7761,
     "p75": 98.2531,
     "p95": 152.8025,
+    "p99": 362.766,
     "max": 14290.0,
     "mean": 93.7516
   },
@@ -354,26 +569,103 @@
   "trips_per_destination": {
     "count": 3166,
     "min": 1.0,
+    "p01": 1.0,
+    "p05": 32.25,
     "p25": 4690.0,
     "median": 11143.5,
     "p75": 19556.0,
     "p95": 34316.25,
+    "p99": 44942.6,
     "max": 151446.0,
     "mean": 13604.8654
   },
   "rows_per_destination": {
     "count": 3166,
     "min": 1.0,
+    "p01": 1.0,
+    "p05": 4.0,
     "p25": 104.0,
     "median": 200.0,
     "p75": 236.0,
     "p95": 321.5,
+    "p99": 340.35,
     "max": 401.0,
     "mean": 171.5417
+  },
+  "route_history": {
+    "rows_per_route": {
+      "count": 134958,
+      "min": 1.0,
+      "p01": 4.0,
+      "p05": 4.0,
+      "p25": 4.0,
+      "median": 4.0,
+      "p75": 4.0,
+      "p95": 4.0,
+      "p99": 6.0,
+      "max": 7.0,
+      "mean": 4.0242
+    },
+    "months_per_route": {
+      "count": 134958,
+      "min": 1.0,
+      "p01": 4.0,
+      "p05": 4.0,
+      "p25": 4.0,
+      "median": 4.0,
+      "p75": 4.0,
+      "p95": 4.0,
+      "p99": 6.0,
+      "max": 7.0,
+      "mean": 4.0242
+    },
+    "routes_seen_1_month": 594,
+    "routes_seen_ge_3_months": 134145,
+    "routes_seen_ge_6_months": 1685,
+    "routes_seen_ge_12_months": 0
   },
   "contract": {
     "rub_per_km_formula": "price / route_length for price > 0 and route_length > 0",
     "coordinate_status": "optional; expected to be joined by FIAS when absent",
-    "duplicate_definition": "identical normalized business fields"
+    "duplicate_definition": "identical normalized business fields",
+    "candidate_business_key": "origin_fias + destination_fias + period_id + period_type + price_type + route_type + tonnage_id + vehicle_type + currency",
+    "row_grain_status": "candidate_only_pending_business_confirmation"
+  },
+  "predictive_ml": {
+    "status": "blocked_pending_target_and_point_in_time_semantics",
+    "feature_policy": {
+      "units": {
+        "role": "target_candidate",
+        "allowed_as_feature": false,
+        "reason": "Candidate price target; exact business semantics are still open."
+      },
+      "period_type": {
+        "role": "split_control",
+        "allowed_as_feature": false,
+        "reason": "forecast rows must not be used as ordinary training labels."
+      },
+      "confidence": {
+        "role": "blocked_pending_semantics",
+        "allowed_as_feature": false,
+        "reason": "May be derived from the external price calculation and leak the target."
+      },
+      "bid_count": {
+        "role": "blocked_pending_semantics",
+        "allowed_as_feature": false,
+        "reason": "It is unknown whether the value exists at prediction time."
+      },
+      "tech_load_ts": {
+        "role": "point_in_time_control",
+        "allowed_as_feature": false,
+        "reason": "Used to establish availability, revisions, and temporal ordering."
+      }
+    },
+    "forecast_training_policy": "period_type=forecast is excluded from labels",
+    "blocking_questions": [
+      "What business value does units represent?",
+      "How is period_type=forecast produced?",
+      "Are bid_count and confidence known at prediction time?",
+      "What is the first product prediction scenario?"
+    ]
   }
 }

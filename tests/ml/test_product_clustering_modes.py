@@ -1,8 +1,10 @@
 from dataclasses import replace
 
 from ml.clustering.base import ClusterPoint
+from ml.clustering.bear_volume_zones import BearVolumeZoneDetector
 from ml.clustering.bear_zones import BearZoneDetector
 from ml.clustering.geo_cost import GeoCostClusterer
+from ml.clustering.geo_volume import GeoVolumeClusterer
 from ml.clustering.geographic import GeographicClusterer
 from ml.spatial.graph import SpatialGraphBuilder
 
@@ -134,6 +136,28 @@ def test_equal_cost_distant_components_never_merge():
     assert result.point_assignments["a"] != result.point_assignments["c"]
 
 
+def test_geo_volume_uses_log_volume_and_preserves_connectivity():
+    points = [
+        _point("a", 0, trips=10),
+        _point("b", 1, trips=10),
+        _point("c", 3, trips=80),
+        _point("d", 4, trips=80),
+    ]
+
+    result = GeoVolumeClusterer().fit(
+        points,
+        {"n_clusters": 2, "geography_weight": 0.6, "volume_weight": 0.4},
+    )
+
+    assert result.mode == "geo_volume"
+    assert result.parameters["volume_transform"] == "log1p"
+    assert result.parameters["volume_weight"] == 0.4
+    assert result.metrics["connectivity_violations"] == 0
+    assert result.metrics["regional_mean_trip_count"] == 45
+    assert sorted(result.metrics["cluster_mean_trip_count"]) == [10, 80]
+    assert all(cluster.connected is True for cluster in result.clusters)
+
+
 def _bear_points():
     return [
         _point("low-a", 0, trips=20, rate=100),
@@ -231,3 +255,41 @@ def test_trip_count_zero_does_not_create_division_error():
 
     assert result.point_assignments["zero"] == -1
     assert geography.point_assignments["zero"] >= 0
+
+
+def test_connected_high_volume_points_create_volume_zone():
+    points = [
+        _point("low-a", 0, trips=10),
+        _point("low-b", 1, trips=10),
+        _point("high-a", 2, trips=40),
+        _point("high-b", 3, trips=40),
+    ]
+
+    result = BearVolumeZoneDetector().fit(points, {})
+
+    zone = next(
+        cluster
+        for cluster in result.clusters
+        if cluster.cluster_type == "bear_volume_zone"
+    )
+    assert zone.point_ids == ("high-a", "high-b")
+    assert zone.relative_volume_delta >= 0.35
+    assert result.metrics["connectivity_violations"] == 0
+
+
+def test_high_volume_singleton_uses_fixed_70_percent_threshold():
+    points = [
+        _point("low-a", 0, trips=10),
+        _point("low-b", 1, trips=10),
+        _point("high", 100, trips=100),
+    ]
+
+    result = BearVolumeZoneDetector().fit(points, {})
+
+    singleton = next(
+        cluster
+        for cluster in result.clusters
+        if cluster.cluster_type == "high_volume_singleton"
+    )
+    assert singleton.point_ids == ("high",)
+    assert singleton.relative_volume_delta >= 0.70

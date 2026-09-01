@@ -91,7 +91,8 @@ class ClusteringRepository:
         self._lock = threading.RLock()
         self._fingerprint: FileFingerprint | None = None
         self._index: dict[tuple[str, str], tuple[ClusteringSourceRow, ...]] = {}
-        self._origin_metadata: dict[str, dict[str, str]] = {}
+        self._origin_metadata: dict[str, dict[str, Any]] = {}
+        self._facet_index: dict[tuple[str, str], dict[str, list[dict[str, Any]]]] = {}
         self._raw_rows = 0
         self._load_count = 0
 
@@ -122,6 +123,9 @@ class ClusteringRepository:
             if row.origin_region:
                 origin_regions[row.origin_fias][row.origin_region] += 1
         self._index = {key: tuple(value) for key, value in grouped.items()}
+        origin_trips: Counter[str] = Counter()
+        for (origin_fias, _), rows in self._index.items():
+            origin_trips[origin_fias] += sum(max(row.trip_count or 0, 0) for row in rows)
         self._origin_metadata = {
             origin_fias: {
                 "fias_id": origin_fias,
@@ -131,8 +135,18 @@ class ClusteringRepository:
                 "region": origin_regions[origin_fias].most_common(1)[0][0]
                 if origin_regions[origin_fias]
                 else "<missing>",
+                "trip_count": origin_trips[origin_fias],
             }
             for origin_fias in sorted({key[0] for key in grouped})
+        }
+        self._facet_index = {
+            key: {
+                "period_types": self._facet(rows, "period_type"),
+                "price_types": self._facet(rows, "price_type"),
+                "vehicle_types": self._facet(rows, "vehicle_type"),
+                "tonnage_ids": self._facet(rows, "tonnage_id"),
+            }
+            for key, rows in self._index.items()
         }
         self._raw_rows = raw_rows
         self._fingerprint = fingerprint
@@ -165,13 +179,10 @@ class ClusteringRepository:
         if origin_fias:
             result["destination_regions"] = self.destination_regions(origin_fias)
         if origin_fias and destination_region:
-            rows = self._rows(origin_fias, destination_region)
-            result["facets"] = {
-                "period_types": self._facet(rows, "period_type"),
-                "price_types": self._facet(rows, "price_type"),
-                "vehicle_types": self._facet(rows, "vehicle_type"),
-                "tonnage_ids": self._facet(rows, "tonnage_id"),
-            }
+            result["facets"] = self._facet_index.get(
+                (origin_fias, destination_region),
+                {"period_types": [], "price_types": [], "vehicle_types": [], "tonnage_ids": []},
+            )
         return result
 
     @staticmethod

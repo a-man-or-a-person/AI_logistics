@@ -40,19 +40,45 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\ruff.exe check .
 ```
 
-## Исследовательский ML-слой
+## Clustering Product v1
 
-Продуктовый экран «Территориальные зоны» использует отдельный canonical API:
+Главный продуктовый экран решает одну задачу: пользователь выбирает один пункт
+отправления, один регион назначения и сегменты Pulse, затем исследует один из пяти
+режимов на point-based карте или сравнивает их на одном снимке данных:
+
+- **По географии** — только пространственная структура, Auto/Manual K;
+- **География + стоимость** — связная география и weighted ₽/км с пресетами
+  80/20, 70/30 и 60/40;
+- **География + объём** — связная география и `log1p` числа перевозок с теми же
+  пресетами 80/20, 70/30 и 60/40;
+- **Медвежьи зоны** — связанные дорогие зоны от выбранного порога и одиночные
+  аномальные точки от фиксированных +70%;
+- **Медвежьи зоны по объёму** — связанные участки с повышенным числом перевозок
+  относительно среднего по региону и одиночные объёмные аномалии от +70%.
+
+Product v1 использует отдельный canonical API:
 
 - `GET /api/clustering/options`;
 - `GET /api/clustering/origins`;
 - `POST /api/clustering/preview`;
-- `POST /api/clustering/run`.
+- `POST /api/clustering/run`;
+- `POST /api/clustering/compare`.
 
-Production MVP запускает только geography-only K-Means из `ml/` с ручным `K=2…10`.
-Цена не является clustering feature. При отсутствии настроенного утверждённого GeoJSON
-API возвращает точки и кластеры со статусом `boundary_unavailable`, не создавая
-Voronoi/bbox-подмену. Подробности: `docs/clustering_product_v1_contract.md`.
+`/compare` возвращает Geography Auto, Geo+Cost 70/30 Auto, Geo+Volume 70/30 Auto,
+Bear Cost +35 и Bear Volume +35 без winner/recommendation. География не использует цену или число перевозок при
+построении кластеров. Цена не может создать spatial edge. Product v1 отображает
+только точки, medoid-центры и изолированные состояния — без полигонов, geocoding,
+region-center fallback и fuzzy FIAS. Подробности:
+`docs/clustering_product_v1_contract.md`.
+
+Forecast разрешён, но backend возвращает `contains_forecast`, а интерфейс показывает
+явное предупреждение. Data quality отдельно сообщает покрытие точек координатами и
+покрытие перевозок; эти проценты не взаимозаменяемы.
+
+Legacy `/api/ml-cluster` сохранён только для обратной совместимости и не вызывается
+Product workflow.
+
+## Исследовательский ML-слой
 
 Аналитический код изолирован в `ml/` и не меняет существующие API и карту. Текущий
 milestone формирует воспроизводимые географические кластеры с корректным бизнес-весом:
@@ -107,6 +133,12 @@ H2 research pipeline уже реализован и оценивается ге�
 доверенный источник расстояний. Текущий actual не поддерживает прямую cluster-level
 оценку H2 без destination FIAS или подтверждённого route mix.
 
+### Deferred boundary/post-processing
+
+> **DEFERRED — NOT PART OF CLUSTERING PRODUCT V1.** Следующие команды сохранены
+> для воспроизводимости исследовательского boundary pipeline. Product v1 от них
+> не зависит и не рендерит полигоны.
+
 Spatial core устанавливается отдельно от runtime Flask:
 
 ```powershell
@@ -120,9 +152,10 @@ Spatial core устанавливается отдельно от runtime Flask:
 отклоняет name/region fallback, явно маркирует unresolved coordinates и не подставляет центр региона.
 Проекция `ml.spatial.projection` переводит WGS84 в локальные метры через AEQD.
 
-Основной research pipeline запускает на одном spatial graph три режима: Geography,
-Geo+Cost и Bear Zones. Delaunay с adaptive pruning используется как primary graph,
-mutual kNN — как benchmark. Geo+Cost сохраняет sensitivity 80/20, 70/30 и 60/40.
+Основной product smoke запускает на одном spatial graph пять режимов: Geography,
+Geo+Cost, Geo+Volume, Bear Cost и Bear Volume. Delaunay с adaptive pruning используется
+как primary graph, mutual kNN — как benchmark. Взвешенные режимы сохраняют sensitivity
+80/20, 70/30 и 60/40.
 
 Старый K-Means sweep сохранён только как legacy baseline:
 
@@ -170,7 +203,8 @@ mutual kNN — как benchmark. Geo+Cost сохраняет sensitivity 80/20, 
 
 В режиме Geography matrix использует только метрические `x/y`; цена и `trip_count`
 не меняют adjacency. Geo+Cost добавляет robust-scaled weighted ₽/км, сохраняя graph
-как hard constraint. Сравнительный отчёт не выбирает автоматического winner.
+как hard constraint. Geo+Volume аналогично добавляет robust-scaled `log1p(trip_count)`.
+Сравнительный отчёт не выбирает автоматического winner.
 
 Универсальный `ml.spatial.territorialize` принимает утверждённую границу региона,
 результат любого `Clusterer` и строит grid-based зоны с проверками coverage, overlap

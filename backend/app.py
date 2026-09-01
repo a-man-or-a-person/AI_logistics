@@ -11,6 +11,7 @@ from flask_cors import CORS
 
 from backend.clustering_api import clustering_blueprint
 from backend.data_processor import (
+    calculate_rub_per_km,
     get_map_points,
     get_raw_records,
     get_regions,
@@ -234,6 +235,79 @@ def api_geocode_status():
         return jsonify({"ok": True, **get_geocode_status()})
     except Exception:
         logger.exception("Ошибка в /api/geocode-status")
+        return _internal_error()
+
+
+@app.get("/api/ml-cluster")
+def api_ml_cluster():
+    """Compatibility endpoint retained for legacy clients; Product v1 never calls it."""
+    try:
+        region = request.args.get("region", "").strip()
+        town_type = request.args.get("town_type", "").strip()
+        raw_k = request.args.get("k", "auto")
+        period_types = _parse_csv_arg("period_types")
+        price_types = _parse_csv_arg("price_types")
+        if not region or town_type not in {"shipment", "delivery"}:
+            return jsonify(
+                {"ok": False, "error": "town_type должен быть shipment или delivery"}
+            ), 400
+        validation_error = _filter_validation_error(period_types, price_types)
+        if validation_error:
+            return jsonify({"ok": False, "error": validation_error}), 400
+        try:
+            requested_k = 5 if raw_k == "auto" else int(raw_k)
+        except ValueError:
+            return jsonify({"ok": False, "error": "k должен быть auto или целым числом"}), 400
+        if not 2 <= requested_k <= 10:
+            return jsonify({"ok": False, "error": "k должен быть от 2 до 10"}), 400
+
+        data = load_data()
+        towns = data["shipment_towns" if town_type == "shipment" else "delivery_towns"]
+        rows = []
+        for town in towns.values():
+            if town["region"] != region:
+                continue
+            records = [
+                record for record in town["records"]
+                if (not period_types or record["period_type"] in period_types)
+                and (not price_types or record["price_type"] in price_types)
+            ]
+            coordinates = geocode_town(town["town"], region, offline_only=True)
+            if not coordinates:
+                continue
+            rows.append(
+                {
+                    "town": town["town"], "lat": coordinates[0], "lon": coordinates[1],
+                    "rub_per_km": round(calculate_rub_per_km(records), 2),
+                    "bid_count": sum(record["bid_count"] for record in records),
+                }
+            )
+        if len(rows) < 2:
+            return jsonify({"ok": False, "error": "Недостаточно точек"}), 422
+        from ml.clustering.base import ClusterPoint
+        from ml.clustering.kmeans import KMeansClusterer
+        from ml.spatial.projection import LocalProjection
+
+        projection = LocalProjection.from_coordinates([(row["lat"], row["lon"]) for row in rows])
+        points = []
+        for index, row in enumerate(rows):
+            x, y = projection.project(row["lat"], row["lon"])
+            points.append(ClusterPoint(str(index), row["town"], region, x, y, row["bid_count"]))
+        selected_k = min(requested_k, len(points))
+        result = KMeansClusterer().fit(points, {"n_clusters": selected_k, "weight_mode": "none", "random_state": 42})
+        assignments = result.point_assignments
+        return jsonify(
+            {
+                "ok": True, "algorithm": "kmeans", "k": selected_k,
+                "points": [{**row, "cluster_id": assignments[str(index)]} for index, row in enumerate(rows)],
+                "clusters": [
+                    {"cluster_id": cluster.cluster_id, "point_count": cluster.point_count, "trip_count": cluster.trip_count}
+                    for cluster in result.clusters
+                ],
+            }
+        )
+    except Exception:
+        logger.exception("Ошибка в /api/ml-cluster")
         return _internal_error()
 
 
