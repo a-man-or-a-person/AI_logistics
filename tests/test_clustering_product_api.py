@@ -10,6 +10,11 @@ from backend.clustering_api import set_clustering_service
 from backend.services.boundary_provider import BoundaryProvider
 from backend.services.clustering_service import ClusteringRequest, ClusteringService
 from ml.clustering.base import ClusterPoint
+from ml.clustering.bear_volume_zones import BearVolumeZoneDetector
+from ml.clustering.bear_zones import BearZoneDetector
+from ml.clustering.geo_cost import GeoCostClusterer
+from ml.clustering.geo_volume import GeoVolumeClusterer
+from ml.clustering.geographic import GeographicClusterer
 from ml.clustering.kmeans import KMeansClusterer
 from ml.data.loader import PULSE_COLUMNS
 
@@ -90,6 +95,34 @@ def product_files(tmp_path):
 
 
 @pytest.fixture()
+def mode_eligibility_files(tmp_path):
+    source = tmp_path / "eligibility-pulse.csv"
+    cache = tmp_path / "eligibility-coords.json"
+    rows = [
+        _row("a", "A", price="1000", trips="20"),
+        _row("b", "B", price="1100", trips="20"),
+        _row("c", "C", price="1200", trips="20"),
+        _row("economic-missing", "Economic Missing", price="", trips="20"),
+        _row("zero-volume", "Zero Volume", price="1300", trips="0"),
+        _row("unresolved", "Unresolved", price="1400", trips="20"),
+    ]
+    _write_csv(source, rows)
+    cache.write_text(
+        json.dumps(
+            {
+                "A::Region A": [55.00, 37.00],
+                "B::Region A": [55.01, 37.01],
+                "C::Region A": [55.02, 37.02],
+                "Economic Missing::Region A": [55.03, 37.03],
+                "Zero Volume::Region A": [55.04, 37.04],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return source, cache
+
+
+@pytest.fixture()
 def product_service(product_files):
     source, cache = product_files
     return ClusteringService(source, coordinate_cache_path=cache)
@@ -100,6 +133,22 @@ def product_client(product_service):
     set_clustering_service(product_service)
     app.config.update(TESTING=True)
     yield app.test_client()
+    set_clustering_service(None)
+
+
+@pytest.fixture()
+def product_client_factory():
+    def factory(source, cache, **service_kwargs):
+        service = ClusteringService(
+            source,
+            coordinate_cache_path=cache,
+            **service_kwargs,
+        )
+        set_clustering_service(service)
+        app.config.update(TESTING=True)
+        return app.test_client()
+
+    yield factory
     set_clustering_service(None)
 
 
@@ -138,9 +187,7 @@ def test_options_and_searchable_origin_catalog(product_client):
         "bear_zones",
         "bear_volume_zones",
     ]
-    assert payload["k"] == {
-        "min": 2, "max": 20, "default": 5, "modes": ["auto", "manual"]
-    }
+    assert payload["k"] == {"min": 2, "max": 20, "default": 5, "modes": ["auto", "manual"]}
     assert payload["bear_thresholds"]["zone_default"] == 0.35
     assert payload["bear_thresholds"]["singleton_default"] == 0.70
     assert payload["bear_thresholds"]["singleton_fixed"] is True
@@ -155,6 +202,28 @@ def test_options_and_searchable_origin_catalog(product_client):
         {"geography": 0.7, "volume": 0.3},
         {"geography": 0.6, "volume": 0.4},
     ]
+    assert payload["geo_cost_weights"]["default"] == {
+        "geography": 0.7,
+        "economics": 0.3,
+    }
+    assert payload["geo_volume_weights"]["default"] == {
+        "geography": 0.7,
+        "volume": 0.3,
+    }
+    assert payload["bear_thresholds"]["zone_options"] == [
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.5,
+    ]
+    assert payload["defaults"] == {
+        "period_types": ["current"],
+        "price_types": ["spot"],
+        "mode": "geography",
+        "k_mode": "auto",
+    }
     assert payload["destination_regions"] == ["Region A", "Region B"]
     assert payload["facets"]["vehicle_types"] == [{"value": "tent", "count": 6}]
     assert origins.status_code == 200
@@ -162,15 +231,87 @@ def test_options_and_searchable_origin_catalog(product_client):
     assert set(origins.get_json()[0]) == {"fias_id", "name", "region", "trip_count"}
 
 
+@pytest.mark.parametrize(
+    ("mode", "expected"),
+    [
+        ("geography", {"k_mode": "auto", "n_clusters": "auto"}),
+        (
+            "geo_cost",
+            {
+                "k_mode": "auto",
+                "n_clusters": "auto",
+                "geography_weight": 0.7,
+                "economics_weight": 0.3,
+            },
+        ),
+        (
+            "geo_volume",
+            {
+                "k_mode": "auto",
+                "n_clusters": "auto",
+                "geography_weight": 0.7,
+                "volume_weight": 0.3,
+            },
+        ),
+        (
+            "bear_zones",
+            {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
+        (
+            "bear_volume_zones",
+            {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
+    ],
+)
+def test_preview_normalizes_each_mode_default(product_client, mode, expected):
+    payload = _payload(mode=mode)
+    payload.pop("parameters")
+
+    response = product_client.post("/api/clustering/preview", json=payload)
+
+    assert response.status_code == 200
+    assert response.get_json()["analysis"]["parameters"] == expected
+
+
+@pytest.mark.parametrize(
+    ("change", "code", "message"),
+    [
+        (
+            {"mode": "unknown"},
+            "INVALID_REQUEST",
+            "Неподдерживаемый mode: unknown.",
+        ),
+        (
+            {"parameters": []},
+            "INVALID_REQUEST",
+            "parameters должен быть объектом.",
+        ),
+    ],
+)
+def test_mode_request_shape_has_stable_error_envelope(product_client, change, code, message):
+    response = product_client.post("/api/clustering/run", json=_payload(**change))
+
+    assert response.status_code == 400
+    assert response.get_json() == {"ok": False, "code": code, "error": message}
+
+
 def test_run_returns_ui_contract_and_reports_unresolved(product_client):
     response = product_client.post("/api/clustering/run", json=_payload())
     result = response.get_json()
 
     assert response.status_code == 200
-    assert set(result) >= {
+    assert set(result) == {
+        "ok",
         "analysis",
+        "contains_forecast",
         "data_quality",
+        "warnings",
         "metrics",
+        "graph_metrics",
+        "regional_stats",
+        "regional_economics",
+        "regional_volume",
+        "regional_weighted_rub_per_km",
         "points",
         "clusters",
         "outliers",
@@ -218,6 +359,30 @@ class CapturingClusterer:
         return self.delegate.fit(points, parameters)
 
 
+class RecordingClusterer:
+    def __init__(self, delegate) -> None:
+        self.delegate = delegate
+        self.algorithm = delegate.algorithm
+        self.calls: list[tuple[tuple[str, ...], dict, object]] = []
+
+    def fit(self, points, parameters):
+        self.calls.append(
+            (
+                tuple(point.id for point in points),
+                {key: value for key, value in parameters.items() if key != "spatial_graph"},
+                parameters["spatial_graph"],
+            )
+        )
+        return self.delegate.fit(points, parameters)
+
+
+class ConnectivityViolatingClusterer:
+    algorithm = "connectivity_probe"
+
+    def fit(self, points, parameters):
+        raise AssertionError("characterized connectivity violation")
+
+
 def test_geography_only_ml_input_never_receives_price(product_files):
     source, cache = product_files
     clusterer = CapturingClusterer()
@@ -231,7 +396,98 @@ def test_geography_only_ml_input_never_receives_price(product_files):
     assert clusterer.points
     assert all(point.weighted_price is None for point in clusterer.points)
     assert all(point.weighted_rub_per_km is None for point in clusterer.points)
-    assert all(set(point.__slots__) >= {"id", "name", "region", "x", "y", "trip_count"} for point in clusterer.points)
+    assert all(
+        set(point.__slots__) >= {"id", "name", "region", "x", "y", "trip_count"}
+        for point in clusterer.points
+    )
+
+
+def test_product_modes_preserve_eligibility_and_spatial_topology(
+    mode_eligibility_files,
+):
+    source, cache = mode_eligibility_files
+    recorders = {
+        "geography": RecordingClusterer(GeographicClusterer()),
+        "geo_cost": RecordingClusterer(GeoCostClusterer()),
+        "geo_volume": RecordingClusterer(GeoVolumeClusterer()),
+        "bear_zones": RecordingClusterer(BearZoneDetector()),
+        "bear_volume_zones": RecordingClusterer(BearVolumeZoneDetector()),
+    }
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        clusterers=recorders,
+    )
+    parameters = {
+        "geography": {"k_mode": "manual", "n_clusters": 2},
+        "geo_cost": {
+            "k_mode": "manual",
+            "n_clusters": 2,
+            "geography_weight": 0.7,
+            "economics_weight": 0.3,
+        },
+        "geo_volume": {
+            "k_mode": "manual",
+            "n_clusters": 2,
+            "geography_weight": 0.7,
+            "volume_weight": 0.3,
+        },
+        "bear_zones": {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        "bear_volume_zones": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7,
+        },
+    }
+
+    for mode, mode_parameters in parameters.items():
+        service.run(ClusteringRequest.from_payload(_payload(mode=mode, parameters=mode_parameters)))
+
+    expected_ids = {
+        "geography": {"a", "b", "c", "economic-missing", "zero-volume"},
+        "geo_volume": {"a", "b", "c", "economic-missing", "zero-volume"},
+        "geo_cost": {"a", "b", "c"},
+        "bear_zones": {"a", "b", "c"},
+        "bear_volume_zones": {"a", "b", "c", "economic-missing"},
+    }
+    for mode, ids in expected_ids.items():
+        assert set(recorders[mode].calls[0][0]) == ids
+
+    expected_parameters = {
+        "geography": {"n_clusters": 2, "k_min": 2, "k_max": 20},
+        "geo_cost": {
+            "n_clusters": 2,
+            "k_min": 2,
+            "k_max": 20,
+            "geography_weight": 0.7,
+            "economics_weight": 0.3,
+        },
+        "geo_volume": {
+            "n_clusters": 2,
+            "k_min": 2,
+            "k_max": 20,
+            "geography_weight": 0.7,
+            "volume_weight": 0.3,
+        },
+        "bear_zones": {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        "bear_volume_zones": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7,
+        },
+    }
+    for mode, mode_parameters in expected_parameters.items():
+        assert recorders[mode].calls[0][1] == mode_parameters
+
+    graphs = {mode: recorder.calls[0][2] for mode, recorder in recorders.items()}
+    full_edges = {frozenset((edge.first_id, edge.second_id)) for edge in graphs["geography"].edges}
+    assert graphs["geography"].audit["node_count"] == 5
+    assert graphs["geo_volume"].edges == graphs["geography"].edges
+    for mode in ("geo_cost", "bear_zones", "bear_volume_zones"):
+        graph = graphs[mode]
+        ids = expected_ids[mode]
+        edges = {frozenset((edge.first_id, edge.second_id)) for edge in graph.edges}
+        assert graph.parameters["induced_subgraph"] is True
+        assert graph.audit["induced_from_node_count"] == 5
+        assert edges == {edge for edge in full_edges if edge <= ids}
 
 
 def test_result_cache_reuses_repository_and_calculation(product_files):
@@ -252,6 +508,37 @@ def test_result_cache_reuses_repository_and_calculation(product_files):
     assert service.repository is not None
     assert service.repository.load_count == 1
     assert len(service._result_cache) == 1
+
+
+def test_equivalent_normalized_mode_parameters_share_result_cache(product_files):
+    source, cache = product_files
+    clusterer = RecordingClusterer(GeoCostClusterer())
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        clusterers={"geo_cost": clusterer},
+    )
+    implicit_payload = _payload(mode="geo_cost")
+    implicit_payload.pop("parameters")
+    implicit = ClusteringRequest.from_payload(implicit_payload)
+    explicit = ClusteringRequest.from_payload(
+        _payload(
+            mode="geo_cost",
+            parameters={
+                "k_mode": "auto",
+                "n_clusters": "auto",
+                "geography_weight": 0.7,
+                "economics_weight": 0.3,
+            },
+        )
+    )
+
+    first = service.run(implicit)
+    second = service.run(explicit)
+
+    assert implicit == explicit
+    assert first == second
+    assert len(clusterer.calls) == 1
 
 
 @pytest.mark.parametrize(
@@ -338,9 +625,7 @@ def test_vehicle_and_tonnage_are_canonical_filters(product_service):
     ],
 )
 def test_invalid_parameters_return_stable_code(product_client, parameters, code):
-    response = product_client.post(
-        "/api/clustering/run", json=_payload(parameters=parameters)
-    )
+    response = product_client.post("/api/clustering/run", json=_payload(parameters=parameters))
     assert response.status_code == 400
     assert response.get_json()["code"] == code
 
@@ -356,6 +641,74 @@ def test_insufficient_points_is_a_clear_validation_response(product_client):
     assert response.status_code == 422
     assert response.get_json()["code"] == "INSUFFICIENT_POINTS"
     assert response.get_json()["error"]
+
+
+def test_runtime_infeasible_manual_k_has_stable_product_error(product_client):
+    response = product_client.post(
+        "/api/clustering/run",
+        json=_payload(parameters={"k_mode": "manual", "n_clusters": 20}),
+    )
+
+    assert response.status_code == 422
+    assert response.get_json()["code"] == "INVALID_CLUSTER_COUNT"
+    assert response.get_json()["error"].startswith("K=20 невозможно для ")
+
+
+def test_geo_cost_without_valid_economics_has_stable_product_error(
+    tmp_path, product_client_factory
+):
+    source = tmp_path / "missing-economics.csv"
+    cache = tmp_path / "missing-economics-coords.json"
+    _write_csv(
+        source,
+        [
+            _row("a", "A", price=""),
+            _row("b", "B", price=""),
+        ],
+    )
+    cache.write_text(
+        json.dumps({"A::Region A": [55.0, 37.0], "B::Region A": [55.01, 37.01]}),
+        encoding="utf-8",
+    )
+    client = product_client_factory(source, cache)
+
+    response = client.post(
+        "/api/clustering/run",
+        json=_payload(
+            mode="geo_cost",
+            parameters={
+                "k_mode": "manual",
+                "n_clusters": 2,
+                "geography_weight": 0.7,
+                "economics_weight": 0.3,
+            },
+        ),
+    )
+
+    assert response.status_code == 422
+    assert response.get_json() == {
+        "ok": False,
+        "code": "INSUFFICIENT_ECONOMICS",
+        "error": "Недостаточно точек с валидными price, route_length и ₽/км.",
+    }
+
+
+def test_connectivity_violation_has_stable_http_semantics(product_files, product_client_factory):
+    source, cache = product_files
+    client = product_client_factory(
+        source,
+        cache,
+        clusterers={"geography": ConnectivityViolatingClusterer()},
+    )
+
+    response = client.post("/api/clustering/run", json=_payload())
+
+    assert response.status_code == 422
+    assert response.get_json() == {
+        "ok": False,
+        "code": "CONNECTIVITY_VIOLATION",
+        "error": "characterized connectivity violation",
+    }
 
 
 def test_mode_presets_and_fixed_singleton_validation(product_client):
@@ -431,6 +784,79 @@ def test_mode_presets_and_fixed_singleton_validation(product_client):
     assert bad_volume_threshold.get_json()["code"] == "INVALID_MODE_PARAMETERS"
 
 
+@pytest.mark.parametrize(
+    ("mode", "parameters", "expected"),
+    [
+        *[
+            (
+                "geo_cost",
+                {"geography_weight": geography, "economics_weight": feature},
+                {
+                    "k_mode": "auto",
+                    "n_clusters": "auto",
+                    "geography_weight": geography,
+                    "economics_weight": feature,
+                },
+            )
+            for geography, feature in ((0.8, 0.2), (0.7, 0.3), (0.6, 0.4))
+        ],
+        *[
+            (
+                "geo_volume",
+                {"geography_weight": geography, "volume_weight": feature},
+                {
+                    "k_mode": "auto",
+                    "n_clusters": "auto",
+                    "geography_weight": geography,
+                    "volume_weight": feature,
+                },
+            )
+            for geography, feature in ((0.8, 0.2), (0.7, 0.3), (0.6, 0.4))
+        ],
+        *[
+            (
+                "bear_zones",
+                {"bear_threshold": threshold},
+                {"bear_threshold": threshold, "singleton_threshold": 0.7},
+            )
+            for threshold in (0.2, 0.25, 0.3, 0.35, 0.4, 0.5)
+        ],
+        *[
+            (
+                "bear_volume_zones",
+                {"volume_threshold": threshold},
+                {"volume_threshold": threshold, "singleton_threshold": 0.7},
+            )
+            for threshold in (0.2, 0.25, 0.3, 0.35, 0.4, 0.5)
+        ],
+    ],
+)
+def test_advertised_mode_presets_are_accepted_and_normalized(
+    product_client, mode, parameters, expected
+):
+    response = product_client.post(
+        "/api/clustering/preview",
+        json=_payload(mode=mode, parameters=parameters),
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["analysis"]["parameters"] == expected
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["geography", "geo_cost", "geo_volume", "bear_zones", "bear_volume_zones"],
+)
+def test_each_mode_rejects_unknown_parameter_keys(product_client, mode):
+    response = product_client.post(
+        "/api/clustering/run",
+        json=_payload(mode=mode, parameters={"unexpected": True}),
+    )
+
+    assert response.status_code == 400
+    assert response.get_json()["code"] == "INVALID_MODE_PARAMETERS"
+
+
 def test_request_id_is_echoed_for_success_and_validation_error(product_client):
     success = product_client.post(
         "/api/clustering/run",
@@ -462,19 +888,179 @@ def test_geo_cost_returns_economic_unavailable_points(product_client):
     )
 
     assert response.status_code == 200
-    point = next(
-        item for item in response.get_json()["points"] if item["id"] == "economic-missing"
-    )
+    point = next(item for item in response.get_json()["points"] if item["id"] == "economic-missing")
     assert point["status"] == "economic_unavailable"
     assert point["cluster_id"] is None
 
 
-def test_compare_uses_fixed_fact_only_contract(product_client):
+@pytest.mark.parametrize(
+    ("mode", "parameters"),
+    [
+        (
+            "bear_zones",
+            {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
+        (
+            "bear_volume_zones",
+            {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
+    ],
+)
+def test_bear_no_bears_is_a_successful_product_result(
+    tmp_path, product_client_factory, mode, parameters
+):
+    source = tmp_path / f"{mode}-flat.csv"
+    cache = tmp_path / f"{mode}-flat-coords.json"
+    _write_csv(
+        source,
+        [
+            _row("a", "A", price="1000", trips="10"),
+            _row("b", "B", price="1000", trips="10"),
+            _row("c", "C", price="1000", trips="10"),
+        ],
+    )
+    cache.write_text(
+        json.dumps(
+            {
+                "A::Region A": [55.0, 37.0],
+                "B::Region A": [55.01, 37.01],
+                "C::Region A": [55.02, 37.02],
+            }
+        ),
+        encoding="utf-8",
+    )
+    client = product_client_factory(source, cache)
+
+    response = client.post(
+        "/api/clustering/run",
+        json=_payload(mode=mode, parameters=parameters),
+    )
+    result = response.get_json()
+
+    assert response.status_code == 200
+    assert result["status"] == "no_bears"
+    assert result["clusters"] == []
+    assert {point["status"] for point in result["points"]} == {"ordinary"}
+
+
+@pytest.mark.parametrize(
+    ("mode", "parameters", "expected_status"),
+    [
+        (
+            "bear_zones",
+            {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+            "bear_candidate",
+        ),
+        (
+            "bear_volume_zones",
+            {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+            "bear_volume_candidate",
+        ),
+    ],
+)
+def test_unassigned_bear_candidates_keep_product_status(
+    tmp_path, product_client_factory, mode, parameters, expected_status
+):
+    source = tmp_path / f"{mode}-candidate.csv"
+    cache = tmp_path / f"{mode}-candidate-coords.json"
+    _write_csv(
+        source,
+        [
+            _row("low-a", "Low A", price="1000", trips="10"),
+            _row("low-b", "Low B", price="1000", trips="10"),
+            _row("candidate", "Candidate", price="2200", trips="18"),
+        ],
+    )
+    cache.write_text(
+        json.dumps(
+            {
+                "Low A::Region A": [55.0, 37.0],
+                "Low B::Region A": [55.01, 37.01],
+                "Candidate::Region A": [55.02, 37.02],
+            }
+        ),
+        encoding="utf-8",
+    )
+    client = product_client_factory(source, cache)
+
+    response = client.post(
+        "/api/clustering/run",
+        json=_payload(mode=mode, parameters=parameters),
+    )
+    result = response.get_json()
+    candidate = next(point for point in result["points"] if point["id"] == "candidate")
+
+    assert response.status_code == 200
+    assert result["status"] == "no_bears"
+    assert candidate["status"] == expected_status
+    assert candidate["cluster_id"] == -1
+
+
+def test_geo_cost_warning_order_and_quality_semantics(tmp_path, product_client_factory):
+    source = tmp_path / "warning-semantics.csv"
+    cache = tmp_path / "warning-semantics-coords.json"
+    _write_csv(
+        source,
+        [
+            _row("a", "A", price="1000", trips="20"),
+            _row(
+                "b",
+                "B",
+                price="1100",
+                trips="20",
+                period="forecast",
+                price_type="tender",
+            ),
+            _row("economic-missing", "Economic Missing", price="", trips="20"),
+            _row("unresolved", "Unresolved", price="1200", trips="20"),
+        ],
+    )
+    cache.write_text(
+        json.dumps(
+            {
+                "A::Region A": [55.0, 37.0],
+                "B::Region A": [55.01, 37.01],
+                "Economic Missing::Region A": [55.02, 37.02],
+            }
+        ),
+        encoding="utf-8",
+    )
+    client = product_client_factory(source, cache)
+
+    response = client.post(
+        "/api/clustering/run",
+        json=_payload(
+            period_types=["current", "forecast"],
+            mode="geo_cost",
+            parameters={
+                "k_mode": "manual",
+                "n_clusters": 2,
+                "geography_weight": 0.7,
+                "economics_weight": 0.3,
+            },
+        ),
+    )
+    result = response.get_json()
+
+    assert response.status_code == 200
+    assert [warning["code"] for warning in result["warnings"]] == [
+        "CONTAINS_FORECAST",
+        "MIXED_ECONOMIC_SEGMENTS",
+        "COORDINATE_INCOMPLETE",
+        "ECONOMIC_UNAVAILABLE",
+    ]
+    assert result["data_quality"]["contains_forecast"] is True
+    assert result["data_quality"]["economic_unavailable_points"] == 1
+    assert result["data_quality"]["unresolved_points"] == 1
+
+
+def test_compare_uses_fixed_fact_only_contract(product_client, product_service):
     payload = _payload()
     payload.pop("mode")
     payload.pop("parameters")
     response = product_client.post("/api/clustering/compare", json=payload)
     result = response.get_json()
+    service_result = product_service.compare(payload)
 
     assert response.status_code == 200
     assert result["winner"] is None
@@ -485,11 +1071,30 @@ def test_compare_uses_fixed_fact_only_contract(product_client):
         "bear_zones",
         "bear_volume_zones",
     }
+    assert list(service_result["results"]) == [
+        "geography",
+        "geo_cost",
+        "geo_volume",
+        "bear_zones",
+        "bear_volume_zones",
+    ]
     assert result["results"]["geography"]["analysis"]["parameters"]["k_mode"] == "auto"
     assert result["results"]["geo_cost"]["analysis"]["parameters"]["economics_weight"] == 0.3
     assert result["results"]["geo_volume"]["analysis"]["parameters"]["volume_weight"] == 0.3
     assert result["results"]["bear_zones"]["analysis"]["parameters"]["bear_threshold"] == 0.35
-    assert result["results"]["bear_volume_zones"]["analysis"]["parameters"]["volume_threshold"] == 0.35
+    assert (
+        result["results"]["bear_volume_zones"]["analysis"]["parameters"]["volume_threshold"] == 0.35
+    )
+    filters = {
+        json.dumps(mode_result["analysis"]["filters"], sort_keys=True)
+        for mode_result in result["results"].values()
+    }
+    point_ids = {
+        tuple(point["id"] for point in mode_result["points"])
+        for mode_result in result["results"].values()
+    }
+    assert len(filters) == 1
+    assert len(point_ids) == 1
 
 
 @pytest.mark.parametrize(
@@ -550,7 +1155,5 @@ def test_product_result_remains_points_only_when_boundary_exists(product_files, 
 
 def test_legacy_map_endpoints_remain_available(client):
     assert client.get("/api/points").status_code == 200
-    assert client.get(
-        "/api/records?town=A&region=Region&type=shipment"
-    ).status_code == 200
+    assert client.get("/api/records?town=A&region=Region&type=shipment").status_code == 200
     assert client.get("/api/ml-cluster").status_code == 400
