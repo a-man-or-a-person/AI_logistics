@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from backend.product_modes import ProductModeCatalog, default_product_mode_catalog
 from backend.services.boundary_provider import BoundaryProvider
 from ml.clustering.base import Clusterer, ClusterPoint, ClusterResult
 from ml.clustering.bear_volume_zones import BearVolumeZoneDetector
@@ -315,6 +316,7 @@ class ClusteringService:
         dataset_builder: Callable[..., tuple[list[LocationPoint], dict[str, Any]]] = build_location_dataset,
         repository: ClusteringRepository | None = None,
         graph_builder: SpatialGraphBuilder | None = None,
+        product_mode_catalog: ProductModeCatalog | None = None,
     ) -> None:
         self.source_path = Path(source_path) if source_path is not None else default_csv_path()
         self.coordinate_cache_path = Path(coordinate_cache_path)
@@ -326,6 +328,7 @@ class ClusteringService:
             None if records_factory is not None else ClusteringRepository(self.source_path)
         )
         self.graph_builder = graph_builder or SpatialGraphBuilder()
+        self.product_mode_catalog = product_mode_catalog or default_product_mode_catalog()
         self._origin_catalog: list[OriginOption] | None = None
         self._destination_regions: dict[str, set[str]] = {}
         self._location_cache: OrderedDict[
