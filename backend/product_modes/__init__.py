@@ -14,6 +14,8 @@ from backend.product_modes.catalog import (
     ProductModeNotMigratedError,
     default_product_mode_catalog,
 )
+from backend.product_modes.errors import ProductClusteringError
+from backend.product_modes.geography import GeographyProductMode
 
 __all__ = [
     "CANONICAL_PRODUCT_MODE_IDS",
@@ -27,5 +29,7 @@ __all__ = [
     "ProductMode",
     "ProductModeCatalog",
     "ProductModeNotMigratedError",
+    "ProductClusteringError",
+    "GeographyProductMode",
     "default_product_mode_catalog",
 ]

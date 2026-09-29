@@ -1,4 +1,4 @@
-"""Explicit Product-mode registration without changing the current runtime path."""
+"""Explicit Product-mode registration for incremental runtime migration."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Final, Literal, Protocol
 
-from ml.clustering.base import ClusterPoint, ClusterResult
+from ml.clustering.base import Clusterer, ClusterPoint, ClusterResult
 from ml.spatial.graph import SpatialGraph
 
 ModeParameterValue = str | int | float | bool | None
@@ -171,13 +171,13 @@ class ModeDataset:
     """Shared Product data prepared before mode-specific eligibility filtering."""
 
     points: tuple[ClusterPoint, ...]
-    spatial_graph: SpatialGraph
+    spatial_graph: SpatialGraph | None
 
     def __post_init__(self) -> None:
         point_ids = tuple(point.id for point in self.points)
         if len(set(point_ids)) != len(point_ids):
             raise ValueError("Mode dataset point IDs must be unique")
-        if set(point_ids) != set(self.spatial_graph.node_ids):
+        if self.spatial_graph is not None and set(point_ids) != set(self.spatial_graph.node_ids):
             raise ValueError("Mode dataset points must match full spatial graph nodes")
 
 
@@ -340,22 +340,17 @@ def _weight_presets(business_parameter: str) -> tuple[ModeParameterValues, ...]:
     )
 
 
-def default_product_mode_catalog() -> ProductModeCatalog:
+def default_product_mode_catalog(
+    geography_clusterer: Clusterer | None = None,
+) -> ProductModeCatalog:
     """Compose the frozen Product v1 mode set explicitly."""
+
+    from backend.product_modes.geography import GeographyProductMode
+    from ml.clustering.geographic import GeographicClusterer
 
     return ProductModeCatalog(
         (
-            PendingProductMode(
-                ModeCapabilities(
-                    mode_id="geography",
-                    parameters=_K_PARAMETERS,
-                    semantic_dimensions=("geography",),
-                    result_kind="partition",
-                    comparison_parameters=tuple(
-                        (parameter.name, parameter.default) for parameter in _K_PARAMETERS
-                    ),
-                )
-            ),
+            GeographyProductMode(geography_clusterer or GeographicClusterer()),
             PendingProductMode(
                 ModeCapabilities(
                     mode_id="geo_cost",

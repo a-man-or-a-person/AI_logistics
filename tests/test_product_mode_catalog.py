@@ -210,14 +210,19 @@ def test_catalog_select_and_evaluate_use_the_product_mode_interface():
     assert outcome.result.point_assignments == {"a": 0}
 
 
-def test_default_registrations_cannot_be_used_before_their_migration_ticket():
+def test_only_unmigrated_default_registrations_are_guarded():
     catalog = default_product_mode_catalog()
 
-    with pytest.raises(
-        ProductModeNotMigratedError,
-        match="Product mode has not migrated to the catalog: geography",
-    ):
-        catalog.select("geography", {})
+    assert catalog.select("geography", {}).as_parameters() == {
+        "k_mode": "auto",
+        "n_clusters": "auto",
+    }
+    for mode_id in CANONICAL_PRODUCT_MODE_IDS[1:]:
+        with pytest.raises(
+            ProductModeNotMigratedError,
+            match=f"Product mode has not migrated to the catalog: {mode_id}",
+        ):
+            catalog.select(mode_id, {})
 
 
 def test_catalog_rejects_registration_without_product_mode_interface():

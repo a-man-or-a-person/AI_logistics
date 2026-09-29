@@ -7,6 +7,7 @@ import pytest
 
 from backend.app import app
 from backend.clustering_api import set_clustering_service
+from backend.product_modes import default_product_mode_catalog
 from backend.services.boundary_provider import BoundaryProvider
 from backend.services.clustering_service import ClusteringRequest, ClusteringService
 from ml.clustering.base import ClusterPoint
@@ -383,6 +384,21 @@ class ConnectivityViolatingClusterer:
         raise AssertionError("characterized connectivity violation")
 
 
+class TrackingProductModeCatalog:
+    def __init__(self, delegate) -> None:
+        self.delegate = delegate
+        self.selections: list[str] = []
+        self.operations: list[str] = []
+
+    def select(self, mode_id, parameters):
+        self.selections.append(mode_id)
+        return self.delegate.select(mode_id, parameters)
+
+    def evaluate(self, selection, dataset, operation):
+        self.operations.append(operation)
+        return self.delegate.evaluate(selection, dataset, operation)
+
+
 def test_geography_only_ml_input_never_receives_price(product_files):
     source, cache = product_files
     clusterer = CapturingClusterer()
@@ -400,6 +416,53 @@ def test_geography_only_ml_input_never_receives_price(product_files):
         set(point.__slots__) >= {"id", "name", "region", "x", "y", "trip_count"}
         for point in clusterer.points
     )
+
+
+def test_geography_preview_and_run_route_through_product_mode_catalog(product_files):
+    source, cache = product_files
+    clusterer = CapturingClusterer()
+    catalog = TrackingProductModeCatalog(default_product_mode_catalog(clusterer))
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        clusterers={"geography": clusterer},
+        product_mode_catalog=catalog,
+    )
+    request = ClusteringRequest.from_payload(_payload(), product_mode_catalog=catalog)
+
+    service.preview(request)
+    service.run(request)
+
+    assert catalog.selections == ["geography"]
+    assert catalog.operations == ["preview", "run"]
+
+
+def test_geography_adapter_path_matches_legacy_geography_product_output(product_files):
+    source, cache = product_files
+    service = ClusteringService(source, coordinate_cache_path=cache)
+    request = ClusteringRequest.from_payload(_payload())
+    locations, report = service._locations(request)
+    projection = service._projection(locations)
+    legacy_points = service._ml_input(locations, projection, include_economics=False)
+    graph, _ = service._spatial_graph(legacy_points)
+    legacy_result = GeographicClusterer().fit(
+        legacy_points,
+        {
+            "spatial_graph": graph,
+            "n_clusters": request.n_clusters,
+            "k_min": 2,
+            "k_max": 20,
+        },
+    )
+    legacy_output = service._result_json(request, locations, report, legacy_result, "success")
+
+    adapter_output = service.run(request)
+
+    assert request.parameters() == {
+        "k_mode": "manual",
+        "n_clusters": 2,
+    }
+    assert adapter_output == legacy_output
 
 
 def test_product_modes_preserve_eligibility_and_spatial_topology(

@@ -120,13 +120,14 @@ def clustering_origins():
 @clustering_blueprint.post("/preview")
 def preview_clustering():
     try:
-        product_request = ClusteringRequest.from_payload(_json_payload())
+        service = get_clustering_service()
+        product_request = ClusteringRequest.from_payload(
+            _json_payload(), product_mode_catalog=service.product_mode_catalog
+        )
         return jsonify(
             {
                 "ok": True,
-                **get_clustering_service().preview(
-                    product_request, request_id=g.clustering_request_id
-                ),
+                **service.preview(product_request, request_id=g.clustering_request_id),
             }
         )
     except ProductClusteringError as error:
@@ -138,13 +139,14 @@ def preview_clustering():
 @clustering_blueprint.post("/run")
 def run_clustering():
     try:
-        product_request = ClusteringRequest.from_payload(_json_payload())
+        service = get_clustering_service()
+        product_request = ClusteringRequest.from_payload(
+            _json_payload(), product_mode_catalog=service.product_mode_catalog
+        )
         return jsonify(
             {
                 "ok": True,
-                **get_clustering_service().run(
-                    product_request, request_id=g.clustering_request_id
-                ),
+                **service.run(product_request, request_id=g.clustering_request_id),
             }
         )
     except ProductClusteringError as error:
