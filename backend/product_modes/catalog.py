@@ -319,22 +319,22 @@ class ProductModeCatalog:
         return result
 
 
-_SINGLETON_THRESHOLD = ModeParameterCapability(
-    "singleton_threshold", "choice", 0.7, (0.7,), fixed=True
-)
-_ZONE_THRESHOLD_CHOICES = (0.2, 0.25, 0.3, 0.35, 0.4, 0.5)
-
-
 def default_product_mode_catalog(
     geography_clusterer: Clusterer | None = None,
     geo_cost_clusterer: Clusterer | None = None,
     geo_volume_clusterer: Clusterer | None = None,
+    bear_zones_clusterer: Clusterer | None = None,
+    bear_volume_zones_clusterer: Clusterer | None = None,
 ) -> ProductModeCatalog:
     """Compose the frozen Product v1 mode set explicitly."""
 
+    from backend.product_modes.bear_volume_zones import BearVolumeZonesProductMode
+    from backend.product_modes.bear_zones import BearZonesProductMode
     from backend.product_modes.geo_cost import GeoCostProductMode
     from backend.product_modes.geo_volume import GeoVolumeProductMode
     from backend.product_modes.geography import GeographyProductMode
+    from ml.clustering.bear_volume_zones import BearVolumeZoneDetector
+    from ml.clustering.bear_zones import BearZoneDetector
     from ml.clustering.geo_cost import GeoCostClusterer
     from ml.clustering.geo_volume import GeoVolumeClusterer
     from ml.clustering.geographic import GeographicClusterer
@@ -344,45 +344,7 @@ def default_product_mode_catalog(
             GeographyProductMode(geography_clusterer or GeographicClusterer()),
             GeoCostProductMode(geo_cost_clusterer or GeoCostClusterer()),
             GeoVolumeProductMode(geo_volume_clusterer or GeoVolumeClusterer()),
-            PendingProductMode(
-                ModeCapabilities(
-                    mode_id="bear_zones",
-                    parameters=(
-                        ModeParameterCapability(
-                            "bear_threshold",
-                            "choice",
-                            0.35,
-                            _ZONE_THRESHOLD_CHOICES,
-                        ),
-                        _SINGLETON_THRESHOLD,
-                    ),
-                    semantic_dimensions=("geography", "economics"),
-                    result_kind="zones",
-                    comparison_parameters=(
-                        ("bear_threshold", 0.35),
-                        ("singleton_threshold", 0.7),
-                    ),
-                )
-            ),
-            PendingProductMode(
-                ModeCapabilities(
-                    mode_id="bear_volume_zones",
-                    parameters=(
-                        ModeParameterCapability(
-                            "volume_threshold",
-                            "choice",
-                            0.35,
-                            _ZONE_THRESHOLD_CHOICES,
-                        ),
-                        _SINGLETON_THRESHOLD,
-                    ),
-                    semantic_dimensions=("geography", "volume"),
-                    result_kind="zones",
-                    comparison_parameters=(
-                        ("volume_threshold", 0.35),
-                        ("singleton_threshold", 0.7),
-                    ),
-                )
-            ),
+            BearZonesProductMode(bear_zones_clusterer or BearZoneDetector()),
+            BearVolumeZonesProductMode(bear_volume_zones_clusterer or BearVolumeZoneDetector()),
         )
     )

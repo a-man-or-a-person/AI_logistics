@@ -10,7 +10,6 @@ from backend.product_modes import (
     ModeSelection,
     PendingProductMode,
     ProductModeCatalog,
-    ProductModeNotMigratedError,
     default_product_mode_catalog,
 )
 from backend.services.clustering_service import ClusteringService
@@ -210,19 +209,21 @@ def test_catalog_select_and_evaluate_use_the_product_mode_interface():
     assert outcome.result.point_assignments == {"a": 0}
 
 
-def test_only_unmigrated_default_registrations_are_guarded():
+def test_all_default_registrations_are_executable():
     catalog = default_product_mode_catalog()
 
     assert catalog.select("geography", {}).as_parameters() == {
         "k_mode": "auto",
         "n_clusters": "auto",
     }
-    for mode_id in CANONICAL_PRODUCT_MODE_IDS[3:]:
-        with pytest.raises(
-            ProductModeNotMigratedError,
-            match=f"Product mode has not migrated to the catalog: {mode_id}",
-        ):
-            catalog.select(mode_id, {})
+    assert catalog.select("bear_zones", {}).as_parameters() == {
+        "bear_threshold": 0.35,
+        "singleton_threshold": 0.7,
+    }
+    assert catalog.select("bear_volume_zones", {}).as_parameters() == {
+        "volume_threshold": 0.35,
+        "singleton_threshold": 0.7,
+    }
 
 
 def test_catalog_rejects_registration_without_product_mode_interface():

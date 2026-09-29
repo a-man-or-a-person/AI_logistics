@@ -418,7 +418,7 @@ def test_geography_only_ml_input_never_receives_price(product_files):
     )
 
 
-def test_partition_modes_route_through_catalog_while_bear_modes_stay_on_old_path(product_files):
+def test_all_modes_route_through_catalog(product_files):
     source, cache = product_files
     service = ClusteringService(source, coordinate_cache_path=cache)
     catalog = TrackingProductModeCatalog(
@@ -426,6 +426,8 @@ def test_partition_modes_route_through_catalog_while_bear_modes_stay_on_old_path
             geography_clusterer=service.clusterers["geography"],
             geo_cost_clusterer=service.clusterers["geo_cost"],
             geo_volume_clusterer=service.clusterers["geo_volume"],
+            bear_zones_clusterer=service.clusterers["bear_zones"],
+            bear_volume_zones_clusterer=service.clusterers["bear_volume_zones"],
         )
     )
     service.product_mode_catalog = catalog
@@ -443,6 +445,11 @@ def test_partition_modes_route_through_catalog_while_bear_modes_stay_on_old_path
             "geography_weight": 0.7,
             "volume_weight": 0.3,
         },
+        "bear_zones": {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        "bear_volume_zones": {
+            "volume_threshold": 0.35,
+            "singleton_threshold": 0.7,
+        },
     }
 
     for mode, mode_parameters in parameters.items():
@@ -452,19 +459,8 @@ def test_partition_modes_route_through_catalog_while_bear_modes_stay_on_old_path
         )
         service.preview(request)
         service.run(request)
-    for mode, mode_parameters in {
-        "bear_zones": {"bear_threshold": 0.35, "singleton_threshold": 0.7},
-        "bear_volume_zones": {"volume_threshold": 0.35, "singleton_threshold": 0.7},
-    }.items():
-        request = ClusteringRequest.from_payload(
-            _payload(mode=mode, parameters=mode_parameters),
-            product_mode_catalog=catalog,
-        )
-        service.preview(request)
-        service.run(request)
-
-    assert catalog.selections == ["geography", "geo_cost", "geo_volume"]
-    assert catalog.operations == ["preview", "run"] * 3
+    assert catalog.selections == list(parameters)
+    assert catalog.operations == ["preview", "run"] * 5
 
 
 def test_geography_adapter_path_matches_legacy_geography_product_output(product_files):
@@ -569,6 +565,64 @@ def test_business_adapter_paths_match_legacy_product_output_and_graph(
     assert adapter_parameters == {
         key: value for key, value in algorithm_parameters.items() if key != "spatial_graph"
     }
+    assert adapter_graph.node_ids == legacy_graph.node_ids
+    assert adapter_graph.edges == legacy_graph.edges
+    assert adapter_output == legacy_output
+
+
+@pytest.mark.parametrize(
+    ("mode", "clusterer_factory", "parameters"),
+    [
+        (
+            "bear_zones",
+            BearZoneDetector,
+            {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
+        (
+            "bear_volume_zones",
+            BearVolumeZoneDetector,
+            {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
+    ],
+)
+def test_bear_adapter_paths_match_legacy_product_output_and_graph(
+    product_files, mode, clusterer_factory, parameters
+):
+    source, cache = product_files
+    recorder = RecordingClusterer(clusterer_factory())
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        clusterers={mode: recorder},
+    )
+    request = ClusteringRequest.from_payload(
+        _payload(mode=mode, parameters=parameters),
+        product_mode_catalog=service.product_mode_catalog,
+    )
+    locations, report = service._locations(request)
+    projection = service._projection(locations)
+    spatial_points = service._ml_input(locations, projection, include_economics=False)
+    full_graph, _ = service._spatial_graph(spatial_points)
+    if mode == "bear_zones":
+        points = service._ml_input(locations, projection, include_economics=True)
+        legacy_points = [
+            point
+            for point in points
+            if point.trip_count > 0 and point.weighted_rub_per_km is not None
+        ]
+    else:
+        legacy_points = [point for point in spatial_points if point.trip_count > 0]
+    legacy_graph = full_graph.induced_subgraph({point.id for point in legacy_points})
+    algorithm_parameters = {"spatial_graph": legacy_graph, **parameters}
+    legacy_result = clusterer_factory().fit(legacy_points, algorithm_parameters)
+    legacy_status = "no_bears" if not legacy_result.clusters else "success"
+    legacy_output = service._result_json(request, locations, report, legacy_result, legacy_status)
+
+    adapter_output = service.run(request)
+
+    adapter_ids, adapter_parameters, adapter_graph = recorder.calls[0]
+    assert adapter_ids == tuple(point.id for point in legacy_points)
+    assert adapter_parameters == parameters
     assert adapter_graph.node_ids == legacy_graph.node_ids
     assert adapter_graph.edges == legacy_graph.edges
     assert adapter_output == legacy_output
@@ -705,6 +759,16 @@ def test_result_cache_reuses_repository_and_calculation(product_files):
                 "volume_weight": 0.3,
             },
         ),
+        (
+            "bear_zones",
+            BearZoneDetector,
+            {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
+        (
+            "bear_volume_zones",
+            BearVolumeZoneDetector,
+            {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+        ),
     ],
 )
 def test_equivalent_normalized_mode_parameters_share_result_cache(
@@ -720,9 +784,7 @@ def test_equivalent_normalized_mode_parameters_share_result_cache(
     implicit_payload = _payload(mode=mode)
     implicit_payload.pop("parameters")
     implicit = ClusteringRequest.from_payload(implicit_payload)
-    explicit = ClusteringRequest.from_payload(
-        _payload(mode=mode, parameters=explicit_parameters)
-    )
+    explicit = ClusteringRequest.from_payload(_payload(mode=mode, parameters=explicit_parameters))
 
     first = service.run(implicit)
     second = service.run(explicit)
@@ -1187,7 +1249,43 @@ def test_unassigned_bear_candidates_keep_product_status(
     assert candidate["cluster_id"] == -1
 
 
-def test_geo_cost_warning_order_and_quality_semantics(tmp_path, product_client_factory):
+@pytest.mark.parametrize(
+    ("mode", "parameters", "warning_codes"),
+    [
+        (
+            "geo_cost",
+            {
+                "k_mode": "manual",
+                "n_clusters": 2,
+                "geography_weight": 0.7,
+                "economics_weight": 0.3,
+            },
+            [
+                "CONTAINS_FORECAST",
+                "MIXED_ECONOMIC_SEGMENTS",
+                "COORDINATE_INCOMPLETE",
+                "ECONOMIC_UNAVAILABLE",
+            ],
+        ),
+        (
+            "bear_zones",
+            {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+            [
+                "CONTAINS_FORECAST",
+                "MIXED_ECONOMIC_SEGMENTS",
+                "COORDINATE_INCOMPLETE",
+            ],
+        ),
+        (
+            "bear_volume_zones",
+            {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+            ["CONTAINS_FORECAST", "COORDINATE_INCOMPLETE"],
+        ),
+    ],
+)
+def test_business_mode_warning_order_and_quality_semantics(
+    tmp_path, product_client_factory, mode, parameters, warning_codes
+):
     source = tmp_path / "warning-semantics.csv"
     cache = tmp_path / "warning-semantics-coords.json"
     _write_csv(
@@ -1222,24 +1320,14 @@ def test_geo_cost_warning_order_and_quality_semantics(tmp_path, product_client_f
         "/api/clustering/run",
         json=_payload(
             period_types=["current", "forecast"],
-            mode="geo_cost",
-            parameters={
-                "k_mode": "manual",
-                "n_clusters": 2,
-                "geography_weight": 0.7,
-                "economics_weight": 0.3,
-            },
+            mode=mode,
+            parameters=parameters,
         ),
     )
     result = response.get_json()
 
     assert response.status_code == 200
-    assert [warning["code"] for warning in result["warnings"]] == [
-        "CONTAINS_FORECAST",
-        "MIXED_ECONOMIC_SEGMENTS",
-        "COORDINATE_INCOMPLETE",
-        "ECONOMIC_UNAVAILABLE",
-    ]
+    assert [warning["code"] for warning in result["warnings"]] == warning_codes
     assert result["data_quality"]["contains_forecast"] is True
     assert result["data_quality"]["economic_unavailable_points"] == 1
     assert result["data_quality"]["unresolved_points"] == 1

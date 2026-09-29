@@ -1,5 +1,10 @@
 """Product-mode seam used by the incremental clustering refactor."""
 
+from backend.product_modes.bear_volume_zones import (
+    BearVolumeZonesParameters,
+    BearVolumeZonesProductMode,
+)
+from backend.product_modes.bear_zones import BearZonesParameters, BearZonesProductMode
 from backend.product_modes.catalog import (
     CANONICAL_PRODUCT_MODE_IDS,
     ModeCapabilities,
@@ -21,6 +26,10 @@ from backend.product_modes.geography import GeographyProductMode
 
 __all__ = [
     "CANONICAL_PRODUCT_MODE_IDS",
+    "BearZonesParameters",
+    "BearZonesProductMode",
+    "BearVolumeZonesParameters",
+    "BearVolumeZonesProductMode",
     "ModeCapabilities",
     "ModeDataset",
     "ModeOutcome",

@@ -45,7 +45,7 @@ MODES: dict[str, type[Clusterer]] = {
     "bear_volume_zones": BearVolumeZoneDetector,
 }
 BEAR_MODES = frozenset({"bear_zones", "bear_volume_zones"})
-ADAPTER_MODES = frozenset({"geography", "geo_cost", "geo_volume"})
+ADAPTER_MODES = frozenset(MODES)
 PERIOD_TYPES = frozenset({"retro", "current", "forecast"})
 PRICE_TYPES = frozenset({"spot", "tender"})
 K_MIN, K_MAX, DEFAULT_K = 2, 20, 5
@@ -121,7 +121,7 @@ class ClusteringRequest:
             "bear_zones": {"bear_threshold", "singleton_threshold"},
             "bear_volume_zones": {"volume_threshold", "singleton_threshold"},
         }.get(mode)
-        if allowed is not None:
+        if allowed is not None and mode not in ADAPTER_MODES:
             unknown = set(parameters) - allowed
             if unknown:
                 raise ProductClusteringError(
@@ -135,19 +135,29 @@ class ClusteringRequest:
         geography_weight: float | None = None
         economics_weight: float | None = None
         volume_weight: float | None = None
+        bear_threshold = DEFAULT_BEAR_THRESHOLD
+        volume_threshold = DEFAULT_BEAR_THRESHOLD
+        singleton_threshold = DEFAULT_SINGLETON_THRESHOLD
         mode_selection: ModeSelection | None = None
         if mode in ADAPTER_MODES:
             catalog = product_mode_catalog or default_product_mode_catalog()
             mode_selection = catalog.select(mode, parameters)
             normalized = mode_selection.as_parameters()
-            k_mode = normalized["k_mode"]
-            n_clusters = normalized["n_clusters"]
+            if mode in {"geography", "geo_cost", "geo_volume"}:
+                k_mode = normalized["k_mode"]
+                n_clusters = normalized["n_clusters"]
             if mode == "geo_cost":
                 geography_weight = normalized["geography_weight"]
                 economics_weight = normalized["economics_weight"]
             elif mode == "geo_volume":
                 geography_weight = normalized["geography_weight"]
                 volume_weight = normalized["volume_weight"]
+            elif mode == "bear_zones":
+                bear_threshold = normalized["bear_threshold"]
+                singleton_threshold = normalized["singleton_threshold"]
+            elif mode == "bear_volume_zones":
+                volume_threshold = normalized["volume_threshold"]
+                singleton_threshold = normalized["singleton_threshold"]
         elif mode not in BEAR_MODES:
             k_mode = parameters.get("k_mode")
             raw_k = parameters.get("n_clusters")
@@ -206,40 +216,41 @@ class ClusteringRequest:
                     400,
                 )
 
-        bear_threshold = _number(
-            parameters.get("bear_threshold", DEFAULT_BEAR_THRESHOLD), "Порог Bear должен быть числом."
-        )
-        volume_threshold = _number(
-            parameters.get("volume_threshold", DEFAULT_BEAR_THRESHOLD),
-            "Порог объёмной зоны должен быть числом.",
-        )
-        singleton_threshold = _number(
-            parameters.get("singleton_threshold", DEFAULT_SINGLETON_THRESHOLD),
-            "Порог одиночной точки должен быть числом.",
-        )
-        if mode in BEAR_MODES and abs(singleton_threshold - DEFAULT_SINGLETON_THRESHOLD) > 1e-9:
-            raise ProductClusteringError(
-                "INVALID_MODE_PARAMETERS",
-                "Порог одиночной точки фиксирован на уровне +70%.",
-                400,
+        if mode_selection is None:
+            bear_threshold = _number(
+                parameters.get("bear_threshold", DEFAULT_BEAR_THRESHOLD), "Порог Bear должен быть числом."
             )
-        if mode == "bear_zones" and not any(
-            abs(bear_threshold - option) < 1e-9 for option in BEAR_THRESHOLD_OPTIONS
-        ):
-            raise ProductClusteringError(
-                "INVALID_MODE_PARAMETERS",
-                "Допустимые пороги Bear: +20%, +25%, +30%, +35%, +40% или +50%.",
-                400,
+            volume_threshold = _number(
+                parameters.get("volume_threshold", DEFAULT_BEAR_THRESHOLD),
+                "Порог объёмной зоны должен быть числом.",
             )
-        if mode == "bear_volume_zones" and not any(
-            abs(volume_threshold - option) < 1e-9
-            for option in BEAR_THRESHOLD_OPTIONS
-        ):
-            raise ProductClusteringError(
-                "INVALID_MODE_PARAMETERS",
-                "Допустимые пороги объёмных зон: +20%, +25%, +30%, +35%, +40% или +50%.",
-                400,
+            singleton_threshold = _number(
+                parameters.get("singleton_threshold", DEFAULT_SINGLETON_THRESHOLD),
+                "Порог одиночной точки должен быть числом.",
             )
+            if mode in BEAR_MODES and abs(singleton_threshold - DEFAULT_SINGLETON_THRESHOLD) > 1e-9:
+                raise ProductClusteringError(
+                    "INVALID_MODE_PARAMETERS",
+                    "Порог одиночной точки фиксирован на уровне +70%.",
+                    400,
+                )
+            if mode == "bear_zones" and not any(
+                abs(bear_threshold - option) < 1e-9 for option in BEAR_THRESHOLD_OPTIONS
+            ):
+                raise ProductClusteringError(
+                    "INVALID_MODE_PARAMETERS",
+                    "Допустимые пороги Bear: +20%, +25%, +30%, +35%, +40% или +50%.",
+                    400,
+                )
+            if mode == "bear_volume_zones" and not any(
+                abs(volume_threshold - option) < 1e-9
+                for option in BEAR_THRESHOLD_OPTIONS
+            ):
+                raise ProductClusteringError(
+                    "INVALID_MODE_PARAMETERS",
+                    "Допустимые пороги объёмных зон: +20%, +25%, +30%, +35%, +40% или +50%.",
+                    400,
+                )
 
         periods = _string_list(payload, "period_types", ("current",))
         prices = _string_list(payload, "price_types", ("spot",))
@@ -352,6 +363,8 @@ class ClusteringService:
             geography_clusterer=self.clusterers.get("geography"),
             geo_cost_clusterer=self.clusterers.get("geo_cost"),
             geo_volume_clusterer=self.clusterers.get("geo_volume"),
+            bear_zones_clusterer=self.clusterers.get("bear_zones"),
+            bear_volume_zones_clusterer=self.clusterers.get("bear_volume_zones"),
         )
         self._origin_catalog: list[OriginOption] | None = None
         self._destination_regions: dict[str, set[str]] = {}
