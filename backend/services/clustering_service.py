@@ -9,9 +9,10 @@ from collections import Counter, OrderedDict
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from backend.product_modes import (
+    ModeDataQuality,
     ModeDataset,
     ModeOutcome,
     ModePreview,
@@ -44,8 +45,8 @@ MODES: dict[str, type[Clusterer]] = {
     "bear_zones": BearZoneDetector,
     "bear_volume_zones": BearVolumeZoneDetector,
 }
-BEAR_MODES = frozenset({"bear_zones", "bear_volume_zones"})
-ADAPTER_MODES = frozenset(MODES)
+LEGACY_BEAR_MODES = frozenset({"bear_zones", "bear_volume_zones"})
+CATALOG_MODE_IDS = frozenset(MODES)
 PERIOD_TYPES = frozenset({"retro", "current", "forecast"})
 PRICE_TYPES = frozenset({"spot", "tender"})
 K_MIN, K_MAX, DEFAULT_K = 2, 20, 5
@@ -121,7 +122,7 @@ class ClusteringRequest:
             "bear_zones": {"bear_threshold", "singleton_threshold"},
             "bear_volume_zones": {"volume_threshold", "singleton_threshold"},
         }.get(mode)
-        if allowed is not None and mode not in ADAPTER_MODES:
+        if allowed is not None and mode not in CATALOG_MODE_IDS:
             unknown = set(parameters) - allowed
             if unknown:
                 raise ProductClusteringError(
@@ -139,26 +140,26 @@ class ClusteringRequest:
         volume_threshold = DEFAULT_BEAR_THRESHOLD
         singleton_threshold = DEFAULT_SINGLETON_THRESHOLD
         mode_selection: ModeSelection | None = None
-        if mode in ADAPTER_MODES:
+        if mode in CATALOG_MODE_IDS:
             catalog = product_mode_catalog or default_product_mode_catalog()
             mode_selection = catalog.select(mode, parameters)
             normalized = mode_selection.as_parameters()
-            if mode in {"geography", "geo_cost", "geo_volume"}:
-                k_mode = normalized["k_mode"]
-                n_clusters = normalized["n_clusters"]
-            if mode == "geo_cost":
-                geography_weight = normalized["geography_weight"]
-                economics_weight = normalized["economics_weight"]
-            elif mode == "geo_volume":
-                geography_weight = normalized["geography_weight"]
-                volume_weight = normalized["volume_weight"]
-            elif mode == "bear_zones":
-                bear_threshold = normalized["bear_threshold"]
-                singleton_threshold = normalized["singleton_threshold"]
-            elif mode == "bear_volume_zones":
-                volume_threshold = normalized["volume_threshold"]
-                singleton_threshold = normalized["singleton_threshold"]
-        elif mode not in BEAR_MODES:
+            k_mode = cast(str | None, normalized.get("k_mode"))
+            n_clusters = cast(int | str | None, normalized.get("n_clusters"))
+            geography_weight = cast(float | None, normalized.get("geography_weight"))
+            economics_weight = cast(float | None, normalized.get("economics_weight"))
+            volume_weight = cast(float | None, normalized.get("volume_weight"))
+            bear_threshold = float(
+                normalized.get("bear_threshold", DEFAULT_BEAR_THRESHOLD)
+            )
+            volume_threshold = float(
+                normalized.get("volume_threshold", DEFAULT_BEAR_THRESHOLD)
+            )
+            singleton_threshold = float(
+                normalized.get("singleton_threshold", DEFAULT_SINGLETON_THRESHOLD)
+            )
+        # Inactive pre-catalog parsing retained for the Ticket 05 rollback boundary.
+        elif mode not in LEGACY_BEAR_MODES:
             k_mode = parameters.get("k_mode")
             raw_k = parameters.get("n_clusters")
             if k_mode is None:
@@ -228,7 +229,7 @@ class ClusteringRequest:
                 parameters.get("singleton_threshold", DEFAULT_SINGLETON_THRESHOLD),
                 "Порог одиночной точки должен быть числом.",
             )
-            if mode in BEAR_MODES and abs(singleton_threshold - DEFAULT_SINGLETON_THRESHOLD) > 1e-9:
+            if mode in LEGACY_BEAR_MODES and abs(singleton_threshold - DEFAULT_SINGLETON_THRESHOLD) > 1e-9:
                 raise ProductClusteringError(
                     "INVALID_MODE_PARAMETERS",
                     "Порог одиночной точки фиксирован на уровне +70%.",
@@ -293,6 +294,9 @@ class ClusteringRequest:
         }
 
     def parameters(self) -> dict[str, Any]:
+        if self.mode_selection is not None:
+            return self.mode_selection.as_parameters()
+        # Compatibility projection for the inactive legacy execution path.
         if self.mode == "bear_zones":
             return {
                 "bear_threshold": self.bear_threshold,
@@ -690,7 +694,46 @@ class ClusteringService:
         }
 
     @staticmethod
-    def _warnings(mode: str, quality: dict[str, Any]) -> list[dict[str, str]]:
+    def _mode_quality(quality: dict[str, Any]) -> ModeDataQuality:
+        return ModeDataQuality(
+            contains_forecast=quality["contains_forecast"],
+            mixed_economic_segments=any(
+                quality[key]
+                for key in (
+                    "mixed_price_segments",
+                    "mixed_vehicle_segments",
+                    "mixed_tonnage_segments",
+                )
+            ),
+            unresolved_points=quality["unresolved_points"],
+            economic_unavailable_points=quality["economic_unavailable_points"],
+        )
+
+    def _prepare_mode_dataset(
+        self,
+        locations: list[LocationPoint],
+        quality: dict[str, Any],
+        spatial_graph: SpatialGraph | None,
+        projection: LocalProjection | None = None,
+    ) -> ModeDataset:
+        resolved = [
+            point
+            for point in locations
+            if point.latitude is not None and point.longitude is not None
+        ]
+        points = (
+            self._ml_input(
+                locations,
+                projection or self._projection(locations),
+                include_economics=True,
+            )
+            if resolved
+            else []
+        )
+        return ModeDataset(tuple(points), spatial_graph, self._mode_quality(quality))
+
+    @staticmethod
+    def _legacy_warnings(mode: str, quality: dict[str, Any]) -> list[dict[str, str]]:
         warnings: list[dict[str, str]] = []
         if quality["contains_forecast"]:
             warnings.append(
@@ -736,35 +779,14 @@ class ClusteringService:
     def _point_json(
         location: LocationPoint,
         *,
-        mode: str,
-        assignments: dict[str, int] | None = None,
-        cluster_types: dict[int, str] | None = None,
-        outlier_ids: set[str] | None = None,
-        candidate_ids: set[str] | None = None,
+        status: str | None = None,
+        cluster_id: int | None = None,
         regional_rate: float | None = None,
         regional_mean_trip_count: float | None = None,
     ) -> dict[str, Any]:
-        cluster_id = assignments.get(location.id) if assignments else None
-        economic_available = (
-            location.trip_count > 0
-            and location.weighted_price is not None
-            and location.weighted_rub_per_km is not None
-        )
         if location.latitude is None or location.longitude is None:
             status = "unresolved"
-        elif mode in {"geo_cost", "bear_zones"} and not economic_available:
-            status = "economic_unavailable"
-        elif cluster_id is not None and cluster_id >= 0:
-            status = (cluster_types or {}).get(cluster_id, "normal")
-        elif location.id in (candidate_ids or set()):
-            status = (
-                "bear_volume_candidate"
-                if mode == "bear_volume_zones"
-                else "bear_candidate"
-            )
-        elif location.id in (outlier_ids or set()):
-            status = "spatial_outlier"
-        else:
+        elif status is None:
             status = "ordinary"
         return {
             "id": location.id,
@@ -795,6 +817,48 @@ class ClusteringService:
             "data_quality_flags": list(location.data_quality_flags),
         }
 
+    @staticmethod
+    def _legacy_point_json(
+        location: LocationPoint,
+        *,
+        mode: str,
+        assignments: dict[str, int] | None = None,
+        cluster_types: dict[int, str] | None = None,
+        outlier_ids: set[str] | None = None,
+        candidate_ids: set[str] | None = None,
+        regional_rate: float | None = None,
+        regional_mean_trip_count: float | None = None,
+    ) -> dict[str, Any]:
+        cluster_id = assignments.get(location.id) if assignments else None
+        economic_available = (
+            location.trip_count > 0
+            and location.weighted_price is not None
+            and location.weighted_rub_per_km is not None
+        )
+        if location.latitude is None or location.longitude is None:
+            status = "unresolved"
+        elif mode in {"geo_cost", "bear_zones"} and not economic_available:
+            status = "economic_unavailable"
+        elif cluster_id is not None and cluster_id >= 0:
+            status = (cluster_types or {}).get(cluster_id, "normal")
+        elif location.id in (candidate_ids or set()):
+            status = (
+                "bear_volume_candidate"
+                if mode == "bear_volume_zones"
+                else "bear_candidate"
+            )
+        elif location.id in (outlier_ids or set()):
+            status = "spatial_outlier"
+        else:
+            status = "ordinary"
+        return ClusteringService._point_json(
+            location,
+            status=status,
+            cluster_id=cluster_id,
+            regional_rate=regional_rate,
+            regional_mean_trip_count=regional_mean_trip_count,
+        )
+
     def _origin(self, fias_id: str) -> dict[str, Any]:
         matches = self.origins(fias_id, limit=1)
         if matches and matches[0]["fias_id"] == fias_id:
@@ -816,6 +880,8 @@ class ClusteringService:
             "algorithm": (
                 (result.internal_algorithm or result.algorithm)
                 if result
+                else preview.algorithm
+                if preview is not None
                 else MODES[request.mode].algorithm
             ),
             "parameters": (
@@ -834,31 +900,14 @@ class ClusteringService:
         self._validate_scope(request)
         locations, report = self._locations(request)
         quality = self._quality(locations, report)
-        mode_preview: ModePreview | None = None
-        if request.mode in ADAPTER_MODES:
-            resolved = [
-                point
-                for point in locations
-                if point.latitude is not None and point.longitude is not None
-            ]
-            points = (
-                self._ml_input(
-                    locations,
-                    self._projection(locations),
-                    include_economics=True,
-                )
-                if resolved
-                else []
-            )
-            selection = request.mode_selection or self.product_mode_catalog.select(
-                request.mode, request.parameters()
-            )
-            evaluated = self.product_mode_catalog.evaluate(
-                selection, ModeDataset(tuple(points), None), "preview"
-            )
-            if not isinstance(evaluated, ModePreview):
-                raise TypeError(f"Product mode adapter did not return a preview: {request.mode}")
-            mode_preview = evaluated
+        dataset = self._prepare_mode_dataset(locations, quality, None)
+        selection = request.mode_selection or self.product_mode_catalog.select(
+            request.mode, request.parameters()
+        )
+        evaluated = self.product_mode_catalog.evaluate(selection, dataset, "preview")
+        if not isinstance(evaluated, ModePreview):
+            raise TypeError("Product mode adapter did not return a preview")
+        point_states = {state.point_id: state.status for state in evaluated.point_states}
         logger.info(
             (
                 "clustering_preview request_id=%s mode=%s origin=%s destination=%s "
@@ -876,10 +925,13 @@ class ClusteringService:
         )
         return {
             "status": "preview",
-            "analysis": self._analysis(request, preview=mode_preview),
+            "analysis": self._analysis(request, preview=evaluated),
             "data_quality": quality,
-            "warnings": self._warnings(request.mode, quality),
-            "points": [self._point_json(point, mode=request.mode) for point in locations],
+            "warnings": [warning.as_dict() for warning in evaluated.warnings],
+            "points": [
+                self._point_json(point, status=point_states.get(point.id))
+                for point in locations
+            ],
         }
 
     def run(
@@ -955,32 +1007,32 @@ class ClusteringService:
         locations, report = self._locations(request)
         if not locations:
             raise ProductClusteringError("NO_DATA", "По выбранным фильтрам данных нет.", 422)
+        quality = self._quality(locations, report)
+        projection = self._projection(locations)
+        spatial_points = self._ml_input(locations, projection, include_economics=False)
+        full_graph, graph_cache_hit = self._spatial_graph(spatial_points)
+        dataset = self._prepare_mode_dataset(
+            locations, quality, full_graph, projection
+        )
+        selection = request.mode_selection or self.product_mode_catalog.select(
+            request.mode, request.parameters()
+        )
+        evaluated = self.product_mode_catalog.evaluate(selection, dataset, "run")
+        if not isinstance(evaluated, ModeOutcome):
+            raise TypeError("Product mode adapter did not return an outcome")
+        return (
+            self._result_json(request, locations, report, evaluated),
+            graph_cache_hit,
+        )
+
+    def _calculate_legacy(self, request: ClusteringRequest) -> tuple[dict[str, Any], bool]:
+        """Inactive pre-Ticket-05 path retained as the rollback boundary."""
+        locations, report = self._locations(request)
+        if not locations:
+            raise ProductClusteringError("NO_DATA", "По выбранным фильтрам данных нет.", 422)
         projection = self._projection(locations)
         geography_points = self._ml_input(locations, projection, include_economics=False)
         full_graph, graph_cache_hit = self._spatial_graph(geography_points)
-
-        if request.mode in ADAPTER_MODES:
-            points = self._ml_input(locations, projection, include_economics=True)
-            selection = request.mode_selection or self.product_mode_catalog.select(
-                request.mode, request.parameters()
-            )
-            outcome = self.product_mode_catalog.evaluate(
-                selection,
-                ModeDataset(tuple(points), full_graph),
-                "run",
-            )
-            if not isinstance(outcome, ModeOutcome):
-                raise TypeError(f"Product mode adapter did not return an outcome: {request.mode}")
-            return (
-                self._result_json(
-                    request,
-                    locations,
-                    report,
-                    outcome.result,
-                    outcome.status,
-                ),
-                graph_cache_hit,
-            )
 
         if request.mode == "geo_volume":
             points = geography_points
@@ -1022,7 +1074,7 @@ class ClusteringService:
                     )
             graph = full_graph.induced_subgraph({point.id for point in points})
 
-        if request.mode not in BEAR_MODES and isinstance(request.n_clusters, int):
+        if request.mode not in LEGACY_BEAR_MODES and isinstance(request.n_clusters, int):
             clusterable = len(points) - len(graph.isolated_point_ids)
             components = sum(len(component) > 1 for component in graph.connected_components)
             if request.n_clusters > clusterable or request.n_clusters < components:
@@ -1072,10 +1124,12 @@ class ClusteringService:
             raise ProductClusteringError(code, str(error), 422) from error
         status = (
             "no_bears"
-            if request.mode in BEAR_MODES and not result.clusters
+            if request.mode in LEGACY_BEAR_MODES and not result.clusters
             else "success"
         )
-        return self._result_json(request, locations, report, result, status), graph_cache_hit
+        return self._legacy_result_json(
+            request, locations, report, result, status
+        ), graph_cache_hit
 
     def compare(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
         if not isinstance(payload, dict):
@@ -1093,27 +1147,9 @@ class ClusteringService:
             if key in payload
         }
         requests = {
-            "geography": {"k_mode": "auto", "n_clusters": "auto"},
-            "geo_cost": {
-                "k_mode": "auto",
-                "n_clusters": "auto",
-                "geography_weight": 0.70,
-                "economics_weight": 0.30,
-            },
-            "geo_volume": {
-                "k_mode": "auto",
-                "n_clusters": "auto",
-                "geography_weight": 0.70,
-                "volume_weight": 0.30,
-            },
-            "bear_zones": {
-                "bear_threshold": DEFAULT_BEAR_THRESHOLD,
-                "singleton_threshold": DEFAULT_SINGLETON_THRESHOLD,
-            },
-            "bear_volume_zones": {
-                "volume_threshold": DEFAULT_BEAR_THRESHOLD,
-                "singleton_threshold": DEFAULT_SINGLETON_THRESHOLD,
-            },
+            capability.mode_id: dict(capability.comparison_parameters)
+            for capability in self.product_mode_catalog.manifest()
+            if capability.comparison_supported
         }
         results = {
             mode: self.run(
@@ -1133,6 +1169,72 @@ class ClusteringService:
         }
 
     def _result_json(
+        self,
+        request: ClusteringRequest,
+        locations: list[LocationPoint],
+        report: dict[str, Any],
+        outcome: ModeOutcome,
+    ) -> dict[str, Any]:
+        quality = self._quality(locations, report)
+        result = outcome.result
+        location_by_id = {point.id: point for point in locations}
+        regional_rate = result.regional_weighted_rub_per_km
+        regional_mean_trip_count = result.metrics.get("regional_mean_trip_count")
+        point_states = {state.point_id: state.status for state in outcome.point_states}
+        metrics = dict(result.metrics)
+        graph_metric_names = {
+            "node_count",
+            "edge_count",
+            "candidate_edge_count",
+            "pruned_edge_count",
+            "graph_component_count",
+            "isolated_point_count",
+            "connectivity_violations",
+            "adaptive_edge_threshold_m",
+        }
+        regional_price = weighted_mean(
+            (point.weighted_price, point.trip_count) for point in locations
+        )
+        return {
+            "status": outcome.status,
+            "analysis": self._analysis(request, result),
+            "contains_forecast": quality["contains_forecast"],
+            "data_quality": quality,
+            "warnings": [warning.as_dict() for warning in outcome.warnings],
+            "metrics": metrics,
+            "graph_metrics": {
+                key: value for key, value in metrics.items() if key in graph_metric_names
+            },
+            "regional_stats": {
+                "destination_points": quality["destination_points_total"],
+                "trip_count": quality["trip_count_total"],
+            },
+            "regional_economics": {
+                "weighted_price": regional_price,
+                "weighted_rub_per_km": regional_rate,
+            },
+            "regional_volume": {
+                "trip_count": quality["trip_count_total"],
+                "mean_trip_count_per_point": regional_mean_trip_count,
+            },
+            "regional_weighted_rub_per_km": regional_rate,
+            "points": [
+                self._point_json(
+                    point,
+                    status=point_states.get(point.id),
+                    cluster_id=result.point_assignments.get(point.id),
+                    regional_rate=regional_rate,
+                    regional_mean_trip_count=regional_mean_trip_count,
+                )
+                for point in locations
+            ],
+            "clusters": [
+                self._cluster_json(cluster, location_by_id) for cluster in result.clusters
+            ],
+            "outliers": list(result.outliers),
+        }
+
+    def _legacy_result_json(
         self,
         request: ClusteringRequest,
         locations: list[LocationPoint],
@@ -1187,7 +1289,7 @@ class ClusteringService:
             "analysis": self._analysis(request, result),
             "contains_forecast": quality["contains_forecast"],
             "data_quality": quality,
-            "warnings": self._warnings(request.mode, quality),
+            "warnings": self._legacy_warnings(request.mode, quality),
             "metrics": metrics,
             "graph_metrics": {
                 key: value for key, value in metrics.items() if key in graph_metric_names
@@ -1206,7 +1308,7 @@ class ClusteringService:
             },
             "regional_weighted_rub_per_km": regional_rate,
             "points": [
-                self._point_json(
+                self._legacy_point_json(
                     point,
                     mode=request.mode,
                     assignments=result.point_assignments,

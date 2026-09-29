@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final, Literal, Protocol
 
 from ml.clustering.base import Clusterer, ClusterPoint, ClusterResult
@@ -167,11 +167,22 @@ class ModeSelection:
 
 
 @dataclass(frozen=True, slots=True)
+class ModeDataQuality:
+    """Common data-quality facts available to every Product adapter."""
+
+    contains_forecast: bool = False
+    mixed_economic_segments: bool = False
+    unresolved_points: int = 0
+    economic_unavailable_points: int = 0
+
+
+@dataclass(frozen=True, slots=True)
 class ModeDataset:
     """Shared Product data prepared before mode-specific eligibility filtering."""
 
     points: tuple[ClusterPoint, ...]
     spatial_graph: SpatialGraph | None
+    quality: ModeDataQuality = field(default_factory=ModeDataQuality)
 
     def __post_init__(self) -> None:
         point_ids = tuple(point.id for point in self.points)
@@ -182,11 +193,29 @@ class ModeDataset:
 
 
 @dataclass(frozen=True, slots=True)
+class ProductWarning:
+    code: str
+    message: str
+
+    def as_dict(self) -> dict[str, str]:
+        return {"code": self.code, "message": self.message}
+
+
+@dataclass(frozen=True, slots=True)
+class ModePointState:
+    point_id: str
+    status: str
+
+
+@dataclass(frozen=True, slots=True)
 class ModePreview:
     """Mode-normalized parameters and the points eligible for evaluation."""
 
     selection: ModeSelection
     eligible_point_ids: tuple[str, ...]
+    algorithm: str = ""
+    point_states: tuple[ModePointState, ...] = ()
+    warnings: tuple[ProductWarning, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -196,6 +225,8 @@ class ModeOutcome:
     selection: ModeSelection
     status: ModeStatus
     result: ClusterResult
+    point_states: tuple[ModePointState, ...] = ()
+    warnings: tuple[ProductWarning, ...] = ()
 
 
 class ProductModeNotMigratedError(RuntimeError):

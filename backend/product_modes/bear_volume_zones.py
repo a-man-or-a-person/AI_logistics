@@ -13,6 +13,11 @@ from backend.product_modes._bear import (
     fixed_singleton,
     number,
 )
+from backend.product_modes._presentation import (
+    outcome_point_states,
+    preview_point_states,
+    product_warnings,
+)
 from backend.product_modes.catalog import (
     ModeCapabilities,
     ModeDataset,
@@ -113,7 +118,13 @@ class BearVolumeZonesProductMode:
             if point.trip_count > 0
         )
         if operation == "preview":
-            return ModePreview(selection, tuple(point.id for point in points))
+            return ModePreview(
+                selection,
+                tuple(point.id for point in points),
+                self._clusterer.algorithm,
+                preview_point_states(dataset.points),
+                product_warnings(dataset.quality),
+            )
         if not points:
             raise ProductClusteringError(
                 "INSUFFICIENT_POINTS",
@@ -137,4 +148,23 @@ class BearVolumeZonesProductMode:
         except ValueError as error:
             raise ProductClusteringError("INSUFFICIENT_POINTS", str(error), 422) from error
         status = "no_bears" if not result.clusters else "success"
-        return ModeOutcome(selection, status, result)
+        regional_mean = result.metrics.get("regional_mean_trip_count")
+        candidate_ids = frozenset(
+            point.id
+            for point in dataset.points
+            if regional_mean is not None
+            and regional_mean > 0
+            and point.trip_count / regional_mean - 1 >= parameters.volume_threshold
+        )
+        return ModeOutcome(
+            selection,
+            status,
+            result,
+            outcome_point_states(
+                dataset.points,
+                result,
+                candidate_ids=candidate_ids,
+                candidate_status="bear_volume_candidate",
+            ),
+            product_warnings(dataset.quality),
+        )

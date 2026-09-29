@@ -2,15 +2,22 @@ from __future__ import annotations
 
 import csv
 import json
+from dataclasses import replace
 
 import pytest
 
 from backend.app import app
 from backend.clustering_api import set_clustering_service
-from backend.product_modes import default_product_mode_catalog
+from backend.product_modes import (
+    ModeOutcome,
+    ModePointState,
+    ModePreview,
+    ProductWarning,
+    default_product_mode_catalog,
+)
 from backend.services.boundary_provider import BoundaryProvider
 from backend.services.clustering_service import ClusteringRequest, ClusteringService
-from ml.clustering.base import ClusterPoint
+from ml.clustering.base import ClusterPoint, ClusterResult
 from ml.clustering.bear_volume_zones import BearVolumeZoneDetector
 from ml.clustering.bear_zones import BearZoneDetector
 from ml.clustering.geo_cost import GeoCostClusterer
@@ -398,6 +405,9 @@ class TrackingProductModeCatalog:
         self.operations.append(operation)
         return self.delegate.evaluate(selection, dataset, operation)
 
+    def manifest(self):
+        return self.delegate.manifest()
+
 
 def test_geography_only_ml_input_never_receives_price(product_files):
     source, cache = product_files
@@ -463,6 +473,64 @@ def test_all_modes_route_through_catalog(product_files):
     assert catalog.operations == ["preview", "run"] * 5
 
 
+class PresentingProductModeCatalog:
+    def __init__(self, delegate):
+        self.delegate = delegate
+
+    def select(self, mode_id, parameters):
+        return self.delegate.select(mode_id, parameters)
+
+    def evaluate(self, selection, dataset, operation):
+        states = tuple(ModePointState(point.id, f"adapter_{operation}") for point in dataset.points)
+        warnings = (ProductWarning("ADAPTER_WARNING", f"adapter {operation}"),)
+        if operation == "preview":
+            return ModePreview(
+                selection,
+                tuple(point.id for point in dataset.points),
+                "adapter_preview_algorithm",
+                states,
+                warnings,
+            )
+        result = ClusterResult(
+            "adapter_run_algorithm",
+            selection.as_parameters(),
+            {point.id: -1 for point in dataset.points},
+            (),
+            (),
+            {},
+        )
+        return ModeOutcome(selection, "success", result, states, warnings)
+
+
+def test_product_facade_renders_adapter_presentation_without_mode_interpretation(
+    product_files,
+):
+    source, cache = product_files
+    catalog = PresentingProductModeCatalog(default_product_mode_catalog())
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        product_mode_catalog=catalog,
+    )
+    request = ClusteringRequest.from_payload(
+        _payload(parameters={"k_mode": "manual", "n_clusters": 2}),
+        product_mode_catalog=catalog,
+    )
+
+    preview = service.preview(request)
+    result = service.run(request)
+
+    assert preview["analysis"]["algorithm"] == "adapter_preview_algorithm"
+    assert preview["warnings"] == [{"code": "ADAPTER_WARNING", "message": "adapter preview"}]
+    assert {point["status"] for point in preview["points"] if point["lat"] is not None} == {
+        "adapter_preview"
+    }
+    assert result["warnings"] == [{"code": "ADAPTER_WARNING", "message": "adapter run"}]
+    assert {point["status"] for point in result["points"] if point["lat"] is not None} == {
+        "adapter_run"
+    }
+
+
 def test_geography_adapter_path_matches_legacy_geography_product_output(product_files):
     source, cache = product_files
     service = ClusteringService(source, coordinate_cache_path=cache)
@@ -480,7 +548,9 @@ def test_geography_adapter_path_matches_legacy_geography_product_output(product_
             "k_max": 20,
         },
     )
-    legacy_output = service._result_json(request, locations, report, legacy_result, "success")
+    legacy_output = service._legacy_result_json(
+        request, locations, report, legacy_result, "success"
+    )
 
     adapter_output = service.run(request)
 
@@ -556,7 +626,9 @@ def test_business_adapter_paths_match_legacy_product_output_and_graph(
         ("economics_weight" if mode == "geo_cost" else "volume_weight"): 0.3,
     }
     legacy_result = clusterer_factory().fit(legacy_points, algorithm_parameters)
-    legacy_output = service._result_json(request, locations, report, legacy_result, "success")
+    legacy_output = service._legacy_result_json(
+        request, locations, report, legacy_result, "success"
+    )
 
     adapter_output = service.run(request)
 
@@ -616,7 +688,9 @@ def test_bear_adapter_paths_match_legacy_product_output_and_graph(
     algorithm_parameters = {"spatial_graph": legacy_graph, **parameters}
     legacy_result = clusterer_factory().fit(legacy_points, algorithm_parameters)
     legacy_status = "no_bears" if not legacy_result.clusters else "success"
-    legacy_output = service._result_json(request, locations, report, legacy_result, legacy_status)
+    legacy_output = service._legacy_result_json(
+        request, locations, report, legacy_result, legacy_status
+    )
 
     adapter_output = service.run(request)
 
@@ -625,6 +699,89 @@ def test_bear_adapter_paths_match_legacy_product_output_and_graph(
     assert adapter_parameters == parameters
     assert adapter_graph.node_ids == legacy_graph.node_ids
     assert adapter_graph.edges == legacy_graph.edges
+    assert adapter_output == legacy_output
+
+
+@pytest.mark.parametrize(
+    ("mode", "clusterer_factory", "parameters", "expected_status"),
+    [
+        (
+            "bear_zones",
+            BearZoneDetector,
+            {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+            "expensive_singleton",
+        ),
+        (
+            "bear_volume_zones",
+            BearVolumeZoneDetector,
+            {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+            "high_volume_singleton",
+        ),
+    ],
+)
+def test_bear_singleton_product_output_matches_legacy_renderer(
+    tmp_path, mode, clusterer_factory, parameters, expected_status
+):
+    source = tmp_path / f"{mode}-singleton.csv"
+    cache = tmp_path / f"{mode}-singleton-coords.json"
+    _write_csv(
+        source,
+        [
+            _row("low-a", "Low A", price="1000", trips="10"),
+            _row("low-b", "Low B", price="1000", trips="10"),
+            _row("high", "High", price="3000", trips="100"),
+        ],
+    )
+    if mode == "bear_zones":
+        _write_csv(
+            source,
+            [
+                _row("low-a", "Low A", price="1000", trips="50"),
+                _row("low-b", "Low B", price="1000", trips="50"),
+                _row("high", "High", price="3000", trips="1"),
+            ],
+        )
+    cache.write_text(
+        json.dumps(
+            {
+                "Low A::Region A": [55.0, 37.0],
+                "Low B::Region A": [55.01, 37.01],
+                "High::Region A": [55.02, 37.02],
+            }
+        ),
+        encoding="utf-8",
+    )
+    service = ClusteringService(source, coordinate_cache_path=cache)
+    request = ClusteringRequest.from_payload(
+        _payload(mode=mode, parameters=parameters),
+        product_mode_catalog=service.product_mode_catalog,
+    )
+    locations, report = service._locations(request)
+    projection = service._projection(locations)
+    spatial_points = service._ml_input(locations, projection, include_economics=False)
+    full_graph, _ = service._spatial_graph(spatial_points)
+    if mode == "bear_zones":
+        points = service._ml_input(locations, projection, include_economics=True)
+        legacy_points = [
+            point
+            for point in points
+            if point.trip_count > 0 and point.weighted_rub_per_km is not None
+        ]
+    else:
+        legacy_points = [point for point in spatial_points if point.trip_count > 0]
+    legacy_graph = full_graph.induced_subgraph({point.id for point in legacy_points})
+    legacy_result = clusterer_factory().fit(
+        legacy_points, {"spatial_graph": legacy_graph, **parameters}
+    )
+    legacy_output = service._legacy_result_json(
+        request, locations, report, legacy_result, "success"
+    )
+
+    adapter_output = service.run(request)
+
+    singleton = next(point for point in adapter_output["points"] if point["id"] == "high")
+    assert singleton["status"] == expected_status
+    assert singleton["cluster_id"] >= 0
     assert adapter_output == legacy_output
 
 
@@ -1374,6 +1531,33 @@ def test_compare_uses_fixed_fact_only_contract(product_client, product_service):
     }
     assert len(filters) == 1
     assert len(point_ids) == 1
+
+
+def test_compare_sources_order_and_fixed_selections_from_catalog_metadata(product_files):
+    source, cache = product_files
+    catalog = TrackingProductModeCatalog(default_product_mode_catalog())
+    capabilities = list(catalog.delegate.manifest())
+    capabilities[0] = replace(
+        capabilities[0],
+        comparison_parameters=(("k_mode", "manual"), ("n_clusters", 2)),
+    )
+    catalog.manifest = lambda: tuple(capabilities)
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        product_mode_catalog=catalog,
+    )
+    payload = _payload()
+    payload.pop("mode")
+    payload.pop("parameters")
+
+    result = service.compare(payload)
+
+    assert list(result["results"]) == [item.mode_id for item in capabilities]
+    assert catalog.selections[0] == "geography"
+    geography_parameters = result["results"]["geography"]["analysis"]["parameters"]
+    assert geography_parameters["k_mode"] == "manual"
+    assert geography_parameters["n_clusters"] == 2
 
 
 @pytest.mark.parametrize(

@@ -15,6 +15,11 @@ from backend.product_modes._partition import (
     number,
     validate_k,
 )
+from backend.product_modes._presentation import (
+    outcome_point_states,
+    preview_point_states,
+    product_warnings,
+)
 from backend.product_modes.catalog import (
     ModeCapabilities,
     ModeDataset,
@@ -128,7 +133,13 @@ class GeoVolumeProductMode:
             for point in dataset.points
         )
         if operation == "preview":
-            return ModePreview(selection, tuple(point.id for point in points))
+            return ModePreview(
+                selection,
+                tuple(point.id for point in points),
+                self._clusterer.algorithm,
+                preview_point_states(dataset.points),
+                product_warnings(dataset.quality),
+            )
         if len(points) < 2:
             raise ProductClusteringError(
                 "INSUFFICIENT_POINTS",
@@ -160,4 +171,10 @@ class GeoVolumeProductMode:
                 else "INSUFFICIENT_POINTS"
             )
             raise ProductClusteringError(code, str(error), 422) from error
-        return ModeOutcome(selection, "success", result)
+        return ModeOutcome(
+            selection,
+            "success",
+            result,
+            outcome_point_states(dataset.points, result),
+            product_warnings(dataset.quality),
+        )

@@ -5,6 +5,11 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import replace
 
+from backend.product_modes._presentation import (
+    outcome_point_states,
+    preview_point_states,
+    product_warnings,
+)
 from backend.product_modes.catalog import (
     ModeCapabilities,
     ModeDataset,
@@ -82,7 +87,13 @@ class GeographyProductMode:
             for point in dataset.points
         )
         if operation == "preview":
-            return ModePreview(selection, tuple(point.id for point in points))
+            return ModePreview(
+                selection,
+                tuple(point.id for point in points),
+                self._clusterer.algorithm,
+                preview_point_states(dataset.points),
+                product_warnings(dataset.quality),
+            )
         if operation != "run":
             raise ValueError(f"Unknown Product mode operation: {operation}")
         if len(points) < 2:
@@ -123,4 +134,10 @@ class GeographyProductMode:
         except ValueError as error:
             code = "INVALID_CLUSTER_COUNT" if isinstance(n_clusters, int) else "INSUFFICIENT_POINTS"
             raise ProductClusteringError(code, str(error), 422) from error
-        return ModeOutcome(selection, "success", result)
+        return ModeOutcome(
+            selection,
+            "success",
+            result,
+            outcome_point_states(dataset.points, result),
+            product_warnings(dataset.quality),
+        )

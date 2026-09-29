@@ -15,6 +15,11 @@ from backend.product_modes._partition import (
     number,
     validate_k,
 )
+from backend.product_modes._presentation import (
+    outcome_point_states,
+    preview_point_states,
+    product_warnings,
+)
 from backend.product_modes.catalog import (
     ModeCapabilities,
     ModeDataset,
@@ -135,8 +140,22 @@ class GeoCostProductMode:
             and point.weighted_price is not None
             and point.weighted_rub_per_km is not None
         )
+        eligible_ids = frozenset(point.id for point in points)
+        unavailable_ids = frozenset(
+            point.id for point in dataset.points if point.id not in eligible_ids
+        )
         if operation == "preview":
-            return ModePreview(selection, tuple(point.id for point in points))
+            return ModePreview(
+                selection,
+                tuple(point.id for point in points),
+                self._clusterer.algorithm,
+                preview_point_states(dataset.points, unavailable_ids=unavailable_ids),
+                product_warnings(
+                    dataset.quality,
+                    mixed_economic_segments=True,
+                    economic_unavailable=True,
+                ),
+            )
         if len(dataset.points) < 2:
             raise ProductClusteringError(
                 "INSUFFICIENT_POINTS",
@@ -175,4 +194,14 @@ class GeoCostProductMode:
                 else "INSUFFICIENT_ECONOMICS"
             )
             raise ProductClusteringError(code, str(error), 422) from error
-        return ModeOutcome(selection, "success", result)
+        return ModeOutcome(
+            selection,
+            "success",
+            result,
+            outcome_point_states(dataset.points, result, unavailable_ids=unavailable_ids),
+            product_warnings(
+                dataset.quality,
+                mixed_economic_segments=True,
+                economic_unavailable=True,
+            ),
+        )
