@@ -1,13 +1,30 @@
 from __future__ import annotations
 
+import json
 import re
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def _read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
+
+
+def _edge_path() -> str | None:
+    executable = shutil.which("msedge")
+    if executable:
+        return executable
+    candidates = (
+        Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
+        Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
+    )
+    return next((str(path) for path in candidates if path.exists()), None)
 
 
 def test_product_workspace_contains_all_v1_controls():
@@ -30,6 +47,8 @@ def test_product_workspace_contains_all_v1_controls():
         'id="volume-weight-options"',
         'id="bear-threshold-options"',
         'id="bear-volume-threshold-options"',
+        'id="bear-singleton-threshold"',
+        'id="bear-volume-singleton-threshold"',
         'id="result-quality"',
         'id="result-warnings"',
         'id="point-details"',
@@ -43,8 +62,8 @@ def test_product_workspace_contains_all_v1_controls():
     assert "ATI" not in html
     assert "Запустить ML" not in html
     assert 'id="singleton-threshold"' not in html
-    assert "Одиночная аномально дорогая точка определяется при +70%." in html
-    assert "Одиночная аномально объёмная точка определяется при +70%." in html
+    assert "Одиночная аномально дорогая точка определяется при +" in html
+    assert "Одиночная аномально объёмная точка определяется при +" in html
 
 
 def test_clustering_is_modular_and_uses_product_api_adapter():
@@ -65,9 +84,9 @@ def test_clustering_is_modular_and_uses_product_api_adapter():
 
 def test_product_map_is_strictly_points_only():
     map_module = _read("frontend/js/map.js")
-    renderer = map_module.split(
-        "export function renderClusteringPoints", maxsplit=1
-    )[1].split("function mlClusterStyleFunction", maxsplit=1)[0]
+    renderer = map_module.split("export function renderClusteringPoints", maxsplit=1)[1].split(
+        "function mlClusterStyleFunction", maxsplit=1
+    )[0]
 
     assert "ol.geom.Point" in renderer
     assert "GeoJSON" not in renderer
@@ -125,7 +144,7 @@ def test_product_controls_include_mode_specific_presets_and_fixed_compare():
     assert "volume-weight" in controls
     assert "bear-threshold" in controls
     assert "bear-volume-threshold" in controls
-    assert "singletonThreshold: 0.70" in state
+    assert "singletonThreshold: value('bear_zones', 'singleton_threshold')" in state
     assert "response.results" in controller
     assert "onShowMap" in controller
     assert "data-show-on-map" in comparison
@@ -176,3 +195,209 @@ def test_clustering_modules_reference_existing_dom_ids():
     html_ids = set(re.findall(r'id="([^"]+)"', html))
     referenced_ids = set(re.findall(r"\$\('([^']+)'\)", modules))
     assert referenced_ids - html_ids == set()
+
+
+def test_frontend_honors_published_capabilities_when_compatibility_values_drift():
+    edge = _edge_path()
+    if edge is None:
+        pytest.skip("A browser JavaScript runtime is required for the frontend contract")
+
+    compatibility = {
+        "modes": ["geography", "geo_cost", "geo_volume", "bear_zones", "bear_volume_zones"],
+        "defaults": {"mode": "geography", "k_mode": "auto"},
+        "k": {"min": 2, "max": 20, "default": 5, "modes": ["auto", "manual"]},
+        "geo_cost_weights": {
+            "default": {"geography": 0.7, "economics": 0.3},
+            "presets": [{"geography": 0.7, "economics": 0.3}],
+        },
+        "geo_volume_weights": {
+            "default": {"geography": 0.7, "volume": 0.3},
+            "presets": [{"geography": 0.7, "volume": 0.3}],
+        },
+        "bear_thresholds": {
+            "zone_default": 0.35,
+            "zone_options": [0.35],
+            "singleton_default": 0.7,
+            "singleton_fixed": True,
+        },
+        "bear_volume_thresholds": {
+            "zone_default": 0.35,
+            "zone_options": [0.35],
+            "singleton_default": 0.7,
+            "singleton_fixed": True,
+        },
+    }
+    order = ["bear_zones", "geography", "geo_cost", "bear_volume_zones", "geo_volume"]
+    parameters = {
+        "geography": [
+            {
+                "name": "k_mode",
+                "kind": "choice",
+                "default": "manual",
+                "choices": ["auto", "manual"],
+            },
+            {
+                "name": "n_clusters",
+                "kind": "cluster_count",
+                "default": "auto",
+                "min": 7,
+                "max": 11,
+                "manual_default": 9,
+            },
+        ],
+        "geo_cost": [
+            {
+                "name": "economics_weight",
+                "kind": "choice",
+                "default": 0.41,
+                "choices": [0.41, 0.59],
+            },
+        ],
+        "geo_volume": [
+            {"name": "volume_weight", "kind": "choice", "default": 0.43, "choices": [0.43, 0.57]},
+        ],
+        "bear_zones": [
+            {"name": "bear_threshold", "kind": "choice", "default": 0.44, "choices": [0.44, 0.55]},
+            {
+                "name": "singleton_threshold",
+                "kind": "choice",
+                "default": 0.73,
+                "choices": [0.73],
+                "fixed": True,
+            },
+        ],
+        "bear_volume_zones": [
+            {"name": "volume_threshold", "kind": "choice", "default": 0.46, "choices": [0.46]},
+            {
+                "name": "singleton_threshold",
+                "kind": "choice",
+                "default": 0.73,
+                "choices": [0.73],
+                "fixed": True,
+            },
+        ],
+    }
+    compatibility["mode_capabilities"] = [
+        {
+            "id": mode,
+            "parameters": parameters[mode],
+            "presets": [{"economics_weight": 0.41}] if mode == "geo_cost" else [],
+            "semantic_dimensions": ["geography"],
+            "result_kind": "zones" if "bear" in mode else "partition",
+            "comparison": {"supported": mode != "geo_volume", "parameters": {}},
+        }
+        for mode in order
+    ]
+    state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    controls_module = re.sub(
+        r"^import .*?;\n",
+        "",
+        _read("frontend/js/clustering/controls.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      {state_module}
+      const MODE_LABELS = {{}};
+      const PERIOD_LABELS = {{}};
+      const PRICE_LABELS = {{}};
+      const escapeHtml = value => String(value ?? '');
+      document.body.innerHTML = {json.dumps("".join(f'<div id="{item}"></div>' for item in ("cluster-periods", "cluster-prices", "cluster-vehicles", "cluster-tonnages", "mode-cards", "cost-weight-options", "volume-weight-options", "bear-threshold-options", "bear-volume-threshold-options", "bear-singleton-threshold", "bear-volume-singleton-threshold")) + '<input id="manual-k">')};
+      {controls_module}
+      const state = createClusteringState({json.dumps(compatibility)});
+      renderOptionControls(state);
+      const legacyOptions = JSON.parse(JSON.stringify({json.dumps(compatibility)}));
+      delete legacyOptions.mode_capabilities;
+      const fallbackState = createClusteringState(legacyOptions);
+      const actual = {{
+        modes: state.modeCapabilities.map(item => item.id),
+        renderedModes: [...document.querySelectorAll('input[name="analysis-mode"]')].map(item => item.value),
+        comparisonModes: state.comparisonModeIds,
+        kMode: state.form.kMode,
+        kLimits: [modeParameter(state.modeCapabilities, 'geography', 'n_clusters').min,
+                  modeParameter(state.modeCapabilities, 'geography', 'n_clusters').max],
+        renderedKLimits: [Number(document.getElementById('manual-k').min), Number(document.getElementById('manual-k').max)],
+        renderedCostPresets: [...document.querySelectorAll('input[name="cost-weight"]')].map(item => Number(item.value)),
+        renderedBearThresholds: [...document.querySelectorAll('input[name="bear-threshold"]')].map(item => Number(item.value)),
+        renderedSingleton: Number(document.getElementById('bear-singleton-threshold').textContent),
+        costWeight: state.form.costWeight,
+        manualK: state.form.k,
+        bearThreshold: state.form.bearThreshold,
+        singletonThreshold: state.form.singletonThreshold,
+        fallback: {{
+          modes: fallbackState.modeCapabilities.map(item => item.id),
+          costWeight: fallbackState.form.costWeight,
+          bearThreshold: fallbackState.form.bearThreshold,
+          singletonThreshold: fallbackState.form.singletonThreshold,
+          manualK: fallbackState.form.k,
+        }},
+        request: buildRequest({{...state.form, mode: 'geo_cost'}}, 'geo_cost'),
+      }};
+      document.body.dataset.result = JSON.stringify(actual);
+    """
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        page = root / "capability-contract.html"
+        profile = root / "profile"
+        page.write_text(f"<!doctype html><body><script>{script}</script></body>", encoding="utf-8")
+        completed = subprocess.run(
+            [
+                edge,
+                "--headless=new",
+                "--disable-gpu",
+                "--no-first-run",
+                f"--user-data-dir={profile}",
+                "--dump-dom",
+                page.as_uri(),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+        )
+    match = re.search(r'data-result="([^"]+)"', completed.stdout)
+    assert match is not None, completed.stdout
+    actual = json.loads(match.group(1).replace("&quot;", '"'))
+    assert actual == {
+        "modes": order,
+        "renderedModes": order,
+        "comparisonModes": ["bear_zones", "geography", "geo_cost", "bear_volume_zones"],
+        "kMode": "manual",
+        "kLimits": [7, 11],
+        "renderedKLimits": [7, 11],
+        "renderedCostPresets": [0.41],
+        "renderedBearThresholds": [0.44, 0.55],
+        "renderedSingleton": 73,
+        "costWeight": 0.41,
+        "manualK": 9,
+        "bearThreshold": 0.44,
+        "singletonThreshold": 0.73,
+        "fallback": {
+            "modes": [
+                "geography",
+                "geo_cost",
+                "geo_volume",
+                "bear_zones",
+                "bear_volume_zones",
+            ],
+            "costWeight": 0.3,
+            "bearThreshold": 0.35,
+            "singletonThreshold": 0.7,
+            "manualK": 5,
+        },
+        "request": {
+            "origin_fias": "",
+            "destination_region": "",
+            "period_types": ["current"],
+            "price_types": ["spot"],
+            "vehicle_types": [],
+            "tonnage_ids": [],
+            "mode": "geo_cost",
+            "parameters": {
+                "k_mode": "manual",
+                "n_clusters": 9,
+                "geography_weight": 0.59,
+                "economics_weight": 0.41,
+            },
+        },
+    }

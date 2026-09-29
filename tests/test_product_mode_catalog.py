@@ -132,6 +132,14 @@ def test_capabilities_reject_internally_inconsistent_metadata():
     with pytest.raises(ValueError, match="Default is incompatible with parameter kind: number"):
         ModeParameterCapability("weight", "number", "invalid")
 
+    with pytest.raises(ValueError, match="Manual default is only valid for cluster counts"):
+        ModeParameterCapability("weight", "number", 0.5, manual_default=1)
+
+    with pytest.raises(ValueError, match="Manual default is outside declared limits"):
+        ModeParameterCapability(
+            "n_clusters", "cluster_count", "auto", minimum=2, maximum=20, manual_default=21
+        )
+
     with pytest.raises(ValueError, match="Unsupported preset value for k_mode: invalid"):
         ModeCapabilities(
             mode_id="geography",

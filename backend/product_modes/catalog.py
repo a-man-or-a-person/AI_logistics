@@ -45,6 +45,7 @@ class ModeParameterCapability:
     minimum: int | float | None = None
     maximum: int | float | None = None
     fixed: bool = False
+    manual_default: int | None = None
 
     def __post_init__(self) -> None:
         if not self.name:
@@ -65,6 +66,11 @@ class ModeParameterCapability:
             raise ValueError("Default is outside declared limits")
         if self.fixed and self.choices != (self.default,):
             raise ValueError("Fixed parameter must declare only its default choice")
+        if self.manual_default is not None:
+            if self.kind != "cluster_count":
+                raise ValueError("Manual default is only valid for cluster counts")
+            if not self.accepts(self.manual_default):
+                raise ValueError("Manual default is outside declared limits")
 
     def accepts(self, value: ModeParameterValue) -> bool:
         if not self._kind_accepts(value):
@@ -83,6 +89,20 @@ class ModeParameterCapability:
         if self.kind == "cluster_count":
             return value == "auto" or (isinstance(value, int) and not isinstance(value, bool))
         return isinstance(value, int | float) and not isinstance(value, bool)
+
+    def as_dict(self) -> dict[str, object]:
+        """Return the stable, presentation-free options representation."""
+
+        return {
+            "name": self.name,
+            "kind": self.kind,
+            "default": self.default,
+            "choices": list(self.choices),
+            "min": self.minimum,
+            "max": self.maximum,
+            "fixed": self.fixed,
+            "manual_default": self.manual_default,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,6 +158,21 @@ class ModeCapabilities:
     @property
     def default_parameters(self) -> ModeParameterValues:
         return tuple((parameter.name, parameter.default) for parameter in self.parameters)
+
+    def as_dict(self) -> dict[str, object]:
+        """Return capabilities suitable for the public Product options seam."""
+
+        return {
+            "id": self.mode_id,
+            "parameters": [parameter.as_dict() for parameter in self.parameters],
+            "presets": [dict(preset) for preset in self.presets],
+            "semantic_dimensions": list(self.semantic_dimensions),
+            "result_kind": self.result_kind,
+            "comparison": {
+                "supported": self.comparison_supported,
+                "parameters": dict(self.comparison_parameters),
+            },
+        }
 
 
 @dataclass(frozen=True, slots=True)

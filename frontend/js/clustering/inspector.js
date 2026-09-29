@@ -82,25 +82,25 @@ function metricsFor(result) {
     rows.push(metric('P95', km((metrics.p95_distance_to_medoid_m ?? 0) / 1000)));
   }
   if (mode === 'geo_cost') {
-    rows.unshift(metric('Geo / Cost', `${Math.round((result.analysis.parameters.geography_weight ?? 0.7) * 100)} / ${Math.round((result.analysis.parameters.economics_weight ?? 0.3) * 100)}`));
+    rows.unshift(metric('Geo / Cost', `${Math.round(result.analysis.parameters.geography_weight * 100)} / ${Math.round(result.analysis.parameters.economics_weight * 100)}`));
     rows.push(metric('Среднее отклонение ₽/км', rubKm(metrics.within_cluster_weighted_rubkm_mad), 'Стоимость перевозки, делённая на длину маршрута.'));
     rows.push(metric('Региональный уровень', rubKm(result.regional_weighted_rub_per_km)));
   }
   if (mode === 'geo_volume') {
-    rows.unshift(metric('Geo / Volume', `${Math.round((result.analysis.parameters.geography_weight ?? 0.7) * 100)} / ${Math.round((result.analysis.parameters.volume_weight ?? 0.3) * 100)}`));
+    rows.unshift(metric('Geo / Volume', `${Math.round(result.analysis.parameters.geography_weight * 100)} / ${Math.round(result.analysis.parameters.volume_weight * 100)}`));
     rows.push(metric('Среднее отклонение объёма', `${decimal(metrics.within_cluster_trip_count_mad, 1)} перевозки`));
     rows.push(metric('Разброс средних объёмов', `${decimal(metrics.between_cluster_mean_trip_spread, 1)} перевозки`));
     rows.push(metric('Средний объём региона', `${decimal(result.regional_volume?.mean_trip_count_per_point, 1)} перевозки/точку`));
   }
   if (mode === 'bear_zones') {
-    rows.push(metric('Порог зоны', `+${Math.round((result.analysis.parameters.bear_threshold ?? 0.35) * 100)}%`));
+    rows.push(metric('Порог зоны', `+${Math.round(result.analysis.parameters.bear_threshold * 100)}%`));
     rows.push(metric('Кандидаты', fmt(metrics.candidate_count)));
     rows.push(metric('Базовый уровень', rubKm(result.regional_weighted_rub_per_km)));
     rows.push(metric('Покрыто точек', fmt(metrics.covered_point_count)));
     rows.push(metric('Покрыто перевозок', fmt(metrics.covered_trip_count)));
   }
   if (mode === 'bear_volume_zones') {
-    rows.push(metric('Порог объёмной зоны', `+${Math.round((result.analysis.parameters.volume_threshold ?? 0.35) * 100)}%`));
+    rows.push(metric('Порог объёмной зоны', `+${Math.round(result.analysis.parameters.volume_threshold * 100)}%`));
     rows.push(metric('Кандидаты', fmt(metrics.candidate_count)));
     rows.push(metric('Средний объём региона', `${decimal(result.regional_volume?.mean_trip_count_per_point, 1)} перевозки/точку`));
     rows.push(metric('Покрыто точек', fmt(metrics.covered_point_count)));

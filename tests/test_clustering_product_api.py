@@ -12,6 +12,8 @@ from backend.product_modes import (
     ModeOutcome,
     ModePointState,
     ModePreview,
+    PendingProductMode,
+    ProductModeCatalog,
     ProductWarning,
     default_product_mode_catalog,
 )
@@ -195,6 +197,52 @@ def test_options_and_searchable_origin_catalog(product_client):
         "bear_zones",
         "bear_volume_zones",
     ]
+    capabilities = payload["mode_capabilities"]
+    assert [item["id"] for item in capabilities] == payload["modes"]
+    assert capabilities[0] == {
+        "id": "geography",
+        "parameters": [
+            {
+                "name": "k_mode",
+                "kind": "choice",
+                "default": "auto",
+                "choices": ["auto", "manual"],
+                "min": None,
+                "max": None,
+                "fixed": False,
+                "manual_default": None,
+            },
+            {
+                "name": "n_clusters",
+                "kind": "cluster_count",
+                "default": "auto",
+                "choices": [],
+                "min": 2,
+                "max": 20,
+                "fixed": False,
+                "manual_default": 5,
+            },
+        ],
+        "presets": [],
+        "semantic_dimensions": ["geography"],
+        "result_kind": "partition",
+        "comparison": {
+            "supported": True,
+            "parameters": {"k_mode": "auto", "n_clusters": "auto"},
+        },
+    }
+    assert capabilities[1]["presets"][1] == {
+        "geography_weight": 0.7,
+        "economics_weight": 0.3,
+    }
+    assert capabilities[3]["parameters"][0]["choices"] == [0.2, 0.25, 0.3, 0.35, 0.4, 0.5]
+    assert capabilities[3]["parameters"][1]["fixed"] is True
+    assert capabilities[3]["semantic_dimensions"] == ["geography", "economics"]
+    assert capabilities[3]["result_kind"] == "zones"
+    assert capabilities[3]["comparison"]["parameters"] == {
+        "bear_threshold": 0.35,
+        "singleton_threshold": 0.7,
+    }
     assert payload["k"] == {"min": 2, "max": 20, "default": 5, "modes": ["auto", "manual"]}
     assert payload["bear_thresholds"]["zone_default"] == 0.35
     assert payload["bear_thresholds"]["singleton_default"] == 0.70
@@ -237,6 +285,61 @@ def test_options_and_searchable_origin_catalog(product_client):
     assert origins.status_code == 200
     assert len(origins.get_json()) == 1
     assert set(origins.get_json()[0]) == {"fias_id", "name", "region", "trip_count"}
+
+
+def test_options_compatibility_fields_are_projected_from_catalog_manifest():
+    manifest = list(default_product_mode_catalog().manifest())
+    geography = manifest[0]
+    geography_parameters = list(geography.parameters)
+    geography_parameters[0] = replace(geography_parameters[0], default="manual")
+    geography_parameters[1] = replace(
+        geography_parameters[1], minimum=7, maximum=11, manual_default=9
+    )
+    manifest[0] = replace(geography, parameters=tuple(geography_parameters))
+
+    geo_cost = manifest[1]
+    cost_parameters = list(geo_cost.parameters)
+    cost_parameters[1] = replace(cost_parameters[1], minimum=7, maximum=11, manual_default=9)
+    cost_parameters[2] = replace(cost_parameters[2], default=0.59, choices=(0.59, 0.41))
+    cost_parameters[3] = replace(cost_parameters[3], default=0.41, choices=(0.41, 0.59))
+    manifest[1] = replace(
+        geo_cost,
+        parameters=tuple(cost_parameters),
+        presets=((("geography_weight", 0.59), ("economics_weight", 0.41)),),
+        comparison_parameters=(
+            ("k_mode", "auto"),
+            ("n_clusters", "auto"),
+            ("geography_weight", 0.59),
+            ("economics_weight", 0.41),
+        ),
+    )
+
+    bear = manifest[3]
+    bear_parameters = list(bear.parameters)
+    bear_parameters[0] = replace(bear_parameters[0], default=0.4, choices=(0.4, 0.5))
+    bear_parameters[1] = replace(bear_parameters[1], default=0.75, choices=(0.75,))
+    manifest[3] = replace(
+        bear,
+        parameters=tuple(bear_parameters),
+        comparison_parameters=(("bear_threshold", 0.4), ("singleton_threshold", 0.75)),
+    )
+    catalog = ProductModeCatalog(tuple(PendingProductMode(item) for item in manifest))
+
+    options = ClusteringService(records_factory=lambda: (), product_mode_catalog=catalog).options()
+
+    assert options["k"] == {"min": 7, "max": 11, "default": 9, "modes": ["auto", "manual"]}
+    assert options["defaults"]["mode"] == "geography"
+    assert options["defaults"]["k_mode"] == "manual"
+    assert options["geo_cost_weights"] == {
+        "default": {"geography": 0.59, "economics": 0.41},
+        "presets": [{"geography": 0.59, "economics": 0.41}],
+    }
+    assert options["bear_thresholds"] == {
+        "zone_default": 0.4,
+        "zone_options": [0.4, 0.5],
+        "singleton_default": 0.75,
+        "singleton_fixed": True,
+    }
 
 
 @pytest.mark.parametrize(

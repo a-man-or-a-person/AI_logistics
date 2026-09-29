@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import replace
 
+from backend.product_modes._partition import DEFAULT_MANUAL_K
 from backend.product_modes._presentation import (
     outcome_point_states,
     preview_point_states,
@@ -30,7 +31,12 @@ GEOGRAPHY_CAPABILITIES = ModeCapabilities(
     parameters=(
         ModeParameterCapability("k_mode", "choice", "auto", ("auto", "manual")),
         ModeParameterCapability(
-            "n_clusters", "cluster_count", "auto", minimum=K_MIN, maximum=K_MAX
+            "n_clusters",
+            "cluster_count",
+            "auto",
+            minimum=K_MIN,
+            maximum=K_MAX,
+            manual_default=DEFAULT_MANUAL_K,
         ),
     ),
     semantic_dimensions=("geography",),

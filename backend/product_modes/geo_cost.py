@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import cast
 
 from backend.product_modes._partition import (
+    DEFAULT_MANUAL_K,
     K_MAX,
     K_MIN,
     ClusterCount,
@@ -102,7 +103,14 @@ GEO_COST_CAPABILITIES = ModeCapabilities(
     mode_id="geo_cost",
     parameters=(
         ModeParameterCapability("k_mode", "choice", "auto", ("auto", "manual")),
-        ModeParameterCapability("n_clusters", "cluster_count", "auto", minimum=2, maximum=20),
+        ModeParameterCapability(
+            "n_clusters",
+            "cluster_count",
+            "auto",
+            minimum=2,
+            maximum=20,
+            manual_default=DEFAULT_MANUAL_K,
+        ),
         ModeParameterCapability("geography_weight", "choice", 0.7, (0.8, 0.7, 0.6)),
         ModeParameterCapability("economics_weight", "choice", 0.3, (0.2, 0.3, 0.4)),
     ),

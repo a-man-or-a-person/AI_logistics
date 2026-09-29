@@ -49,7 +49,7 @@ LEGACY_BEAR_MODES = frozenset({"bear_zones", "bear_volume_zones"})
 CATALOG_MODE_IDS = frozenset(MODES)
 PERIOD_TYPES = frozenset({"retro", "current", "forecast"})
 PRICE_TYPES = frozenset({"spot", "tender"})
-K_MIN, K_MAX, DEFAULT_K = 2, 20, 5
+K_MIN, K_MAX = 2, 20
 DEFAULT_BEAR_THRESHOLD, DEFAULT_SINGLETON_THRESHOLD = 0.35, 0.70
 GEO_COST_PRESETS = ((0.80, 0.20), (0.70, 0.30), (0.60, 0.40))
 GEO_VOLUME_PRESETS = GEO_COST_PRESETS
@@ -463,15 +463,28 @@ class ClusteringService:
                 "destination_regions": sorted(self._destination_regions.get(origin_fias or "", set())),
             }
         facets = repository_options.get("facets", {})
+        mode_capabilities = self.product_mode_catalog.manifest()
+        capability_by_id = {capability.mode_id: capability for capability in mode_capabilities}
+
+        def mode_parameter(mode_id: str, name: str):
+            return next(
+                parameter
+                for parameter in capability_by_id[mode_id].parameters
+                if parameter.name == name
+            )
+
+        cluster_count = mode_parameter("geography", "n_clusters")
+        k_mode = mode_parameter("geography", "k_mode")
+        cost_defaults = dict(capability_by_id["geo_cost"].default_parameters)
+        volume_defaults = dict(capability_by_id["geo_volume"].default_parameters)
+        bear_threshold = mode_parameter("bear_zones", "bear_threshold")
+        bear_singleton = mode_parameter("bear_zones", "singleton_threshold")
+        volume_threshold = mode_parameter("bear_volume_zones", "volume_threshold")
+        volume_singleton = mode_parameter("bear_volume_zones", "singleton_threshold")
         return {
             "source": "pulse",
-            "modes": [
-                "geography",
-                "geo_cost",
-                "geo_volume",
-                "bear_zones",
-                "bear_volume_zones",
-            ],
+            "modes": [capability.mode_id for capability in mode_capabilities],
+            "mode_capabilities": [capability.as_dict() for capability in mode_capabilities],
             "origins": repository_options.get("origins", []),
             "period_types": facets.get("period_types", ["retro", "current", "forecast"]),
             "price_types": facets.get("price_types", ["spot", "tender"]),
@@ -480,38 +493,55 @@ class ClusteringService:
             "facets": facets,
             "destination_regions": repository_options.get("destination_regions", []),
             "dataset_fingerprint": repository_options.get("dataset_fingerprint"),
-            "k": {"min": K_MIN, "max": K_MAX, "default": DEFAULT_K, "modes": ["auto", "manual"]},
+            "k": {
+                "min": cluster_count.minimum,
+                "max": cluster_count.maximum,
+                "default": cluster_count.manual_default,
+                "modes": list(k_mode.choices),
+            },
             "geo_cost_weights": {
-                "default": {"geography": 0.70, "economics": 0.30},
+                "default": {
+                    "geography": cost_defaults["geography_weight"],
+                    "economics": cost_defaults["economics_weight"],
+                },
                 "presets": [
-                    {"geography": geography, "economics": economics}
-                    for geography, economics in GEO_COST_PRESETS
+                    {
+                        "geography": dict(preset)["geography_weight"],
+                        "economics": dict(preset)["economics_weight"],
+                    }
+                    for preset in capability_by_id["geo_cost"].presets
                 ],
             },
             "geo_volume_weights": {
-                "default": {"geography": 0.70, "volume": 0.30},
+                "default": {
+                    "geography": volume_defaults["geography_weight"],
+                    "volume": volume_defaults["volume_weight"],
+                },
                 "presets": [
-                    {"geography": geography, "volume": volume}
-                    for geography, volume in GEO_VOLUME_PRESETS
+                    {
+                        "geography": dict(preset)["geography_weight"],
+                        "volume": dict(preset)["volume_weight"],
+                    }
+                    for preset in capability_by_id["geo_volume"].presets
                 ],
             },
             "bear_thresholds": {
-                "zone_default": DEFAULT_BEAR_THRESHOLD,
-                "zone_options": list(BEAR_THRESHOLD_OPTIONS),
-                "singleton_default": DEFAULT_SINGLETON_THRESHOLD,
-                "singleton_fixed": True,
+                "zone_default": bear_threshold.default,
+                "zone_options": list(bear_threshold.choices),
+                "singleton_default": bear_singleton.default,
+                "singleton_fixed": bear_singleton.fixed,
             },
             "bear_volume_thresholds": {
-                "zone_default": DEFAULT_BEAR_THRESHOLD,
-                "zone_options": list(BEAR_THRESHOLD_OPTIONS),
-                "singleton_default": DEFAULT_SINGLETON_THRESHOLD,
-                "singleton_fixed": True,
+                "zone_default": volume_threshold.default,
+                "zone_options": list(volume_threshold.choices),
+                "singleton_default": volume_singleton.default,
+                "singleton_fixed": volume_singleton.fixed,
             },
             "defaults": {
                 "period_types": ["current"],
                 "price_types": ["spot"],
-                "mode": "geography",
-                "k_mode": "auto",
+                "mode": mode_capabilities[0].mode_id,
+                "k_mode": k_mode.default,
             },
         }
 

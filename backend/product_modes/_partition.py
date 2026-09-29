@@ -10,6 +10,7 @@ from backend.product_modes.errors import ProductClusteringError
 from ml.spatial.graph import SpatialGraph
 
 K_MIN, K_MAX = 2, 20
+DEFAULT_MANUAL_K = 5
 KMode: TypeAlias = Literal["auto", "manual"]
 ClusterCount: TypeAlias = int | Literal["auto"]
 

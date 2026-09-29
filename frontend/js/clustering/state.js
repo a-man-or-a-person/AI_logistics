@@ -31,9 +31,84 @@ export const MODES = Object.freeze({
 const sorted = values => [...(values || [])].sort((a, b) => String(a).localeCompare(String(b)));
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 
+const parameter = (name, kind, defaultValue, choices = [], minimum = null, maximum = null, fixed = false, manualDefault = null) => ({
+  name, kind, default: defaultValue, choices, min: minimum, max: maximum, fixed, manual_default: manualDefault,
+});
+
+function compatibilityCapabilities(options) {
+  const k = options.k || {};
+  const kParameters = () => [
+    parameter('k_mode', 'choice', options.defaults?.k_mode, k.modes || []),
+    parameter('n_clusters', 'cluster_count', options.defaults?.k_mode, [], k.min, k.max, false, k.default),
+  ];
+  const definitions = {
+    geography: () => ({ parameters: kParameters(), presets: [] }),
+    geo_cost: () => ({
+      parameters: [
+        ...kParameters(),
+        parameter('geography_weight', 'choice', options.geo_cost_weights?.default?.geography, (options.geo_cost_weights?.presets || []).map(item => item.geography)),
+        parameter('economics_weight', 'choice', options.geo_cost_weights?.default?.economics, (options.geo_cost_weights?.presets || []).map(item => item.economics)),
+      ],
+      presets: options.geo_cost_weights?.presets || [],
+    }),
+    geo_volume: () => ({
+      parameters: [
+        ...kParameters(),
+        parameter('geography_weight', 'choice', options.geo_volume_weights?.default?.geography, (options.geo_volume_weights?.presets || []).map(item => item.geography)),
+        parameter('volume_weight', 'choice', options.geo_volume_weights?.default?.volume, (options.geo_volume_weights?.presets || []).map(item => item.volume)),
+      ],
+      presets: options.geo_volume_weights?.presets || [],
+    }),
+    bear_zones: () => ({
+      parameters: [
+        parameter('bear_threshold', 'choice', options.bear_thresholds?.zone_default, options.bear_thresholds?.zone_options || []),
+        parameter('singleton_threshold', 'choice', options.bear_thresholds?.singleton_default, [options.bear_thresholds?.singleton_default], null, null, options.bear_thresholds?.singleton_fixed),
+      ],
+      presets: [],
+    }),
+    bear_volume_zones: () => ({
+      parameters: [
+        parameter('volume_threshold', 'choice', options.bear_volume_thresholds?.zone_default, options.bear_volume_thresholds?.zone_options || []),
+        parameter('singleton_threshold', 'choice', options.bear_volume_thresholds?.singleton_default, [options.bear_volume_thresholds?.singleton_default], null, null, options.bear_volume_thresholds?.singleton_fixed),
+      ],
+      presets: [],
+    }),
+  };
+  return (options.modes || []).filter(id => definitions[id]).map(id => ({
+    id,
+    ...definitions[id](),
+    semantic_dimensions: [],
+    result_kind: null,
+    comparison: { supported: true, parameters: {} },
+  }));
+}
+
+export function productModeCapabilities(options = {}) {
+  const published = Array.isArray(options.mode_capabilities) ? options.mode_capabilities : [];
+  return clone(published.length ? published : compatibilityCapabilities(options));
+}
+
+export function modeParameter(capabilities, modeId, name) {
+  return capabilities.find(item => item.id === modeId)?.parameters?.find(item => item.name === name);
+}
+
+export function updateClusteringOptions(state, options) {
+  state.options = { ...state.options, ...options };
+  state.modeCapabilities = productModeCapabilities(state.options);
+  state.comparisonModeIds = state.modeCapabilities
+    .filter(item => item.comparison?.supported)
+    .map(item => item.id);
+}
+
 export function createClusteringState(options = {}) {
+  const modeCapabilities = productModeCapabilities(options);
+  const modeIds = modeCapabilities.map(item => item.id);
+  const defaultMode = modeIds.includes(options.defaults?.mode) ? options.defaults.mode : modeIds[0];
+  const value = (modeId, name) => modeParameter(modeCapabilities, modeId, name)?.default;
   return {
     options,
+    modeCapabilities,
+    comparisonModeIds: modeCapabilities.filter(item => item.comparison?.supported).map(item => item.id),
     form: {
       origin: null,
       destinationRegion: '',
@@ -41,14 +116,14 @@ export function createClusteringState(options = {}) {
       priceTypes: [...(options.defaults?.price_types || ['spot'])],
       vehicleTypes: [],
       tonnageIds: [],
-      mode: options.defaults?.mode || 'geography',
-      kMode: options.defaults?.k_mode || 'auto',
-      k: options.k?.default || 5,
-      costWeight: options.geo_cost_weights?.default?.economics ?? 0.30,
-      volumeWeight: options.geo_volume_weights?.default?.volume ?? 0.30,
-      bearThreshold: options.bear_thresholds?.zone_default ?? 0.35,
-      bearVolumeThreshold: options.bear_volume_thresholds?.zone_default ?? 0.35,
-      singletonThreshold: 0.70,
+      mode: defaultMode,
+      kMode: value('geography', 'k_mode'),
+      k: modeParameter(modeCapabilities, 'geography', 'n_clusters')?.manual_default,
+      costWeight: value('geo_cost', 'economics_weight'),
+      volumeWeight: value('geo_volume', 'volume_weight'),
+      bearThreshold: value('bear_zones', 'bear_threshold'),
+      bearVolumeThreshold: value('bear_volume_zones', 'volume_threshold'),
+      singletonThreshold: value('bear_zones', 'singleton_threshold'),
     },
     result: { status: 'empty', data: null, error: null, requestSnapshot: null, cache: new Map() },
     comparison: { open: false, status: 'empty', context: null, contextDisplay: null, results: {}, activeMode: null, error: null, cache: new Map() },

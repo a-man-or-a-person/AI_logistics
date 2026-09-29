@@ -12,7 +12,8 @@ export function renderComparison(state, handlers = {}) {
   $('comparison-error').classList.toggle('hidden', comparison.status !== 'error');
   $('comparison-error').textContent = comparison.error?.message || '';
   $('comparison-context').innerHTML = context(comparison.contextDisplay);
-  const modes = Object.keys(comparison.results);
+  const resultModes = new Set(Object.keys(comparison.results));
+  const modes = state.comparisonModeIds.filter(mode => resultModes.has(mode));
   $('comparison-tabs').innerHTML = modes.map(mode => `
     <button type="button" data-comparison-mode="${mode}" class="${comparison.activeMode === mode ? 'active' : ''}" ${comparison.activeMode === mode ? 'aria-current="true"' : ''}>${MODE_LABELS[mode]}</button>`).join('');
   $('comparison-cards').innerHTML = modes.map(mode => card(comparison.results[mode])).join('');
@@ -46,15 +47,15 @@ function card(result) {
     : parameters.bear_threshold;
   const modeRows = bearModes.includes(mode)
     ? `
-      <div><dt>Порог</dt><dd>+${Math.round((threshold ?? 0.35) * 100)}%</dd></div>
+      <div><dt>Порог</dt><dd>+${Math.round(threshold * 100)}%</dd></div>
       <div><dt>Кандидаты</dt><dd>${fmt(metrics.candidate_count)}</dd></div>
       <div><dt>Зоны</dt><dd>${fmt(metrics.bear_zone_count)}</dd></div>
       <div><dt>Одиночные</dt><dd>${fmt(metrics.singleton_count)}</dd></div>
       <div><dt>Покрыто перевозок</dt><dd>${fmt(metrics.covered_trip_count)}</dd></div>`
     : `
       <div><dt>${parameters.k_mode === 'manual' ? 'K' : 'Auto K'}</dt><dd>${fmt(parameters.n_clusters)}</dd></div>
-      ${mode === 'geo_cost' ? `<div><dt>Geo / Cost</dt><dd>${Math.round((parameters.geography_weight ?? 0.7) * 100)}/${Math.round((parameters.economics_weight ?? 0.3) * 100)}</dd></div>` : ''}
-      ${mode === 'geo_volume' ? `<div><dt>Geo / Volume</dt><dd>${Math.round((parameters.geography_weight ?? 0.7) * 100)}/${Math.round((parameters.volume_weight ?? 0.3) * 100)}</dd></div>` : ''}
+      ${mode === 'geo_cost' ? `<div><dt>Geo / Cost</dt><dd>${Math.round(parameters.geography_weight * 100)}/${Math.round(parameters.economics_weight * 100)}</dd></div>` : ''}
+      ${mode === 'geo_volume' ? `<div><dt>Geo / Volume</dt><dd>${Math.round(parameters.geography_weight * 100)}/${Math.round(parameters.volume_weight * 100)}</dd></div>` : ''}
       <div><dt>P95 радиус</dt><dd>${decimal((metrics.p95_distance_to_medoid_m ?? 0) / 1000, 1)} км</dd></div>
       ${mode === 'geo_cost' ? `<div><dt>Экономическое покрытие</dt><dd>${decimal(economicCoverage, 1)}%</dd></div>
         <div><dt>Внутри кластеров</dt><dd>${rubKm(metrics.within_cluster_weighted_rubkm_mad)}</dd></div>

@@ -4,7 +4,7 @@ import {
 } from '../api.js';
 import {
   buildRequest, createClusteringState, datasetSnapshot, isComparisonStale,
-  isResultStale, requestSignature, setResult,
+  isResultStale, modeParameter, requestSignature, setResult, updateClusteringOptions,
 } from './state.js';
 import { readChecks, renderFormState, renderOptionControls } from './controls.js';
 import { renderErrorState, renderInspector } from './inspector.js';
@@ -117,7 +117,8 @@ function syncForm(event) {
   form.volumeWeight = Number(document.querySelector('input[name="volume-weight"]:checked')?.value ?? form.volumeWeight);
   form.bearThreshold = Number(document.querySelector('input[name="bear-threshold"]:checked')?.value ?? form.bearThreshold);
   form.bearVolumeThreshold = Number(document.querySelector('input[name="bear-volume-threshold"]:checked')?.value ?? form.bearVolumeThreshold);
-  form.singletonThreshold = 0.70;
+  form.singletonThreshold = modeParameter(state.modeCapabilities, form.mode, 'singleton_threshold')?.default
+    ?? form.singletonThreshold;
   if (event.target.name === 'analysis-mode') state.ui.selectedCluster = null;
 }
 
@@ -167,7 +168,7 @@ async function chooseOrigin(origin) {
   setOptionsLoading(true, 'Загружаем регионы назначения…');
   try {
     const options = await fetchClusteringOptions(origin.fias_id);
-    state.options = { ...state.options, ...options };
+    updateClusteringOptions(state, options);
     $('cluster-region').disabled = false;
     $('cluster-region').replaceChildren(new Option('Выберите регион…', ''));
     options.destination_regions.forEach(region => $('cluster-region').add(new Option(region, region)));
@@ -186,7 +187,7 @@ async function loadContextOptions() {
       state.form.origin.fias_id,
       state.form.destinationRegion,
     );
-    state.options = { ...state.options, ...options };
+    updateClusteringOptions(state, options);
     const facetValues = key => new Set((options[key] || []).map(item => typeof item === 'string' ? item : item.value));
     const contextualDefault = (key, preferred) => {
       const available = [...facetValues(key)];
@@ -230,7 +231,9 @@ function validate(request) {
   if (!request.period_types.length) return 'Выберите хотя бы один период.';
   if (!request.price_types.length) return 'Выберите хотя бы один тип цены.';
   if (!['bear_zones', 'bear_volume_zones'].includes(request.mode) && request.parameters.k_mode === 'manual') {
-    const { min = 2, max = 20 } = state.options.k || {};
+    const capability = modeParameter(state.modeCapabilities, request.mode, 'n_clusters');
+    const min = capability?.min ?? state.options.k?.min;
+    const max = capability?.max ?? state.options.k?.max;
     if (!Number.isInteger(request.parameters.n_clusters) || request.parameters.n_clusters < min || request.parameters.n_clusters > max) return `K должен быть от ${min} до ${max}.`;
   }
   return null;
@@ -347,7 +350,9 @@ async function runComparison() {
     const response = cached || await runClusteringComparison(dataset);
     cache.set(signature, response);
     state.comparison.results = response.results || {};
-    state.comparison.activeMode = state.comparison.results[state.form.mode] ? state.form.mode : Object.keys(state.comparison.results)[0];
+    state.comparison.activeMode = state.comparison.results[state.form.mode]
+      ? state.form.mode
+      : state.comparisonModeIds.find(mode => state.comparison.results[mode]);
     state.comparison.status = 'success';
     if (state.comparison.activeMode) activateComparisonMode(state.comparison.activeMode);
   } catch (error) {
@@ -363,13 +368,15 @@ function activateComparisonMode(mode) {
   state.comparison.activeMode = mode;
   state.form.mode = mode;
   if (!['bear_zones', 'bear_volume_zones'].includes(mode)) {
-    state.form.kMode = result.analysis.parameters.k_mode || 'auto';
+    state.form.kMode = result.analysis.parameters.k_mode ?? state.form.kMode;
     state.form.k = result.analysis.parameters.n_clusters || state.form.k;
   }
-  if (mode === 'geo_cost') state.form.costWeight = result.analysis.parameters.economics_weight ?? 0.30;
-  if (mode === 'geo_volume') state.form.volumeWeight = result.analysis.parameters.volume_weight ?? 0.30;
-  if (mode === 'bear_zones') state.form.bearThreshold = result.analysis.parameters.bear_threshold ?? 0.35;
-  if (mode === 'bear_volume_zones') state.form.bearVolumeThreshold = result.analysis.parameters.volume_threshold ?? 0.35;
+  if (mode === 'geo_cost') state.form.costWeight = result.analysis.parameters.economics_weight ?? state.form.costWeight;
+  if (mode === 'geo_volume') state.form.volumeWeight = result.analysis.parameters.volume_weight ?? state.form.volumeWeight;
+  if (mode === 'bear_zones') state.form.bearThreshold = result.analysis.parameters.bear_threshold ?? state.form.bearThreshold;
+  if (mode === 'bear_volume_zones') state.form.bearVolumeThreshold = result.analysis.parameters.volume_threshold ?? state.form.bearVolumeThreshold;
+  state.form.singletonThreshold = modeParameter(state.modeCapabilities, mode, 'singleton_threshold')?.default
+    ?? state.form.singletonThreshold;
   const request = buildRequest(state.form, mode);
   setResult(state, result, request);
   renderClusteringPoints(result);
