@@ -232,8 +232,8 @@ function validate(request) {
   if (!request.price_types.length) return 'Выберите хотя бы один тип цены.';
   if (!['bear_zones', 'bear_volume_zones'].includes(request.mode) && request.parameters.k_mode === 'manual') {
     const capability = modeParameter(state.modeCapabilities, request.mode, 'n_clusters');
-    const min = capability?.min ?? state.options.k?.min;
-    const max = capability?.max ?? state.options.k?.max;
+    const min = capability?.min;
+    const max = capability?.max;
     if (!Number.isInteger(request.parameters.n_clusters) || request.parameters.n_clusters < min || request.parameters.n_clusters > max) return `K должен быть от ${min} до ${max}.`;
   }
   return null;

@@ -264,10 +264,6 @@ class ModeOutcome:
     warnings: tuple[ProductWarning, ...] = ()
 
 
-class ProductModeNotMigratedError(RuntimeError):
-    """Guard against using a registration before its dedicated migration ticket."""
-
-
 class ProductMode(Protocol):
     """Deep seam hiding one mode's future Product-specific behavior."""
 
@@ -283,17 +279,10 @@ class ProductMode(Protocol):
     ) -> ModePreview | ModeOutcome: ...
 
 
-@dataclass(frozen=True, slots=True)
-class PendingProductMode:
-    """Temporary registration replaced mode-by-mode during migration."""
-
-    capabilities: ModeCapabilities
-
-
 class ProductModeCatalog:
     """Ordered collection of the explicitly supported Product modes."""
 
-    def __init__(self, modes: tuple[ProductMode | PendingProductMode, ...]) -> None:
+    def __init__(self, modes: tuple[ProductMode, ...]) -> None:
         capabilities: list[ModeCapabilities] = []
         for index, mode in enumerate(modes):
             capability = getattr(mode, "capabilities", None)
@@ -325,8 +314,7 @@ class ProductModeCatalog:
         incomplete = tuple(
             mode.capabilities.mode_id
             for mode in modes
-            if not isinstance(mode, PendingProductMode)
-            and (
+            if (
                 not callable(getattr(mode, "select", None))
                 or not callable(getattr(mode, "evaluate", None))
             )
@@ -355,10 +343,6 @@ class ProductModeCatalog:
             mode = self._mode_by_id[mode_id]
         except KeyError as error:
             raise ValueError(f"Unknown Product mode ID: {mode_id}") from error
-        if isinstance(mode, PendingProductMode):
-            raise ProductModeNotMigratedError(
-                f"Product mode has not migrated to the catalog: {mode_id}"
-            )
         return mode.select(parameters)
 
     def evaluate(
@@ -373,10 +357,6 @@ class ProductModeCatalog:
             mode = self._mode_by_id[selection.mode_id]
         except KeyError as error:
             raise ValueError(f"Unknown Product mode ID: {selection.mode_id}") from error
-        if isinstance(mode, PendingProductMode):
-            raise ProductModeNotMigratedError(
-                f"Product mode has not migrated to the catalog: {selection.mode_id}"
-            )
         result = mode.evaluate(selection, dataset, operation)
         if operation == "preview" and not isinstance(result, ModePreview):
             raise TypeError("Product mode preview must return ModePreview")

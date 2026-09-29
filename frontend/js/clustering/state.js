@@ -31,61 +31,11 @@ export const MODES = Object.freeze({
 const sorted = values => [...(values || [])].sort((a, b) => String(a).localeCompare(String(b)));
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 
-const parameter = (name, kind, defaultValue, choices = [], minimum = null, maximum = null, fixed = false, manualDefault = null) => ({
-  name, kind, default: defaultValue, choices, min: minimum, max: maximum, fixed, manual_default: manualDefault,
-});
-
-function compatibilityCapabilities(options) {
-  const k = options.k || {};
-  const kParameters = () => [
-    parameter('k_mode', 'choice', options.defaults?.k_mode, k.modes || []),
-    parameter('n_clusters', 'cluster_count', options.defaults?.k_mode, [], k.min, k.max, false, k.default),
-  ];
-  const definitions = {
-    geography: () => ({ parameters: kParameters(), presets: [] }),
-    geo_cost: () => ({
-      parameters: [
-        ...kParameters(),
-        parameter('geography_weight', 'choice', options.geo_cost_weights?.default?.geography, (options.geo_cost_weights?.presets || []).map(item => item.geography)),
-        parameter('economics_weight', 'choice', options.geo_cost_weights?.default?.economics, (options.geo_cost_weights?.presets || []).map(item => item.economics)),
-      ],
-      presets: options.geo_cost_weights?.presets || [],
-    }),
-    geo_volume: () => ({
-      parameters: [
-        ...kParameters(),
-        parameter('geography_weight', 'choice', options.geo_volume_weights?.default?.geography, (options.geo_volume_weights?.presets || []).map(item => item.geography)),
-        parameter('volume_weight', 'choice', options.geo_volume_weights?.default?.volume, (options.geo_volume_weights?.presets || []).map(item => item.volume)),
-      ],
-      presets: options.geo_volume_weights?.presets || [],
-    }),
-    bear_zones: () => ({
-      parameters: [
-        parameter('bear_threshold', 'choice', options.bear_thresholds?.zone_default, options.bear_thresholds?.zone_options || []),
-        parameter('singleton_threshold', 'choice', options.bear_thresholds?.singleton_default, [options.bear_thresholds?.singleton_default], null, null, options.bear_thresholds?.singleton_fixed),
-      ],
-      presets: [],
-    }),
-    bear_volume_zones: () => ({
-      parameters: [
-        parameter('volume_threshold', 'choice', options.bear_volume_thresholds?.zone_default, options.bear_volume_thresholds?.zone_options || []),
-        parameter('singleton_threshold', 'choice', options.bear_volume_thresholds?.singleton_default, [options.bear_volume_thresholds?.singleton_default], null, null, options.bear_volume_thresholds?.singleton_fixed),
-      ],
-      presets: [],
-    }),
-  };
-  return (options.modes || []).filter(id => definitions[id]).map(id => ({
-    id,
-    ...definitions[id](),
-    semantic_dimensions: [],
-    result_kind: null,
-    comparison: { supported: true, parameters: {} },
-  }));
-}
-
 export function productModeCapabilities(options = {}) {
-  const published = Array.isArray(options.mode_capabilities) ? options.mode_capabilities : [];
-  return clone(published.length ? published : compatibilityCapabilities(options));
+  if (!Array.isArray(options.mode_capabilities) || !options.mode_capabilities.length) {
+    throw new Error('Product mode capabilities are required');
+  }
+  return clone(options.mode_capabilities);
 }
 
 export function modeParameter(capabilities, modeId, name) {

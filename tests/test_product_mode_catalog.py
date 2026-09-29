@@ -8,7 +8,6 @@ from backend.product_modes import (
     ModeParameterCapability,
     ModePreview,
     ModeSelection,
-    PendingProductMode,
     ProductModeCatalog,
     default_product_mode_catalog,
 )
@@ -31,9 +30,26 @@ def test_default_catalog_has_canonical_modes_and_manifest_order():
     assert tuple(item.mode_id for item in catalog.manifest()) == catalog.mode_ids
 
 
-def _registrations(*mode_ids: str) -> tuple[PendingProductMode, ...]:
+class StubProductMode:
+    def __init__(self, capabilities):
+        self.capabilities = capabilities
+
+    def select(self, parameters):
+        return ModeSelection.from_mapping(self.capabilities.mode_id, parameters)
+
+    def evaluate(self, selection, dataset, operation):
+        if operation == "preview":
+            return ModePreview(selection, tuple(point.id for point in dataset.points))
+        return ModeOutcome(
+            selection,
+            "success",
+            ClusterResult("stub", {}, {}, (), (), {}),
+        )
+
+
+def _registrations(*mode_ids: str) -> tuple[StubProductMode, ...]:
     return tuple(
-        PendingProductMode(
+        StubProductMode(
             ModeCapabilities(
                 mode_id=mode_id,
                 parameters=(),
@@ -169,13 +185,7 @@ def test_mode_selection_enforces_normalized_constructor_invariants():
         ModeSelection("geography", (("n_clusters", "auto"), ("k_mode", "auto")))
 
 
-class ExampleGeographyMode:
-    def __init__(self, capabilities):
-        self.capabilities = capabilities
-
-    def select(self, parameters):
-        return ModeSelection.from_mapping(self.capabilities.mode_id, parameters)
-
+class ExampleGeographyMode(StubProductMode):
     def evaluate(self, selection, dataset, operation):
         if operation == "preview":
             return ModePreview(selection, tuple(point.id for point in dataset.points))

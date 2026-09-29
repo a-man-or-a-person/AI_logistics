@@ -305,9 +305,14 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
       {controls_module}
       const state = createClusteringState({json.dumps(compatibility)});
       renderOptionControls(state);
-      const legacyOptions = JSON.parse(JSON.stringify({json.dumps(compatibility)}));
-      delete legacyOptions.mode_capabilities;
-      const fallbackState = createClusteringState(legacyOptions);
+      const incompleteOptions = JSON.parse(JSON.stringify({json.dumps(compatibility)}));
+      delete incompleteOptions.mode_capabilities;
+      let missingCapabilitiesError = null;
+      try {{
+        createClusteringState(incompleteOptions);
+      }} catch (error) {{
+        missingCapabilitiesError = error.message;
+      }}
       const actual = {{
         modes: state.modeCapabilities.map(item => item.id),
         renderedModes: [...document.querySelectorAll('input[name="analysis-mode"]')].map(item => item.value),
@@ -323,13 +328,7 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
         manualK: state.form.k,
         bearThreshold: state.form.bearThreshold,
         singletonThreshold: state.form.singletonThreshold,
-        fallback: {{
-          modes: fallbackState.modeCapabilities.map(item => item.id),
-          costWeight: fallbackState.form.costWeight,
-          bearThreshold: fallbackState.form.bearThreshold,
-          singletonThreshold: fallbackState.form.singletonThreshold,
-          manualK: fallbackState.form.k,
-        }},
+        missingCapabilitiesError,
         request: buildRequest({{...state.form, mode: 'geo_cost'}}, 'geo_cost'),
       }};
       document.body.dataset.result = JSON.stringify(actual);
@@ -372,19 +371,7 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
         "manualK": 9,
         "bearThreshold": 0.44,
         "singletonThreshold": 0.73,
-        "fallback": {
-            "modes": [
-                "geography",
-                "geo_cost",
-                "geo_volume",
-                "bear_zones",
-                "bear_volume_zones",
-            ],
-            "costWeight": 0.3,
-            "bearThreshold": 0.35,
-            "singletonThreshold": 0.7,
-            "manualK": 5,
-        },
+        "missingCapabilitiesError": "Product mode capabilities are required",
         "request": {
             "origin_fias": "",
             "destination_region": "",

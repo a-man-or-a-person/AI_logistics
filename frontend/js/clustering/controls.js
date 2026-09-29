@@ -29,35 +29,28 @@ export function renderOptionControls(state) {
   }).join('');
   const clusterCount = modeParameter(state.modeCapabilities, form.mode, 'n_clusters')
     || modeParameter(state.modeCapabilities, 'geography', 'n_clusters');
-  $('manual-k').min = clusterCount?.min ?? options.k?.min;
-  $('manual-k').max = clusterCount?.max ?? options.k?.max;
+  $('manual-k').min = clusterCount?.min;
+  $('manual-k').max = clusterCount?.max;
   $('manual-k').value = form.k;
-  const weightPresets = (
-    state.modeCapabilities.find(item => item.id === 'geo_cost')?.presets
-    || options.geo_cost_weights?.presets || []
-  ).map(preset => ({
-    geography: preset.geography_weight ?? preset.geography,
-    economics: preset.economics_weight ?? preset.economics,
+  const weightPresets = (state.modeCapabilities.find(item => item.id === 'geo_cost')?.presets || []).map(preset => ({
+    geography: preset.geography_weight,
+    economics: preset.economics_weight,
   }));
   const weightLabels = { 0.2: 'Низкое', 0.3: 'Среднее', 0.4: 'Повышенное' };
   $('cost-weight-options').innerHTML = weightPresets.map(preset => `
     <label><input type="radio" name="cost-weight" value="${preset.economics}" ${Number(form.costWeight) === Number(preset.economics) ? 'checked' : ''}>
       <span><b>${weightLabels[preset.economics] || ''}</b>${Math.round(preset.economics * 100)}%<small>${Math.round(preset.geography * 100)}/${Math.round(preset.economics * 100)}</small></span>
     </label>`).join('');
-  const volumePresets = (
-    state.modeCapabilities.find(item => item.id === 'geo_volume')?.presets
-    || options.geo_volume_weights?.presets || []
-  ).map(preset => ({
-    geography: preset.geography_weight ?? preset.geography,
-    volume: preset.volume_weight ?? preset.volume,
+  const volumePresets = (state.modeCapabilities.find(item => item.id === 'geo_volume')?.presets || []).map(preset => ({
+    geography: preset.geography_weight,
+    volume: preset.volume_weight,
   }));
   const volumeLabels = { 0.2: 'Низкое', 0.3: 'Среднее', 0.4: 'Повышенное' };
   $('volume-weight-options').innerHTML = volumePresets.map(preset => `
     <label><input type="radio" name="volume-weight" value="${preset.volume}" ${Number(form.volumeWeight) === Number(preset.volume) ? 'checked' : ''}>
       <span><b>${volumeLabels[preset.volume] || ''}</b>${Math.round(preset.volume * 100)}%<small>${Math.round(preset.geography * 100)}/${Math.round(preset.volume * 100)}</small></span>
     </label>`).join('');
-  const bearOptions = modeParameter(state.modeCapabilities, 'bear_zones', 'bear_threshold')?.choices
-    || options.bear_thresholds?.zone_options || [];
+  const bearOptions = modeParameter(state.modeCapabilities, 'bear_zones', 'bear_threshold')?.choices || [];
   const bearSingleton = modeParameter(state.modeCapabilities, 'bear_zones', 'singleton_threshold');
   $('bear-singleton-threshold').textContent = bearSingleton?.fixed
     ? Math.round(bearSingleton.default * 100)
@@ -66,8 +59,7 @@ export function renderOptionControls(state) {
     <label><input type="radio" name="bear-threshold" value="${value}" ${Number(form.bearThreshold) === Number(value) ? 'checked' : ''}>
       <span>+${Math.round(value * 100)}</span>
     </label>`).join('');
-  const bearVolumeOptions = modeParameter(state.modeCapabilities, 'bear_volume_zones', 'volume_threshold')?.choices
-    || options.bear_volume_thresholds?.zone_options || [];
+  const bearVolumeOptions = modeParameter(state.modeCapabilities, 'bear_volume_zones', 'volume_threshold')?.choices || [];
   const bearVolumeSingleton = modeParameter(state.modeCapabilities, 'bear_volume_zones', 'singleton_threshold');
   $('bear-volume-singleton-threshold').textContent = bearVolumeSingleton?.fixed
     ? Math.round(bearVolumeSingleton.default * 100)
