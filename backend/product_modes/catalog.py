@@ -319,81 +319,31 @@ class ProductModeCatalog:
         return result
 
 
-_K_PARAMETERS = (
-    ModeParameterCapability("k_mode", "choice", "auto", ("auto", "manual")),
-    ModeParameterCapability("n_clusters", "cluster_count", "auto", minimum=2, maximum=20),
-)
-_GEOGRAPHY_WEIGHT = ModeParameterCapability("geography_weight", "choice", 0.7, (0.8, 0.7, 0.6))
 _SINGLETON_THRESHOLD = ModeParameterCapability(
     "singleton_threshold", "choice", 0.7, (0.7,), fixed=True
 )
 _ZONE_THRESHOLD_CHOICES = (0.2, 0.25, 0.3, 0.35, 0.4, 0.5)
 
 
-def _weight_presets(business_parameter: str) -> tuple[ModeParameterValues, ...]:
-    return tuple(
-        (
-            ("geography_weight", geography_weight),
-            (business_parameter, business_weight),
-        )
-        for geography_weight, business_weight in ((0.8, 0.2), (0.7, 0.3), (0.6, 0.4))
-    )
-
-
 def default_product_mode_catalog(
     geography_clusterer: Clusterer | None = None,
+    geo_cost_clusterer: Clusterer | None = None,
+    geo_volume_clusterer: Clusterer | None = None,
 ) -> ProductModeCatalog:
     """Compose the frozen Product v1 mode set explicitly."""
 
+    from backend.product_modes.geo_cost import GeoCostProductMode
+    from backend.product_modes.geo_volume import GeoVolumeProductMode
     from backend.product_modes.geography import GeographyProductMode
+    from ml.clustering.geo_cost import GeoCostClusterer
+    from ml.clustering.geo_volume import GeoVolumeClusterer
     from ml.clustering.geographic import GeographicClusterer
 
     return ProductModeCatalog(
         (
             GeographyProductMode(geography_clusterer or GeographicClusterer()),
-            PendingProductMode(
-                ModeCapabilities(
-                    mode_id="geo_cost",
-                    parameters=(
-                        *_K_PARAMETERS,
-                        _GEOGRAPHY_WEIGHT,
-                        ModeParameterCapability(
-                            "economics_weight",
-                            "choice",
-                            0.3,
-                            (0.2, 0.3, 0.4),
-                        ),
-                    ),
-                    semantic_dimensions=("geography", "economics"),
-                    result_kind="partition",
-                    presets=_weight_presets("economics_weight"),
-                    comparison_parameters=(
-                        ("k_mode", "auto"),
-                        ("n_clusters", "auto"),
-                        ("geography_weight", 0.7),
-                        ("economics_weight", 0.3),
-                    ),
-                )
-            ),
-            PendingProductMode(
-                ModeCapabilities(
-                    mode_id="geo_volume",
-                    parameters=(
-                        *_K_PARAMETERS,
-                        _GEOGRAPHY_WEIGHT,
-                        ModeParameterCapability("volume_weight", "choice", 0.3, (0.2, 0.3, 0.4)),
-                    ),
-                    semantic_dimensions=("geography", "volume"),
-                    result_kind="partition",
-                    presets=_weight_presets("volume_weight"),
-                    comparison_parameters=(
-                        ("k_mode", "auto"),
-                        ("n_clusters", "auto"),
-                        ("geography_weight", 0.7),
-                        ("volume_weight", 0.3),
-                    ),
-                )
-            ),
+            GeoCostProductMode(geo_cost_clusterer or GeoCostClusterer()),
+            GeoVolumeProductMode(geo_volume_clusterer or GeoVolumeClusterer()),
             PendingProductMode(
                 ModeCapabilities(
                     mode_id="bear_zones",

@@ -15,6 +15,8 @@ from backend.product_modes.catalog import (
     default_product_mode_catalog,
 )
 from backend.product_modes.errors import ProductClusteringError
+from backend.product_modes.geo_cost import GeoCostParameters, GeoCostProductMode
+from backend.product_modes.geo_volume import GeoVolumeParameters, GeoVolumeProductMode
 from backend.product_modes.geography import GeographyProductMode
 
 __all__ = [
@@ -30,6 +32,10 @@ __all__ = [
     "ProductModeCatalog",
     "ProductModeNotMigratedError",
     "ProductClusteringError",
+    "GeoCostParameters",
+    "GeoCostProductMode",
     "GeographyProductMode",
+    "GeoVolumeParameters",
+    "GeoVolumeProductMode",
     "default_product_mode_catalog",
 ]

@@ -217,7 +217,7 @@ def test_only_unmigrated_default_registrations_are_guarded():
         "k_mode": "auto",
         "n_clusters": "auto",
     }
-    for mode_id in CANONICAL_PRODUCT_MODE_IDS[1:]:
+    for mode_id in CANONICAL_PRODUCT_MODE_IDS[3:]:
         with pytest.raises(
             ProductModeNotMigratedError,
             match=f"Product mode has not migrated to the catalog: {mode_id}",

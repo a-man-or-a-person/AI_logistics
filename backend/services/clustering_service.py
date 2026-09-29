@@ -45,6 +45,7 @@ MODES: dict[str, type[Clusterer]] = {
     "bear_volume_zones": BearVolumeZoneDetector,
 }
 BEAR_MODES = frozenset({"bear_zones", "bear_volume_zones"})
+ADAPTER_MODES = frozenset({"geography", "geo_cost", "geo_volume"})
 PERIOD_TYPES = frozenset({"retro", "current", "forecast"})
 PRICE_TYPES = frozenset({"spot", "tender"})
 K_MIN, K_MAX, DEFAULT_K = 2, 20, 5
@@ -117,8 +118,6 @@ class ClusteringRequest:
         if not isinstance(parameters, dict):
             raise ProductClusteringError("INVALID_REQUEST", "parameters должен быть объектом.", 400)
         allowed = {
-            "geo_cost": {"k_mode", "n_clusters", "geography_weight", "economics_weight"},
-            "geo_volume": {"k_mode", "n_clusters", "geography_weight", "volume_weight"},
             "bear_zones": {"bear_threshold", "singleton_threshold"},
             "bear_volume_zones": {"volume_threshold", "singleton_threshold"},
         }.get(mode)
@@ -137,12 +136,18 @@ class ClusteringRequest:
         economics_weight: float | None = None
         volume_weight: float | None = None
         mode_selection: ModeSelection | None = None
-        if mode == "geography":
+        if mode in ADAPTER_MODES:
             catalog = product_mode_catalog or default_product_mode_catalog()
-            mode_selection = catalog.select("geography", parameters)
+            mode_selection = catalog.select(mode, parameters)
             normalized = mode_selection.as_parameters()
             k_mode = normalized["k_mode"]
             n_clusters = normalized["n_clusters"]
+            if mode == "geo_cost":
+                geography_weight = normalized["geography_weight"]
+                economics_weight = normalized["economics_weight"]
+            elif mode == "geo_volume":
+                geography_weight = normalized["geography_weight"]
+                volume_weight = normalized["volume_weight"]
         elif mode not in BEAR_MODES:
             k_mode = parameters.get("k_mode")
             raw_k = parameters.get("n_clusters")
@@ -163,7 +168,7 @@ class ClusteringRequest:
             else:
                 n_clusters = raw_k
 
-        if mode == "geo_cost":
+        if mode == "geo_cost" and mode_selection is None:
             geography_weight = _number(
                 parameters.get("geography_weight", 0.70), "geography_weight должен быть числом."
             )
@@ -181,7 +186,7 @@ class ClusteringRequest:
                     400,
                 )
 
-        if mode == "geo_volume":
+        if mode == "geo_volume" and mode_selection is None:
             geography_weight = _number(
                 parameters.get("geography_weight", 0.70),
                 "geography_weight должен быть числом.",
@@ -344,7 +349,9 @@ class ClusteringService:
         )
         self.graph_builder = graph_builder or SpatialGraphBuilder()
         self.product_mode_catalog = product_mode_catalog or default_product_mode_catalog(
-            self.clusterers.get("geography")
+            geography_clusterer=self.clusterers.get("geography"),
+            geo_cost_clusterer=self.clusterers.get("geo_cost"),
+            geo_volume_clusterer=self.clusterers.get("geo_volume"),
         )
         self._origin_catalog: list[OriginOption] | None = None
         self._destination_regions: dict[str, set[str]] = {}
@@ -815,7 +822,7 @@ class ClusteringService:
         locations, report = self._locations(request)
         quality = self._quality(locations, report)
         mode_preview: ModePreview | None = None
-        if request.mode == "geography":
+        if request.mode in ADAPTER_MODES:
             resolved = [
                 point
                 for point in locations
@@ -831,13 +838,13 @@ class ClusteringService:
                 else []
             )
             selection = request.mode_selection or self.product_mode_catalog.select(
-                "geography", request.parameters()
+                request.mode, request.parameters()
             )
             evaluated = self.product_mode_catalog.evaluate(
                 selection, ModeDataset(tuple(points), None), "preview"
             )
             if not isinstance(evaluated, ModePreview):
-                raise TypeError("Geography adapter did not return a preview")
+                raise TypeError(f"Product mode adapter did not return a preview: {request.mode}")
             mode_preview = evaluated
         logger.info(
             (
@@ -937,20 +944,12 @@ class ClusteringService:
             raise ProductClusteringError("NO_DATA", "По выбранным фильтрам данных нет.", 422)
         projection = self._projection(locations)
         geography_points = self._ml_input(locations, projection, include_economics=False)
-        if (
-            len(geography_points) < 2
-            and request.mode not in BEAR_MODES
-            and request.mode != "geography"
-        ):
-            raise ProductClusteringError(
-                "INSUFFICIENT_POINTS", "Недостаточно точек с координатами для разбиения.", 422
-            )
         full_graph, graph_cache_hit = self._spatial_graph(geography_points)
 
-        if request.mode == "geography":
+        if request.mode in ADAPTER_MODES:
             points = self._ml_input(locations, projection, include_economics=True)
             selection = request.mode_selection or self.product_mode_catalog.select(
-                "geography", request.parameters()
+                request.mode, request.parameters()
             )
             outcome = self.product_mode_catalog.evaluate(
                 selection,
@@ -958,7 +957,7 @@ class ClusteringService:
                 "run",
             )
             if not isinstance(outcome, ModeOutcome):
-                raise TypeError("Geography adapter did not return an outcome")
+                raise TypeError(f"Product mode adapter did not return an outcome: {request.mode}")
             return (
                 self._result_json(
                     request,

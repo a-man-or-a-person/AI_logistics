@@ -418,23 +418,53 @@ def test_geography_only_ml_input_never_receives_price(product_files):
     )
 
 
-def test_geography_preview_and_run_route_through_product_mode_catalog(product_files):
+def test_partition_modes_route_through_catalog_while_bear_modes_stay_on_old_path(product_files):
     source, cache = product_files
-    clusterer = CapturingClusterer()
-    catalog = TrackingProductModeCatalog(default_product_mode_catalog(clusterer))
-    service = ClusteringService(
-        source,
-        coordinate_cache_path=cache,
-        clusterers={"geography": clusterer},
-        product_mode_catalog=catalog,
+    service = ClusteringService(source, coordinate_cache_path=cache)
+    catalog = TrackingProductModeCatalog(
+        default_product_mode_catalog(
+            geography_clusterer=service.clusterers["geography"],
+            geo_cost_clusterer=service.clusterers["geo_cost"],
+            geo_volume_clusterer=service.clusterers["geo_volume"],
+        )
     )
-    request = ClusteringRequest.from_payload(_payload(), product_mode_catalog=catalog)
+    service.product_mode_catalog = catalog
+    parameters = {
+        "geography": {"k_mode": "manual", "n_clusters": 2},
+        "geo_cost": {
+            "k_mode": "manual",
+            "n_clusters": 2,
+            "geography_weight": 0.7,
+            "economics_weight": 0.3,
+        },
+        "geo_volume": {
+            "k_mode": "manual",
+            "n_clusters": 2,
+            "geography_weight": 0.7,
+            "volume_weight": 0.3,
+        },
+    }
 
-    service.preview(request)
-    service.run(request)
+    for mode, mode_parameters in parameters.items():
+        request = ClusteringRequest.from_payload(
+            _payload(mode=mode, parameters=mode_parameters),
+            product_mode_catalog=catalog,
+        )
+        service.preview(request)
+        service.run(request)
+    for mode, mode_parameters in {
+        "bear_zones": {"bear_threshold": 0.35, "singleton_threshold": 0.7},
+        "bear_volume_zones": {"volume_threshold": 0.35, "singleton_threshold": 0.7},
+    }.items():
+        request = ClusteringRequest.from_payload(
+            _payload(mode=mode, parameters=mode_parameters),
+            product_mode_catalog=catalog,
+        )
+        service.preview(request)
+        service.run(request)
 
-    assert catalog.selections == ["geography"]
-    assert catalog.operations == ["preview", "run"]
+    assert catalog.selections == ["geography", "geo_cost", "geo_volume"]
+    assert catalog.operations == ["preview", "run"] * 3
 
 
 def test_geography_adapter_path_matches_legacy_geography_product_output(product_files):
@@ -462,6 +492,85 @@ def test_geography_adapter_path_matches_legacy_geography_product_output(product_
         "k_mode": "manual",
         "n_clusters": 2,
     }
+    assert adapter_output == legacy_output
+
+
+@pytest.mark.parametrize(
+    ("mode", "clusterer_factory", "parameters"),
+    [
+        (
+            "geo_cost",
+            GeoCostClusterer,
+            {
+                "k_mode": "manual",
+                "n_clusters": 2,
+                "geography_weight": 0.7,
+                "economics_weight": 0.3,
+            },
+        ),
+        (
+            "geo_volume",
+            GeoVolumeClusterer,
+            {
+                "k_mode": "manual",
+                "n_clusters": 2,
+                "geography_weight": 0.7,
+                "volume_weight": 0.3,
+            },
+        ),
+    ],
+)
+def test_business_adapter_paths_match_legacy_product_output_and_graph(
+    product_files, mode, clusterer_factory, parameters
+):
+    source, cache = product_files
+    recorder = RecordingClusterer(clusterer_factory())
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        clusterers={mode: recorder},
+    )
+    request = ClusteringRequest.from_payload(
+        _payload(mode=mode, parameters=parameters),
+        product_mode_catalog=service.product_mode_catalog,
+    )
+    locations, report = service._locations(request)
+    projection = service._projection(locations)
+    spatial_points = service._ml_input(locations, projection, include_economics=False)
+    full_graph, _ = service._spatial_graph(spatial_points)
+    if mode == "geo_cost":
+        economic_points = service._ml_input(locations, projection, include_economics=True)
+        legacy_points = [
+            point
+            for point in economic_points
+            if point.trip_count > 0
+            and point.weighted_price is not None
+            and point.weighted_rub_per_km is not None
+        ]
+        legacy_graph = full_graph.induced_subgraph({point.id for point in legacy_points})
+    else:
+        legacy_points = spatial_points
+        legacy_graph = full_graph
+    algorithm_parameters = {
+        "spatial_graph": legacy_graph,
+        "n_clusters": 2,
+        "k_min": 2,
+        "k_max": 20,
+        "geography_weight": 0.7,
+        ("economics_weight" if mode == "geo_cost" else "volume_weight"): 0.3,
+    }
+    legacy_result = clusterer_factory().fit(legacy_points, algorithm_parameters)
+    legacy_output = service._result_json(request, locations, report, legacy_result, "success")
+
+    adapter_output = service.run(request)
+
+    adapter_ids, adapter_parameters, adapter_graph = recorder.calls[0]
+    assert adapter_ids == tuple(point.id for point in legacy_points)
+    assert adapter_parameters == {
+        key: value for key, value in algorithm_parameters.items() if key != "spatial_graph"
+    }
+    assert adapter_graph.node_ids == legacy_graph.node_ids
+    assert adapter_graph.edges == legacy_graph.edges
     assert adapter_output == legacy_output
 
 
@@ -573,27 +682,46 @@ def test_result_cache_reuses_repository_and_calculation(product_files):
     assert len(service._result_cache) == 1
 
 
-def test_equivalent_normalized_mode_parameters_share_result_cache(product_files):
-    source, cache = product_files
-    clusterer = RecordingClusterer(GeoCostClusterer())
-    service = ClusteringService(
-        source,
-        coordinate_cache_path=cache,
-        clusterers={"geo_cost": clusterer},
-    )
-    implicit_payload = _payload(mode="geo_cost")
-    implicit_payload.pop("parameters")
-    implicit = ClusteringRequest.from_payload(implicit_payload)
-    explicit = ClusteringRequest.from_payload(
-        _payload(
-            mode="geo_cost",
-            parameters={
+@pytest.mark.parametrize(
+    ("mode", "clusterer_factory", "explicit_parameters"),
+    [
+        (
+            "geo_cost",
+            GeoCostClusterer,
+            {
                 "k_mode": "auto",
                 "n_clusters": "auto",
                 "geography_weight": 0.7,
                 "economics_weight": 0.3,
             },
-        )
+        ),
+        (
+            "geo_volume",
+            GeoVolumeClusterer,
+            {
+                "k_mode": "auto",
+                "n_clusters": "auto",
+                "geography_weight": 0.7,
+                "volume_weight": 0.3,
+            },
+        ),
+    ],
+)
+def test_equivalent_normalized_mode_parameters_share_result_cache(
+    product_files, mode, clusterer_factory, explicit_parameters
+):
+    source, cache = product_files
+    clusterer = RecordingClusterer(clusterer_factory())
+    service = ClusteringService(
+        source,
+        coordinate_cache_path=cache,
+        clusterers={mode: clusterer},
+    )
+    implicit_payload = _payload(mode=mode)
+    implicit_payload.pop("parameters")
+    implicit = ClusteringRequest.from_payload(implicit_payload)
+    explicit = ClusteringRequest.from_payload(
+        _payload(mode=mode, parameters=explicit_parameters)
     )
 
     first = service.run(implicit)
