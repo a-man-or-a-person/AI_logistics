@@ -198,7 +198,24 @@ class ExampleGeographyMode(StubProductMode):
 
 def test_catalog_select_and_evaluate_use_the_product_mode_interface():
     registrations = list(_registrations(*CANONICAL_PRODUCT_MODE_IDS))
-    registrations[0] = ExampleGeographyMode(registrations[0].capabilities)
+    registrations[0] = ExampleGeographyMode(
+        ModeCapabilities(
+            mode_id="geography",
+            parameters=(
+                ModeParameterCapability("k_mode", "choice", "auto", ("auto", "manual")),
+                ModeParameterCapability(
+                    "n_clusters",
+                    "cluster_count",
+                    "auto",
+                    minimum=2,
+                    maximum=20,
+                    manual_default=5,
+                ),
+            ),
+            semantic_dimensions=("geography",),
+            result_kind="partition",
+        )
+    )
     catalog = ProductModeCatalog(tuple(registrations))
     raw_parameters = {"n_clusters": "auto", "k_mode": "auto"}
 
@@ -269,7 +286,88 @@ def test_catalog_rejects_registration_without_capabilities_clearly():
         ProductModeCatalog(tuple(registrations))
 
 
-def test_clustering_service_accepts_catalog_without_using_it_as_runtime_authority():
+def test_catalog_rejects_registration_with_inconsistent_default_selection():
+    class MismatchedMode(StubProductMode):
+        def select(self, parameters):
+            return ModeSelection.from_mapping("geo_cost", parameters)
+
+    registrations = list(_registrations(*CANONICAL_PRODUCT_MODE_IDS))
+    registrations[0] = MismatchedMode(registrations[0].capabilities)
+
+    with pytest.raises(
+        ValueError,
+        match="Product mode geography default selection returned mode geo_cost",
+    ):
+        ProductModeCatalog(tuple(registrations))
+
+
+def test_catalog_rejects_registration_that_changes_declared_defaults():
+    class DefaultChangingMode(StubProductMode):
+        def select(self, parameters):
+            return ModeSelection.from_mapping("geography", {"k_mode": "manual"})
+
+    capabilities = ModeCapabilities(
+        mode_id="geography",
+        parameters=(ModeParameterCapability("k_mode", "choice", "auto", ("auto", "manual")),),
+        semantic_dimensions=("geography",),
+        result_kind="partition",
+    )
+    registrations = list(_registrations(*CANONICAL_PRODUCT_MODE_IDS))
+    registrations[0] = DefaultChangingMode(capabilities)
+
+    with pytest.raises(
+        ValueError,
+        match="Product mode geography default selection differs from declared capabilities",
+    ):
+        ProductModeCatalog(tuple(registrations))
+
+
+def test_catalog_rejects_invalid_comparison_selection_at_startup():
+    class RejectingMode(StubProductMode):
+        def select(self, parameters):
+            if parameters.get("k_mode") == "manual":
+                raise ValueError("manual comparison is unavailable")
+            return super().select(parameters)
+
+    capabilities = ModeCapabilities(
+        mode_id="geography",
+        parameters=(ModeParameterCapability("k_mode", "choice", "auto", ("auto", "manual")),),
+        semantic_dimensions=("geography",),
+        result_kind="partition",
+        comparison_parameters=(("k_mode", "manual"),),
+    )
+    registrations = list(_registrations(*CANONICAL_PRODUCT_MODE_IDS))
+    registrations[0] = RejectingMode(capabilities)
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Product mode geography has invalid comparison selection: "
+            "manual comparison is unavailable"
+        ),
+    ):
+        ProductModeCatalog(tuple(registrations))
+
+
+def test_catalog_rejects_result_for_a_different_selection():
+    class MismatchedOutcomeMode(StubProductMode):
+        def evaluate(self, selection, dataset, operation):
+            other = ModeSelection.from_mapping("geo_cost", {})
+            return ModePreview(other, ())
+
+    registrations = list(_registrations(*CANONICAL_PRODUCT_MODE_IDS))
+    registrations[0] = MismatchedOutcomeMode(registrations[0].capabilities)
+    catalog = ProductModeCatalog(tuple(registrations))
+    selection = catalog.select("geography", {})
+
+    with pytest.raises(
+        ValueError,
+        match="Product mode result selection must match the requested selection",
+    ):
+        catalog.evaluate(selection, ModeDataset((), None), "preview")
+
+
+def test_clustering_service_accepts_injected_catalog_as_runtime_authority():
     catalog = default_product_mode_catalog()
 
     service = ClusteringService(

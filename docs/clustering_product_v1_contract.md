@@ -64,7 +64,8 @@ Geo+Volume принимает те же три пары весов через `g
 {"mode":"bear_zones","parameters":{"bear_threshold":0.35,"singleton_threshold":0.70}}
 ```
 
-Bear eligibility не ограничивается `trip_count`.
+Bear eligibility требует положительный `trip_count` и валидный
+`weighted_rub_per_km`; отдельное наличие `weighted_price` не требуется.
 
 Для Bear Zones по объёму:
 

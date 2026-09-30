@@ -230,8 +230,8 @@ function validate(request) {
   if (!request.destination_region) return 'Выберите один регион доставки.';
   if (!request.period_types.length) return 'Выберите хотя бы один период.';
   if (!request.price_types.length) return 'Выберите хотя бы один тип цены.';
-  if (!['bear_zones', 'bear_volume_zones'].includes(request.mode) && request.parameters.k_mode === 'manual') {
-    const capability = modeParameter(state.modeCapabilities, request.mode, 'n_clusters');
+  const capability = modeParameter(state.modeCapabilities, request.mode, 'n_clusters');
+  if (capability && request.parameters.k_mode === 'manual') {
     const min = capability?.min;
     const max = capability?.max;
     if (!Number.isInteger(request.parameters.n_clusters) || request.parameters.n_clusters < min || request.parameters.n_clusters > max) return `K должен быть от ${min} до ${max}.`;
@@ -367,7 +367,7 @@ function activateComparisonMode(mode) {
   if (!result) return;
   state.comparison.activeMode = mode;
   state.form.mode = mode;
-  if (!['bear_zones', 'bear_volume_zones'].includes(mode)) {
+  if (modeParameter(state.modeCapabilities, mode, 'n_clusters')) {
     state.form.kMode = result.analysis.parameters.k_mode ?? state.form.kMode;
     state.form.k = result.analysis.parameters.n_clusters || state.form.k;
   }

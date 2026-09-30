@@ -1,4 +1,4 @@
-"""Product-mode seam used by the incremental clustering refactor."""
+"""Authoritative Product-mode seam for canonical clustering."""
 
 from backend.product_modes.bear_volume_zones import (
     BearVolumeZonesParameters,

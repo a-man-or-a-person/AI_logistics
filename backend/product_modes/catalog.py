@@ -1,4 +1,4 @@
-"""Explicit Product-mode registration for incremental runtime migration."""
+"""Product-mode interface, capabilities, and canonical catalog composition."""
 
 from __future__ import annotations
 
@@ -107,7 +107,7 @@ class ModeParameterCapability:
 
 @dataclass(frozen=True, slots=True)
 class ModeCapabilities:
-    """Product facts that will become authoritative after mode migration."""
+    """Authoritative machine-readable facts for one Product mode."""
 
     mode_id: ProductModeId
     parameters: tuple[ModeParameterCapability, ...]
@@ -265,7 +265,7 @@ class ModeOutcome:
 
 
 class ProductMode(Protocol):
-    """Deep seam hiding one mode's future Product-specific behavior."""
+    """Deep seam hiding one mode's Product-specific behavior."""
 
     capabilities: ModeCapabilities
 
@@ -324,8 +324,70 @@ class ProductModeCatalog:
                 "Product mode registration does not implement select/evaluate: "
                 f"{', '.join(incomplete)}"
             )
+        for mode, capability in zip(modes, capabilities, strict=True):
+            validation_parameters = (
+                ("default", dict(capability.default_parameters)),
+                (
+                    "comparison",
+                    dict(capability.default_parameters) | dict(capability.comparison_parameters),
+                ),
+            )
+            for context, parameters in validation_parameters:
+                try:
+                    selection = mode.select(parameters)
+                except (KeyError, TypeError, ValueError) as error:
+                    raise ValueError(
+                        f"Product mode {capability.mode_id} has invalid {context} selection: "
+                        f"{error}"
+                    ) from error
+                self._validate_selection(
+                    capability,
+                    selection,
+                    context,
+                    expected_parameters=parameters,
+                )
         self._modes = modes
         self._mode_by_id = {mode.capabilities.mode_id: mode for mode in self._modes}
+
+    @staticmethod
+    def _validate_selection(
+        capability: ModeCapabilities,
+        selection: object,
+        context: str,
+        *,
+        expected_parameters: Mapping[str, ModeParameterValue] | None = None,
+    ) -> None:
+        if not isinstance(selection, ModeSelection):
+            raise ValueError(
+                f"Product mode {capability.mode_id} {context} selection must return ModeSelection"
+            )
+        if selection.mode_id != capability.mode_id:
+            raise ValueError(
+                f"Product mode {capability.mode_id} {context} selection returned mode "
+                f"{selection.mode_id}"
+            )
+        selected_parameters = selection.as_parameters()
+        if set(selected_parameters) != set(capability.parameter_names):
+            raise ValueError(
+                f"Product mode {capability.mode_id} {context} selection parameters "
+                "do not match declared capabilities"
+            )
+        parameter_by_name = {parameter.name: parameter for parameter in capability.parameters}
+        invalid = tuple(
+            name
+            for name, value in selected_parameters.items()
+            if not parameter_by_name[name].accepts(value)
+        )
+        if invalid:
+            raise ValueError(
+                f"Product mode {capability.mode_id} {context} selection has unsupported "
+                f"values for: {', '.join(invalid)}"
+            )
+        if expected_parameters is not None and selected_parameters != dict(expected_parameters):
+            raise ValueError(
+                f"Product mode {capability.mode_id} {context} selection differs from "
+                "declared capabilities"
+            )
 
     @property
     def mode_ids(self) -> tuple[str, ...]:
@@ -343,7 +405,9 @@ class ProductModeCatalog:
             mode = self._mode_by_id[mode_id]
         except KeyError as error:
             raise ValueError(f"Unknown Product mode ID: {mode_id}") from error
-        return mode.select(parameters)
+        selection = mode.select(parameters)
+        self._validate_selection(mode.capabilities, selection, "runtime")
+        return selection
 
     def evaluate(
         self,
@@ -362,6 +426,8 @@ class ProductModeCatalog:
             raise TypeError("Product mode preview must return ModePreview")
         if operation == "run" and not isinstance(result, ModeOutcome):
             raise TypeError("Product mode run must return ModeOutcome")
+        if result.selection != selection:
+            raise ValueError("Product mode result selection must match the requested selection")
         return result
 
 

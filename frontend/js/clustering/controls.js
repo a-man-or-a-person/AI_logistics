@@ -1,4 +1,4 @@
-import { MODES, modeParameter, warningKinds } from './state.js';
+import { MODES, modeParameter, modeResultKind, warningKinds } from './state.js';
 import { MODE_LABELS, PERIOD_LABELS, PRICE_LABELS, escapeHtml } from './formatters.js';
 
 const $ = id => document.getElementById(id);
@@ -76,22 +76,22 @@ export function readChecks(id) {
 
 export function renderFormState(state) {
   const { form } = state;
-  const bearModes = ['bear_zones', 'bear_volume_zones'];
+  const isZoneMode = modeResultKind(state.modeCapabilities, form.mode) === 'zones';
   document.querySelectorAll('.mode-card').forEach(card => card.classList.toggle('selected', card.querySelector('input').value === form.mode));
-  $('k-controls').classList.toggle('hidden', bearModes.includes(form.mode));
+  $('k-controls').classList.toggle('hidden', isZoneMode);
   $('bear-controls').classList.toggle('hidden', form.mode !== 'bear_zones');
   $('bear-volume-controls').classList.toggle('hidden', form.mode !== 'bear_volume_zones');
   $('cost-controls').classList.toggle('hidden', form.mode !== 'geo_cost');
   $('volume-controls').classList.toggle('hidden', form.mode !== 'geo_volume');
   $('manual-k-row').classList.toggle('hidden', form.kMode !== 'manual');
-  $('candidate-layer-option').classList.toggle('hidden', !bearModes.includes(form.mode));
+  $('candidate-layer-option').classList.toggle('hidden', !isZoneMode);
   const threshold = form.mode === 'bear_volume_zones' ? form.bearVolumeThreshold : form.bearThreshold;
   const weightedCaption = form.mode === 'geo_cost'
     ? ` · ${Math.round((1 - form.costWeight) * 100)}/${Math.round(form.costWeight * 100)}`
     : form.mode === 'geo_volume'
       ? ` · ${Math.round((1 - form.volumeWeight) * 100)}/${Math.round(form.volumeWeight * 100)}`
       : '';
-  $('run-caption').textContent = bearModes.includes(form.mode)
+  $('run-caption').textContent = isZoneMode
     ? `${MODE_LABELS[form.mode]} · +${Math.round(threshold * 100)}%`
     : `${MODE_LABELS[form.mode]} · ${form.kMode === 'auto' ? 'Auto K' : `K=${form.k}`}${weightedCaption}`;
   const route = `${form.origin?.name || 'Точка не выбрана'} → ${form.destinationRegion || 'Регион не выбран'}`;
@@ -112,10 +112,10 @@ export function renderFormState(state) {
     : form.mode === 'geo_volume'
       ? ` · Geo/Volume ${Math.round((1 - form.volumeWeight) * 100)}/${Math.round(form.volumeWeight * 100)}`
       : '';
-  $('preview-parameters').textContent = bearModes.includes(form.mode)
+  $('preview-parameters').textContent = isZoneMode
     ? `Порог +${Math.round(threshold * 100)}%`
     : `${form.kMode === 'auto' ? 'Auto K' : `K=${form.k}`}${weightPreview}`;
-  const kinds = warningKinds(form);
+  const kinds = warningKinds(form, state.modeCapabilities);
   $('form-warnings').innerHTML = [
     kinds.includes('forecast') ? '<p>В анализ включены прогнозные данные Pulse.</p>' : '',
     kinds.includes('current_forecast') ? '<p>В одном анализе объединены текущие и прогнозные наблюдения.</p>' : '',

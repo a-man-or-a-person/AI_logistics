@@ -42,6 +42,14 @@ export function modeParameter(capabilities, modeId, name) {
   return capabilities.find(item => item.id === modeId)?.parameters?.find(item => item.name === name);
 }
 
+export function modeResultKind(capabilities, modeId) {
+  return capabilities.find(item => item.id === modeId)?.result_kind;
+}
+
+export function modeHasSemanticDimension(capabilities, modeId, dimension) {
+  return capabilities.find(item => item.id === modeId)?.semantic_dimensions?.includes(dimension) || false;
+}
+
 export function updateClusteringOptions(state, options) {
   state.options = { ...state.options, ...options };
   state.modeCapabilities = productModeCapabilities(state.options);
@@ -155,12 +163,12 @@ export function setResult(state, data, request) {
   state.ui.selectedPoint = null;
 }
 
-export function warningKinds(form) {
+export function warningKinds(form, capabilities) {
   const warnings = [];
   if (form.periodTypes.includes('forecast')) warnings.push('forecast');
   if (form.periodTypes.includes('forecast') && form.periodTypes.includes('current')) warnings.push('current_forecast');
   if (
-    ['geo_cost', 'bear_zones'].includes(form.mode)
+    modeHasSemanticDimension(capabilities, form.mode, 'economics')
     && (form.priceTypes.length > 1 || form.vehicleTypes.length > 1 || form.tonnageIds.length > 1)
   ) warnings.push('mixed_segment');
   return warnings;

@@ -282,8 +282,10 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
             "id": mode,
             "parameters": parameters[mode],
             "presets": [{"economics_weight": 0.41}] if mode == "geo_cost" else [],
-            "semantic_dimensions": ["geography"],
-            "result_kind": "zones" if "bear" in mode else "partition",
+            "semantic_dimensions": (
+                ["geography", "economics"] if mode == "geography" else ["geography"]
+            ),
+            "result_kind": "zones" if mode == "geography" else "partition",
             "comparison": {"supported": mode != "geo_volume", "parameters": {}},
         }
         for mode in order
@@ -328,6 +330,8 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
         manualK: state.form.k,
         bearThreshold: state.form.bearThreshold,
         singletonThreshold: state.form.singletonThreshold,
+        geographyWarnings: warningKinds({{...state.form, mode: 'geography', periodTypes: ['current'], priceTypes: ['spot', 'tender']}}, state.modeCapabilities),
+        geographyResultKind: modeResultKind(state.modeCapabilities, 'geography'),
         missingCapabilitiesError,
         request: buildRequest({{...state.form, mode: 'geo_cost'}}, 'geo_cost'),
       }};
@@ -371,6 +375,8 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
         "manualK": 9,
         "bearThreshold": 0.44,
         "singletonThreshold": 0.73,
+        "geographyWarnings": ["mixed_segment"],
+        "geographyResultKind": "zones",
         "missingCapabilitiesError": "Product mode capabilities are required",
         "request": {
             "origin_fias": "",
