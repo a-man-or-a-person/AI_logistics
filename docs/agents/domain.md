@@ -9,6 +9,19 @@ How the engineering skills should consume this repo's domain documentation when 
 
 If either location does not exist, proceed silently. Domain documentation is created lazily when terms or architectural decisions need to be recorded.
 
+## Product clustering
+
+Before changing `backend/product_modes/`, `backend/services/clustering_service.py`,
+`/api/clustering/*`, or the Product clustering frontend, read
+`docs/clustering_product_v1_contract.md` and `docs/clustering_product_v1_workflow.md`.
+
+- Product adapters own mode-specific semantics; `ClusteringService` owns common infrastructure
+  and orchestration.
+- Build the full `SpatialGraph` before business filtering; business-filtered modes use induced
+  subgraphs.
+- Backend owns machine capabilities; frontend owns presentation.
+- Research workflows and `/api/ml-cluster` remain independent of Product restrictions.
+
 ## File structure
 
 This is a single-context repository:
