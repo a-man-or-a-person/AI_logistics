@@ -3,6 +3,10 @@
 Локальное Flask-приложение для анализа ставок перевозок, отображения городов на
 карте и кластеризации логистических точек.
 
+## Проектные документы
+
+Начните с [Project Brief](docs/project/project-brief.md). Термины и принятые продуктовые решения принадлежат [CONTEXT.md](CONTEXT.md), а реализованная архитектура описана в [Current-State Architecture](docs/architecture/current-state.md).
+
 ## Требования
 
 - Python 3.11+

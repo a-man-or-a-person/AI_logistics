@@ -1,5 +1,7 @@
 # Clustering Product v1 workflow
 
+> **Статус: SUPPORTING / CURRENT.** Документ детализирует реализованный Product workflow. Каноническая архитектура находится в [current-state.md](architecture/current-state.md), а desktop-таблица кластеров относится к **NEXT** и описана в [CONTEXT.md](../CONTEXT.md), а не здесь.
+
 ## Контур
 
 ```text

@@ -1,5 +1,7 @@
 # Clustering Contract v1
 
+> **Статус: SUPPORTING.** Это детальный контракт данных и исследовательских инвариантов, а не полный контракт текущего Product. Пять Product-режимов и публичное поведение принадлежат [Product v1 contract](clustering_product_v1_contract.md); продуктовые значения и планы — [CONTEXT.md](../CONTEXT.md).
+
 Версия: clustering-contract-v1. Предыдущий clustering-data-v1 и его трактовка
 units → shipment_count отменены.
 

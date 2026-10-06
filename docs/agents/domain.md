@@ -5,9 +5,11 @@ How the engineering skills should consume this repo's domain documentation when 
 ## Before exploring, read these
 
 - `CONTEXT.md` at the repo root, when it exists.
+- `docs/project/project-brief.md` for a project-wide Product discussion or an unfamiliar repository area.
+- `docs/architecture/current-state.md` before making cross-boundary architecture claims.
 - `docs/adr/`, reading ADRs relevant to the area being changed.
 
-If either location does not exist, proceed silently. Domain documentation is created lazily when terms or architectural decisions need to be recorded.
+If a listed location does not exist, proceed silently. Domain documentation is created lazily when terms or architectural decisions need to be recorded.
 
 ## Product clustering
 
@@ -21,17 +23,6 @@ Before changing `backend/product_modes/`, `backend/services/clustering_service.p
   subgraphs.
 - Backend owns machine capabilities; frontend owns presentation.
 - Research workflows and `/api/ml-cluster` remain independent of Product restrictions.
-
-## File structure
-
-This is a single-context repository:
-
-```text
-/
-|-- CONTEXT.md
-|-- docs/adr/
-`-- backend/, frontend/, ml/, tests/
-```
 
 ## Use the glossary's vocabulary
 
