@@ -93,6 +93,7 @@ export function createClusteringState(options = {}) {
       tableVisible: false,
       tableOpen: false,
       tableSort: { key: 'trip_count', direction: 'desc' },
+      pointRows: new Map(),
     },
   };
 }

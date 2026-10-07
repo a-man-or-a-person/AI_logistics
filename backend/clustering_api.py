@@ -170,3 +170,20 @@ def compare_clustering():
         return _error(error)
     except Exception:
         return _internal_error("/api/clustering/compare")
+
+
+@clustering_blueprint.post("/point-rows")
+def clustering_point_rows():
+    try:
+        return jsonify(
+            {
+                "ok": True,
+                **get_clustering_service().point_rows(
+                    _json_payload(), request_id=g.clustering_request_id
+                ),
+            }
+        )
+    except ProductClusteringError as error:
+        return _error(error)
+    except Exception:
+        return _internal_error("/api/clustering/point-rows")

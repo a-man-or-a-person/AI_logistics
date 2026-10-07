@@ -18,6 +18,10 @@ from ml.data.loader import default_csv_path, iter_records
 from ml.data.schema import LogisticsRecord
 
 
+class SourceGenerationMismatch(RuntimeError):
+    """The indexed Pulse generation differs from the requested snapshot."""
+
+
 @dataclass(frozen=True, slots=True)
 class FileFingerprint:
     path: str
@@ -248,15 +252,20 @@ class ClusteringRepository:
         price_types: set[str],
         vehicle_types: set[str],
         tonnage_ids: set[str],
+        expected_fingerprint: tuple[str, int, int] | None = None,
     ) -> list[ClusteringSourceRow]:
         """Return one destination's normalized rows in deterministic newest-first order."""
-        rows = (
-            row
-            for row in self._rows(origin_fias, destination_region)
-            if row.destination_fias == destination_fias
-            and (not period_types or row.period_type in period_types)
-            and (not price_types or row.price_type in price_types)
-            and (not vehicle_types or row.vehicle_type in vehicle_types)
-            and (not tonnage_ids or row.tonnage_id in tonnage_ids)
-        )
-        return sorted(rows, key=_newest_first)
+        with self._lock:
+            current = self.fingerprint().cache_token()
+            if expected_fingerprint is not None and current != expected_fingerprint:
+                raise SourceGenerationMismatch
+            rows = (
+                row
+                for row in self._index.get((origin_fias, destination_region), ())
+                if row.destination_fias == destination_fias
+                and (not period_types or row.period_type in period_types)
+                and (not price_types or row.price_type in price_types)
+                and (not vehicle_types or row.vehicle_type in vehicle_types)
+                and (not tonnage_ids or row.tonnage_id in tonnage_ids)
+            )
+            return sorted(rows, key=_newest_first)

@@ -39,7 +39,16 @@ export function renderInspector(state, handlers = {}) {
   $('result-quality').innerHTML = qualityFor(result.data_quality || {});
   $('result-metrics').innerHTML = metricsFor(result);
   $('point-details').classList.toggle('hidden', !selectedPoint);
-  if (selectedPoint) renderPointDetails(selectedPoint, mode, handlers);
+  if (selectedPoint) {
+    const key = handlers.pointRowsKey?.();
+    renderPointDetails(
+      selectedPoint,
+      mode,
+      handlers,
+      state.ui.pointRows?.get(key),
+      result.cluster_table?.supported === true,
+    );
+  }
   $('cluster-list').innerHTML = result.clusters.map(cluster => `
     <button class="cluster-card ${Number(cluster.cluster_id) === Number(state.ui.selectedCluster) ? 'selected' : ''}" type="button" data-cluster-id="${cluster.cluster_id}">
       <span class="cluster-symbol" data-index="${cluster.cluster_id}">${clusterLabel(cluster, mode)}</span>
@@ -155,14 +164,13 @@ function renderClusterDetails(result, cluster, mode) {
     <button type="button" data-point-id="${escapeHtml(point.id)}"><span>${escapeHtml(point.name)}</span><strong>${fmt(point.trip_count)}</strong></button>`).join('');
 }
 
-function renderPointDetails(point, mode, handlers) {
+function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false) {
   const statuses = {
     assigned: 'В кластере', normal: 'В кластере', ordinary: 'Обычная точка', bear_candidate: 'Кандидат',
     bear_zone: 'Медвежья зона', expensive_singleton: 'Аномально дорогая точка',
     bear_volume_candidate: 'Кандидат по объёму', bear_volume_zone: 'Объёмная медвежья зона', high_volume_singleton: 'Аномально объёмная точка',
     spatial_outlier: 'Пространственно изолирована', economic_unavailable: 'Нет экономики',
   };
-  const tableMode = ['geography', 'geo_cost', 'geo_volume'].includes(mode);
   const economics = !tableMode && mode !== 'bear_zones' ? '' : `
       ${point.weighted_price == null ? '' : `<div><dt>Средневзвешенная цена</dt><dd>${decimal(point.weighted_price, 0)} ₽</dd></div>`}
       ${point.weighted_rub_per_km == null ? '' : `<div><dt>Средневзвешенный ₽/км</dt><dd>${rubKm(point.weighted_rub_per_km)}</dd></div>`}
@@ -171,6 +179,28 @@ function renderPointDetails(point, mode, handlers) {
   const volume = !['geo_volume', 'bear_volume_zones'].includes(mode) ? '' : `
       ${point.regional_mean_trip_count == null ? '' : `<div><dt>Средний объём региона</dt><dd>${decimal(point.regional_mean_trip_count, 1)} перевозки/точку</dd></div>`}
       ${point.relative_volume_delta == null ? '' : `<div><dt>Отклонение объёма</dt><dd>${percent(point.relative_volume_delta)}</dd></div>`}`;
+  const pulseRows = (pulse.rows || []).map(row => `<tr>
+    <td>${escapeHtml(row.period_id || '—')}</td><td>${escapeHtml(row.period_type || '—')}</td>
+    <td>${escapeHtml(row.price_type || '—')}</td><td>${escapeHtml(row.vehicle_type || '—')}</td>
+    <td>${escapeHtml(row.tonnage_id || '—')}</td><td>${decimal(row.price, 0)}</td>
+    <td>${km(row.route_length)}</td><td>${rubKm(row.rub_per_km)}</td><td>${row.trip_count == null ? '—' : fmt(row.trip_count)}</td>
+    <td>${(row.warnings || []).map(escapeHtml).join(', ') || '—'}</td>
+  </tr>`).join('');
+  const pulseState = pulse.status === 'loading'
+    ? '<p class="pulse-state" role="status">Загружаем строки Pulse…</p>'
+    : pulse.status === 'stale'
+      ? '<p class="pulse-state error" role="alert">Данные Pulse изменились. Пересчитайте результат.</p>'
+      : pulse.status === 'error'
+        ? `<p class="pulse-state error" role="alert">${escapeHtml(pulse.error || 'Не удалось загрузить строки Pulse.')}</p><button type="button" data-pulse-retry>Повторить</button>`
+        : pulse.status === 'success' && !pulseRows
+          ? '<p class="pulse-state">Для точки нет строк Pulse в выбранном срезе.</p>'
+          : '';
+  const pulseDetails = tableMode ? `<details class="pulse-details" ${pulse.open ? 'open' : ''}>
+    <summary>Исходные строки Pulse${pulse.total == null ? '' : ` (${fmt(pulse.total)})`}</summary>
+    ${pulseState}
+    ${pulseRows ? `<div class="pulse-table"><table><thead><tr><th>Период</th><th>Тип периода</th><th>Тип цены</th><th>Транспорт</th><th>Тоннаж</th><th>Цена</th><th>Маршрут</th><th>₽/км</th><th>Машины</th><th>Предупреждения</th></tr></thead><tbody>${pulseRows}</tbody></table></div>` : ''}
+    ${pulse.hasMore && pulse.status !== 'loading' ? '<button type="button" data-pulse-more>Показать ещё</button>' : ''}
+  </details>` : '';
   $('point-details').innerHTML = `
     <div class="section-row"><h4>Точка назначения</h4><button id="point-details-close" class="back-button" type="button">Закрыть</button></div>
     <h3>${escapeHtml(point.name)}</h3>
@@ -178,13 +208,18 @@ function renderPointDetails(point, mode, handlers) {
       <div><dt>FIAS</dt><dd>${escapeHtml(point.fias_id || point.id)}</dd></div>
       <div><dt>Статус</dt><dd>${escapeHtml(statuses[point.status] || point.status)}</dd></div>
       <div><dt>Кластер</dt><dd>${point.cluster_id == null ? '—' : Number(point.cluster_id) + 1}</dd></div>
-      <div><dt>Перевозки</dt><dd>${fmt(point.trip_count)}</dd></div>
+      <div><dt>${tableMode ? 'Машины' : 'Перевозки'}</dt><dd>${fmt(point.trip_count)}</dd></div>
       ${tableMode ? `<div><dt>Маршрут</dt><dd>${km(point.weighted_route_length)}</dd></div>` : ''}
       ${tableMode ? `<div><dt>Периоды</dt><dd>${(point.period_types || []).map(value => escapeHtml(PERIOD_LABELS[value] || value)).join(', ') || '—'}</dd></div>` : ''}
+      ${tableMode && point.data_quality_flags?.length ? `<div><dt>Качество</dt><dd>${point.data_quality_flags.map(escapeHtml).join(', ')}</dd></div>` : ''}
       ${economics}
       ${volume}
-    </dl>`;
+    </dl>
+    ${pulseDetails}`;
   document.getElementById('point-details-close').addEventListener('click', () => handlers.onPointClear?.());
+  document.querySelector('.pulse-details')?.addEventListener('toggle', event => handlers.onPulseToggle?.(event.target.open));
+  document.querySelector('[data-pulse-more]')?.addEventListener('click', () => handlers.onPulseMore?.());
+  document.querySelector('[data-pulse-retry]')?.addEventListener('click', () => handlers.onPulseRetry?.());
 }
 
 export function renderErrorState(error) {

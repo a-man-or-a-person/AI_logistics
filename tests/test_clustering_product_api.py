@@ -7,7 +7,7 @@ from dataclasses import replace
 import pytest
 
 from backend.app import app
-from backend.clustering_api import set_clustering_service
+from backend.clustering_api import get_clustering_service, set_clustering_service
 from backend.product_modes import (
     ModeOutcome,
     ModePointState,
@@ -42,6 +42,9 @@ def _row(
     trips: str = "20",
     vehicle: str = "tent",
     tonnage: str = "20",
+    period_id: str = "202608",
+    route_length: str = "100",
+    tech_load_ts: str = "",
 ) -> dict[str, str]:
     row = {column: "" for column in PULSE_COLUMNS}
     row.update(
@@ -52,17 +55,165 @@ def _row(
             "delivery_point_locality_fias_id": destination,
             "delivery_point_region_unified": region,
             "delivery_point_town": name,
-            "period_id": "202608",
+            "period_id": period_id,
             "period_type": period,
             "bid_count": trips,
             "units": price,
             "price_type": price_type,
-            "route_length": "100",
+            "route_length": route_length,
             "vehicle_body_type": vehicle,
             "tonnage_id": tonnage,
+            "tech_load_ts": tech_load_ts,
         }
     )
     return row
+
+
+def test_point_rows_returns_filtered_stable_pages_with_warnings(
+    tmp_path, product_client_factory
+):
+    source = tmp_path / "pulse.csv"
+    cache = tmp_path / "coords.json"
+    rows = [
+        _row(
+            "a",
+            "A",
+            price=str(index),
+            period_id=f"2026{(index % 9) + 1:02d}",
+            tech_load_ts=f"2026-09-{(index % 28) + 1:02d}T12:00:00+00:00",
+        )
+        for index in range(1, 56)
+    ]
+    rows += [
+        _row("a", "A", price="200", period_id="202612", tech_load_ts="2026-12-01"),
+        _row("a", "A", price="201", period_id="202612", tech_load_ts="2026-12-01"),
+        _row("a", "A", price="broken", period_id="broken"),
+        _row("a", "A", price="999", vehicle="reefer"),
+        _row("b", "B", price="500"),
+    ]
+    _write_csv(source, rows)
+    cache.write_text(
+        json.dumps({"A::Region A": [55.0, 37.0], "B::Region A": [55.1, 37.1]}),
+        encoding="utf-8",
+    )
+    client = product_client_factory(source, cache)
+    request_payload = _payload(
+        price_types=["spot"], vehicle_types=["tent"], tonnage_ids=["20"]
+    )
+    run = client.post("/api/clustering/run", json=request_payload).get_json()
+    load_count = get_clustering_service().repository.load_count
+    detail_payload = {
+        "data_snapshot": run["data_snapshot"],
+        **{
+            key: request_payload.get(key, [])
+            for key in (
+                "origin_fias", "destination_region", "period_types", "price_types",
+                "vehicle_types", "tonnage_ids",
+            )
+        },
+        "destination_fias": "a",
+    }
+
+    first = client.post(
+        "/api/clustering/point-rows",
+        json={**detail_payload, "limit": 500},
+        headers={"X-Request-ID": "point-rows-1"},
+    )
+    second = client.post(
+        "/api/clustering/point-rows", json={**detail_payload, "offset": 50}
+    )
+
+    assert first.status_code == 200
+    assert first.headers["X-Request-ID"] == "point-rows-1"
+    assert first.get_json() == {
+        "ok": True,
+        "data_snapshot": run["data_snapshot"],
+        "destination_fias": "a",
+        "total": 58,
+        "offset": 0,
+        "limit": 50,
+        "has_more": True,
+        "rows": first.get_json()["rows"],
+    }
+    assert len(first.get_json()["rows"]) == 50
+    assert len(second.get_json()["rows"]) == 8
+    assert second.get_json()["has_more"] is False
+    assert get_clustering_service().repository.load_count == load_count
+    all_rows = first.get_json()["rows"] + second.get_json()["rows"]
+    assert len({row["source_row_id"] for row in all_rows}) == 58
+    assert [row["price"] for row in all_rows[:2]] == [201, 200]
+    assert all_rows[-1]["warnings"] == ["invalid_units", "invalid_period_id"]
+    assert set(all_rows[0]) == {
+        "source_row_id", "period_id", "source_timestamp", "period_type", "price_type", "vehicle_type",
+        "tonnage_id", "price", "route_length", "rub_per_km", "trip_count", "warnings",
+    }
+
+
+def test_point_rows_rejects_stale_snapshot_unknown_destination_and_invalid_pagination(
+    product_files, product_client_factory, monkeypatch
+):
+    source, cache = product_files
+    client = product_client_factory(source, cache)
+    request_payload = _payload(price_types=["spot"])
+    snapshot = client.post("/api/clustering/run", json=request_payload).get_json()[
+        "data_snapshot"
+    ]
+    detail_payload = {
+        "data_snapshot": snapshot,
+        **{
+            key: request_payload.get(key, [])
+            for key in (
+                "origin_fias", "destination_region", "period_types", "price_types",
+                "vehicle_types", "tonnage_ids",
+            )
+        },
+        "destination_fias": "a",
+    }
+
+    invalid = client.post(
+        "/api/clustering/point-rows", json={**detail_payload, "offset": -1}
+    )
+    missing = client.post(
+        "/api/clustering/point-rows",
+        json={**detail_payload, "destination_fias": "missing"},
+    )
+    empty = client.post(
+        "/api/clustering/point-rows", json={**detail_payload, "tonnage_ids": ["999"]}
+    )
+    mismatched_context = client.post(
+        "/api/clustering/point-rows", json={**detail_payload, "period_types": ["retro"]}
+    )
+    service = get_clustering_service()
+    original_source_rows = service.repository.source_rows
+    calls = 0
+
+    def change_source_during_query(**kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            existing = list(csv.DictReader(source.open(encoding="utf-8-sig")))
+            _write_csv(source, [*existing, _row("new", "New")])
+        return original_source_rows(**kwargs)
+
+    monkeypatch.setattr(service.repository, "source_rows", change_source_during_query)
+    raced = client.post("/api/clustering/point-rows", json=detail_payload)
+    monkeypatch.setattr(service.repository, "source_rows", original_source_rows)
+    existing_rows = list(csv.DictReader(source.open(encoding="utf-8-sig")))
+    _write_csv(source, [*existing_rows, _row("newer", "Newer")])
+    stale = client.post("/api/clustering/point-rows", json=detail_payload)
+
+    assert (invalid.status_code, invalid.get_json()["code"]) == (400, "INVALID_REQUEST")
+    assert (missing.status_code, missing.get_json()["code"]) == (
+        422,
+        "UNKNOWN_DESTINATION_POINT",
+    )
+    assert (empty.status_code, empty.get_json()["code"]) == (400, "INVALID_REQUEST")
+    assert (mismatched_context.status_code, mismatched_context.get_json()["code"]) == (
+        400,
+        "INVALID_REQUEST",
+    )
+    assert (raced.status_code, raced.get_json()["code"]) == (409, "STALE_DATA_SNAPSHOT")
+    assert (stale.status_code, stale.get_json()["code"]) == (409, "STALE_DATA_SNAPSHOT")
 
 
 def _write_csv(path, rows) -> None:
@@ -477,6 +628,45 @@ def test_run_returns_ui_contract_and_reports_unresolved(product_client):
     assert unresolved["lon"] is None
     assert unresolved["cluster_id"] is None
     assert "zones" not in result
+
+
+def test_run_keeps_captured_snapshot_when_source_changes_during_calculation(
+    product_files, product_client_factory, monkeypatch
+):
+    source, cache = product_files
+    client = product_client_factory(source, cache)
+    service = get_clustering_service()
+    captured_snapshot = service._data_snapshot()
+    original_result_json = service._result_json
+
+    def change_source_before_serializing(*args, **kwargs):
+        with source.open("r", encoding="utf-8-sig", newline="") as stream:
+            rows = list(csv.DictReader(stream))
+        _write_csv(source, [*rows, _row("late", "Late")])
+        return original_result_json(*args, **kwargs)
+
+    monkeypatch.setattr(service, "_result_json", change_source_before_serializing)
+
+    result = client.post("/api/clustering/run", json=_payload()).get_json()
+    detail = client.post(
+        "/api/clustering/point-rows",
+        json={
+            "data_snapshot": result["data_snapshot"],
+            "origin_fias": "origin-1",
+            "destination_region": "Region A",
+            "period_types": ["current"],
+            "price_types": ["spot", "tender"],
+            "vehicle_types": [],
+            "tonnage_ids": [],
+            "destination_fias": "a",
+        },
+    )
+
+    assert result["data_snapshot"] == captured_snapshot
+    assert (detail.status_code, detail.get_json()["code"]) == (
+        409,
+        "STALE_DATA_SNAPSHOT",
+    )
 
 
 def test_preview_does_not_expose_run_table_analytics(product_client):

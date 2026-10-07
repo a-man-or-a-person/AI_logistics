@@ -57,6 +57,18 @@ def _run_browser_script(script: str) -> dict:
     return json.loads(match.group(1).replace("&quot;", '"'))
 
 
+def _run_node_script(script: str) -> dict:
+    completed = subprocess.run(
+        ["node", "--input-type=module", "--eval", script],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    return json.loads(completed.stdout)
+
+
 def test_product_workspace_contains_all_v1_controls():
     html = _read("frontend/index.html")
     for required in (
@@ -108,6 +120,7 @@ def test_clustering_is_modular_and_uses_product_api_adapter():
     assert "postClustering('preview'" in api
     assert "postClustering('run'" in api
     assert "postClustering('compare'" in api
+    assert "postClustering('point-rows'" in api
     assert "runClusteringComparison" in api
     assert "/api/ml-cluster" not in controller
     assert "initClustering" in app
@@ -641,4 +654,158 @@ def test_cluster_table_controller_handlers_keep_map_inspector_and_panel_in_sync(
             "inspector": [3],
             "runs": 0,
         },
+    }
+
+
+def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_change():
+    controller = re.sub(
+        r"^import[\s\S]*?;\n",
+        "",
+        _read("frontend/js/clustering/controller.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      const requests = [];
+      let renders = 0;
+      function fetchClusteringPointRows(payload, options) {{
+        let resolve, reject;
+        const promise = new Promise((yes, no) => {{ resolve = yes; reject = no; }});
+        requests.push({{payload, signal: options.signal, resolve, reject}});
+        return promise;
+      }}
+      function renderInspector() {{ renders += 1; }}
+      function focusClusteringPoint() {{}}
+      function requestSignature(value) {{ return JSON.stringify(value); }}
+      {controller}
+      const result = {{
+        data_snapshot: 'snapshot-1',
+        cluster_table: {{supported: true}},
+        analysis: {{mode: 'geography', origin: {{fias_id: 'origin-1'}}, destination_region: 'Region A', filters: {{period_types: ['current'], price_types: ['spot'], vehicle_types: [], tonnage_ids: []}}}},
+        points: [{{id: 'a', fias_id: 'a'}}, {{id: 'b', fias_id: 'b'}}], clusters: [],
+      }};
+      state = {{
+        result: {{data: result}},
+        ui: {{selectedPoint: null, pointRows: new Map()}},
+      }};
+      selectPoint('a');
+      const lazyCount = requests.length;
+      const firstPromise = loadPointRows();
+      const loading = pointRowsForSelection().status;
+      requests[0].resolve({{rows: Array.from({{length: 50}}, (_, index) => ({{source_row_id: String(index)}})), total: 51, has_more: true}});
+      await firstPromise;
+      const first = [pointRowsForSelection().rows.length, pointRowsForSelection().hasMore];
+      const morePromise = loadPointRows();
+      requests[1].resolve({{rows: [{{source_row_id: '50'}}], total: 51, has_more: false}});
+      await morePromise;
+      const finished = [pointRowsForSelection().rows.length, pointRowsForSelection().hasMore];
+      result.analysis.filters.price_types = ['tender'];
+      selectPoint('a');
+      const cacheIsolation = pointRowsForSelection().rows.length;
+      const cancelledPromise = loadPointRows({{restart: true}});
+      selectPoint('b');
+      const cancelled = requests[2].signal.aborted;
+      requests[2].resolve({{rows: [{{source_row_id: 'wrong'}}], total: 1, has_more: false}});
+      await cancelledPromise;
+      const noLeak = pointRowsForSelection().rows.length;
+      const failedPromise = loadPointRows();
+      requests[3].reject(Object.assign(new Error('offline'), {{code: 'NETWORK'}}));
+      await failedPromise;
+      const failed = pointRowsForSelection().status;
+      const retryPromise = loadPointRows();
+      requests[4].resolve({{rows: [], total: 0, has_more: false}});
+      await retryPromise;
+      const stalePromise = loadPointRows({{restart: true}});
+      requests[5].reject(Object.assign(new Error('stale'), {{code: 'STALE_DATA_SNAPSHOT'}}));
+      await stalePromise;
+      console.log(JSON.stringify({{
+        lazyCount, loading,
+        first, finished,
+        cancelled, noLeak, cacheIsolation, failed,
+        retried: requests.length === 6,
+        stale: pointRowsForSelection().status,
+        offsets: requests.map(item => item.payload.offset),
+        renders,
+      }}));
+    """
+
+    assert _run_node_script(script) == {
+        "lazyCount": 0,
+        "loading": "loading",
+        "first": [50, True],
+        "finished": [51, False],
+        "cancelled": True,
+        "noLeak": 0,
+        "cacheIsolation": 0,
+        "failed": "error",
+        "retried": True,
+        "stale": "stale",
+        "offsets": [0, 50, 0, 0, 0, 0],
+        "renders": 14,
+    }
+
+
+def test_point_rows_render_all_inspector_states_and_leave_bear_unchanged():
+    inspector = re.sub(
+        r"^import .*?;\n",
+        "",
+        _read("frontend/js/clustering/inspector.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    shell = "".join(
+        f'<div id="{item}"></div>'
+        for item in (
+            "inspector-empty", "inspector-result", "result-status", "result-title",
+            "result-subtitle", "result-total-trips", "result-outliers", "result-warnings",
+            "result-context", "result-quality", "result-metrics", "point-details",
+            "cluster-list", "cluster-details",
+        )
+    )
+    script = f"""
+      const MODE_LABELS = {{geography: 'География', bear_zones: 'Медвежьи зоны'}};
+      const PERIOD_LABELS = {{current: 'Текущий'}};
+      const escapeHtml = value => String(value ?? '');
+      const fmt = value => String(value ?? 0);
+      const decimal = value => value == null ? '—' : String(value);
+      const km = value => value == null ? '—' : `${{value}} км`;
+      const rubKm = value => value == null ? '—' : `${{value}} ₽/км`;
+      const percent = value => value == null ? '—' : `${{value * 100}}%`;
+      const clusterLabel = () => '';
+      {inspector}
+      document.body.innerHTML = {json.dumps(shell)};
+      const point = {{id: 'a', fias_id: 'a', name: 'A', lat: 1, lon: 1, trip_count: 5, cluster_id: 0, status: 'assigned', weighted_route_length: 100, period_types: ['current'], data_quality_flags: ['invalid_units']}};
+      const result = {{status: 'success', data_snapshot: 'snapshot', analysis: {{mode: 'geography', parameters: {{k_mode: 'manual', n_clusters: 2}}, origin: {{fias_id: 'o', name: 'O'}}, destination_region: 'R', filters: {{period_types: ['current']}}}}, data_quality: {{}}, warnings: [], metrics: {{}}, graph_metrics: {{}}, outliers: [], clusters: [], points: [point], cluster_table: {{supported: true}}}};
+      const rows = Array.from({{length: 50}}, (_, index) => ({{source_row_id: String(index), period_id: '202610', period_type: 'current', price_type: 'spot', vehicle_type: 'tent', tonnage_id: '20', price: 100, route_length: 10, rub_per_km: 10, trip_count: index ? 1 : null, warnings: index ? [] : ['invalid_bid_count']}}));
+      const state = {{result: {{data: result}}, ui: {{selectedCluster: null, selectedPoint: 'a', pointRows: new Map([['cache-key', {{status: 'success', rows, total: 51, hasMore: true, open: false}}]])}}}};
+      const handlers = {{pointRowsKey: () => 'cache-key'}};
+      renderInspector(state, handlers);
+      const page = {{rows: document.querySelectorAll('.pulse-table tbody tr').length, closed: !document.querySelector('.pulse-details').open, more: Boolean(document.querySelector('[data-pulse-more]')), missingMachines: document.querySelector('.pulse-table tbody tr td:nth-child(9)').textContent, pointMachines: document.querySelector('.point-facts').textContent.includes('Машины')}};
+      state.ui.pointRows.set('cache-key', {{status: 'loading', rows: [], total: null, hasMore: false, open: true}});
+      renderInspector(state, handlers);
+      const loading = document.querySelector('.pulse-state')?.getAttribute('role');
+      state.ui.pointRows.set('cache-key', {{status: 'error', error: 'offline', rows: [], total: null, hasMore: false, open: true}});
+      renderInspector(state, handlers);
+      const retry = Boolean(document.querySelector('[data-pulse-retry]'));
+      state.ui.pointRows.set('cache-key', {{status: 'stale', rows: [], total: null, hasMore: false, open: true}});
+      renderInspector(state, handlers);
+      const stale = document.querySelector('.pulse-state')?.textContent.includes('Пересчитайте');
+      result.analysis.mode = 'bear_zones';
+      result.analysis.parameters = {{bear_threshold: 0.35}};
+      result.cluster_table = {{supported: false}};
+      renderInspector(state, handlers);
+      const bear = {{pulse: Boolean(document.querySelector('.pulse-details')), trips: document.querySelector('.point-facts').textContent.includes('Перевозки')}};
+      document.body.dataset.result = JSON.stringify({{page, loading, retry, stale, bear}});
+    """
+
+    assert _run_browser_script(script) == {
+        "page": {
+            "rows": 50,
+            "closed": True,
+            "more": True,
+            "missingMachines": "—",
+            "pointMachines": True,
+        },
+        "loading": "status",
+        "retry": True,
+        "stale": True,
+        "bear": {"pulse": False, "trips": True},
     }

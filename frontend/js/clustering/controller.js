@@ -1,5 +1,5 @@
 import {
-  fetchClusteringOptions, fetchClusteringOrigins, runClustering,
+  fetchClusteringOptions, fetchClusteringOrigins, fetchClusteringPointRows, runClustering,
   runClusteringComparison,
 } from '../api.js';
 import {
@@ -21,6 +21,7 @@ let state;
 let originOptions = [];
 let originTimer;
 let runController;
+let pointRowsController;
 let comparisonFocusReturn;
 
 export async function initClustering() {
@@ -86,8 +87,7 @@ function wireEvents() {
   $('rerun-comparison').addEventListener('click', runComparison);
   window.addEventListener('clustering-point-select', event => {
     if (event.detail.clusterId != null) selectCluster(event.detail.clusterId);
-    state.ui.selectedPoint = event.detail.pointId;
-    renderInspectorState();
+    selectPoint(event.detail.pointId);
   });
   window.addEventListener('ml-zone-hover', event => {
     state.ui.hoveredCluster = event.detail.clusterId;
@@ -110,6 +110,7 @@ function wireEvents() {
 }
 
 function syncForm(event) {
+  cancelPointRows();
   const form = state.form;
   form.periodTypes = readChecks('cluster-periods');
   form.priceTypes = readChecks('cluster-prices');
@@ -245,6 +246,7 @@ function validate(request) {
 }
 
 async function executeRun() {
+  cancelPointRows();
   const request = buildRequest(state.form);
   const error = validate(request);
   if (error) return showFormError(error);
@@ -294,6 +296,7 @@ async function executeRun() {
 }
 
 function reset() {
+  cancelPointRows();
   state = createClusteringState(state.options);
   renderOptionControls(state);
   clearOrigin();
@@ -380,6 +383,7 @@ async function runComparison() {
 }
 
 function activateComparisonMode(mode) {
+  cancelPointRows();
   const result = state.comparison.results[mode];
   if (!result) return;
   state.comparison.activeMode = mode;
@@ -457,18 +461,104 @@ function renderEmptyState() {
 
 function renderInspectorState() {
   renderInspector(state, {
+    pointRowsKey,
     onClusterHover: clusterId => highlightCluster(clusterId),
     onClusterSelect: selectCluster,
     onPointSelect: pointId => {
-      state.ui.selectedPoint = pointId;
-      focusClusteringPoint(pointId);
-      renderInspectorState();
+      selectPoint(pointId, true);
     },
     onPointClear: () => {
-      state.ui.selectedPoint = null;
-      renderInspectorState();
+      selectPoint(null);
     },
+    onPulseToggle: open => {
+      const detail = pointRowsForSelection();
+      detail.open = open;
+      if (!open) cancelPointRows();
+      else if (detail.status === 'idle') loadPointRows();
+    },
+    onPulseMore: () => loadPointRows(),
+    onPulseRetry: () => loadPointRows(),
   });
+}
+
+function pointRowsKey() {
+  const result = state.result.data;
+  if (!result || !state.ui.selectedPoint) return null;
+  return requestSignature({
+    data_snapshot: result.data_snapshot,
+    origin_fias: result.analysis.origin.fias_id,
+    destination_region: result.analysis.destination_region,
+    destination_fias: state.ui.selectedPoint,
+    ...(result.analysis.filters || {}),
+  });
+}
+
+function pointRowsForSelection() {
+  const key = pointRowsKey();
+  if (!key) return {status: 'idle', rows: [], total: null, hasMore: false, open: false};
+  if (!state.ui.pointRows.has(key)) {
+    state.ui.pointRows.set(key, {status: 'idle', rows: [], total: null, hasMore: false, open: false, error: null});
+  }
+  return state.ui.pointRows.get(key);
+}
+
+function cancelPointRows() {
+  pointRowsController?.abort();
+  pointRowsController = null;
+  const detail = pointRowsForSelection();
+  if (detail.status === 'loading') detail.status = detail.rows.length ? 'success' : 'idle';
+}
+
+function selectPoint(pointId, focus = false) {
+  cancelPointRows();
+  state.ui.selectedPoint = pointId;
+  if (pointId && focus) focusClusteringPoint(pointId);
+  renderInspectorState();
+}
+
+async function loadPointRows({restart = false} = {}) {
+  const result = state.result.data;
+  const point = result?.points.find(item => item.id === state.ui.selectedPoint);
+  if (!point || result.cluster_table?.supported !== true) return;
+  const key = pointRowsKey();
+  const detail = pointRowsForSelection();
+  detail.open = true;
+  if (detail.status === 'loading' || (!restart && detail.status === 'success' && !detail.hasMore)) return;
+  if (restart) Object.assign(detail, {rows: [], total: null, hasMore: false});
+  const controller = new AbortController();
+  pointRowsController?.abort();
+  pointRowsController = controller;
+  detail.status = 'loading';
+  detail.error = null;
+  renderInspectorState();
+  const filters = result.analysis.filters || {};
+  try {
+    const response = await fetchClusteringPointRows({
+      data_snapshot: result.data_snapshot,
+      origin_fias: result.analysis.origin.fias_id,
+      destination_region: result.analysis.destination_region,
+      destination_fias: point.fias_id || point.id,
+      period_types: filters.period_types || [],
+      price_types: filters.price_types || [],
+      vehicle_types: filters.vehicle_types || [],
+      tonnage_ids: filters.tonnage_ids || [],
+      offset: detail.rows.length,
+      limit: 50,
+    }, {signal: controller.signal});
+    if (controller.signal.aborted || key !== pointRowsKey()) return;
+    const known = new Set(detail.rows.map(row => row.source_row_id));
+    detail.rows.push(...response.rows.filter(row => !known.has(row.source_row_id)));
+    detail.total = response.total;
+    detail.hasMore = response.has_more;
+    detail.status = 'success';
+  } catch (error) {
+    if (controller.signal.aborted || key !== pointRowsKey()) return;
+    detail.status = error.code === 'STALE_DATA_SNAPSHOT' ? 'stale' : 'error';
+    detail.error = error.message;
+  } finally {
+    if (pointRowsController === controller) pointRowsController = null;
+    if (key === pointRowsKey()) renderInspectorState();
+  }
 }
 
 function renderComparisonState() {

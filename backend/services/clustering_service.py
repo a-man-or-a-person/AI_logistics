@@ -26,7 +26,7 @@ from backend.product_modes import (
 from backend.services.boundary_provider import BoundaryProvider
 from ml.clustering.base import ClusterPoint, ClusterResult
 from ml.clustering.economics import relative_rate_delta, weighted_mean
-from ml.data.clustering_repository import ClusteringRepository
+from ml.data.clustering_repository import ClusteringRepository, SourceGenerationMismatch
 from ml.data.loader import default_csv_path, iter_records
 from ml.data.locations import LocationPoint, build_location_dataset, resolve_location_routes
 from ml.data.schema import LogisticsRecord
@@ -203,6 +203,9 @@ class ClusteringService:
             self._result_cache.clear()
             self._cache_generation = token
         return token
+
+    def _data_snapshot(self, token: tuple[Any, ...] | None = None) -> str:
+        return hashlib.sha256(repr(token or self._refresh_cache_generation()).encode()).hexdigest()
 
     def _load_catalog(self) -> list[OriginOption]:
         if self.repository is not None:
@@ -712,7 +715,7 @@ class ClusteringService:
             )
             return copy.deepcopy(cached)
         try:
-            result, graph_cache_hit = self._calculate(request)
+            result, graph_cache_hit = self._calculate(request, self._data_snapshot(token))
         except ProductClusteringError as error:
             logger.warning(
                 "clustering request_id=%s mode=%s origin=%s destination=%s error_code=%s",
@@ -748,7 +751,122 @@ class ClusteringService:
         )
         return result
 
-    def _calculate(self, request: ClusteringRequest) -> tuple[dict[str, Any], bool]:
+    def point_rows(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
+        if not isinstance(payload, dict):
+            raise ProductClusteringError("INVALID_REQUEST", "Ожидается JSON-объект.", 400)
+        required = ("data_snapshot", "destination_fias")
+        if any(not isinstance(payload.get(name), str) or not payload[name].strip() for name in required):
+            raise ProductClusteringError(
+                "INVALID_REQUEST", "Не указан обязательный контекст точки.", 400
+            )
+        filter_names = ("period_types", "price_types", "vehicle_types", "tonnage_ids")
+        if any(name not in payload for name in filter_names):
+            raise ProductClusteringError(
+                "INVALID_REQUEST", "Не указан зафиксированный срез данных.", 400
+            )
+        frozen = ClusteringRequest.from_payload(
+            payload, product_mode_catalog=self.product_mode_catalog
+        )
+        offset = payload.get("offset", 0)
+        limit = payload.get("limit", 50)
+        if (
+            isinstance(offset, bool)
+            or not isinstance(offset, int)
+            or offset < 0
+            or isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or limit < 1
+        ):
+            raise ProductClusteringError(
+                "INVALID_REQUEST", "offset и limit должны быть допустимыми целыми числами.", 400
+            )
+        token = self._refresh_cache_generation()
+        snapshot = self._data_snapshot(token)
+        if payload["data_snapshot"] != snapshot:
+            raise ProductClusteringError(
+                "STALE_DATA_SNAPSHOT",
+                "Данные Pulse изменились. Пересчитайте результат.",
+                409,
+            )
+        if self.repository is None:
+            raise ProductClusteringError("INVALID_REQUEST", "Детализация Pulse недоступна.", 400)
+        frozen_key = self._location_cache_key(token, frozen)
+        if not any(
+            cached_token == token
+            and self._location_cache_key(cached_token, cached_request) == frozen_key
+            for cached_token, cached_request in self._result_cache
+        ):
+            raise ProductClusteringError(
+                "INVALID_REQUEST", "Срез данных не соответствует результату.", 400
+            )
+        destination_fias = payload["destination_fias"].strip()
+        context = dict(
+            origin_fias=frozen.origin_fias,
+            destination_region=frozen.destination_region,
+            destination_fias=destination_fias,
+        )
+        try:
+            expected_source = token[:3]
+            if not self.repository.source_rows(
+                **context, period_types=set(), price_types=set(), vehicle_types=set(),
+                tonnage_ids=set(), expected_fingerprint=expected_source,
+            ):
+                raise ProductClusteringError(
+                    "UNKNOWN_DESTINATION_POINT", "Точка назначения не найдена.", 422
+                )
+            rows = self.repository.source_rows(
+                **context,
+                period_types=set(frozen.period_types),
+                price_types=set(frozen.price_types),
+                vehicle_types=set(frozen.vehicle_types),
+                tonnage_ids=set(frozen.tonnage_ids),
+                expected_fingerprint=expected_source,
+            )
+            if self._source_token() != token:
+                raise SourceGenerationMismatch
+        except SourceGenerationMismatch as error:
+            raise ProductClusteringError(
+                "STALE_DATA_SNAPSHOT",
+                "Данные Pulse изменились. Пересчитайте результат.",
+                409,
+            ) from error
+        limit = min(limit, 50)
+        page = rows[offset : offset + limit]
+        logger.info(
+            "clustering_point_rows request_id=%s destination=%s offset=%s rows=%s",
+            request_id, destination_fias, offset, len(page),
+        )
+        return {
+            "data_snapshot": snapshot,
+            "destination_fias": destination_fias,
+            "total": len(rows),
+            "offset": offset,
+            "limit": limit,
+            "has_more": offset + len(page) < len(rows),
+            "rows": [
+                {
+                    "source_row_id": hashlib.blake2b(
+                        f"{snapshot}:{row.source_row_number}".encode(), digest_size=8
+                    ).hexdigest(),
+                    "period_id": row.period_id,
+                    "source_timestamp": row.tech_ts.isoformat() if row.tech_ts else None,
+                    "period_type": row.period_type,
+                    "price_type": row.price_type,
+                    "vehicle_type": row.vehicle_type,
+                    "tonnage_id": row.tonnage_id,
+                    "price": row.price,
+                    "route_length": row.route_length,
+                    "rub_per_km": row.rub_per_km,
+                    "trip_count": row.trip_count,
+                    "warnings": list(row.validation_errors),
+                }
+                for row in page
+            ],
+        }
+
+    def _calculate(
+        self, request: ClusteringRequest, data_snapshot: str
+    ) -> tuple[dict[str, Any], bool]:
         locations, report = self._locations(request)
         if not locations:
             raise ProductClusteringError("NO_DATA", "По выбранным фильтрам данных нет.", 422)
@@ -761,7 +879,7 @@ class ClusteringService:
         if not isinstance(evaluated, ModeOutcome):
             raise TypeError("Product mode adapter did not return an outcome")
         return (
-            self._result_json(request, locations, report, evaluated),
+            self._result_json(request, locations, report, evaluated, data_snapshot),
             graph_cache_hit,
         )
 
@@ -808,6 +926,7 @@ class ClusteringService:
         locations: list[LocationPoint],
         report: dict[str, Any],
         outcome: ModeOutcome,
+        data_snapshot: str,
     ) -> dict[str, Any]:
         quality = self._quality(locations, report)
         result = outcome.result
@@ -836,7 +955,7 @@ class ClusteringService:
         )
         return {
             "status": outcome.status,
-            "data_snapshot": hashlib.sha256(repr(self._cache_generation).encode()).hexdigest(),
+            "data_snapshot": data_snapshot,
             "analysis": self._analysis(request, result),
             "contains_forecast": quality["contains_forecast"],
             "data_quality": quality,
