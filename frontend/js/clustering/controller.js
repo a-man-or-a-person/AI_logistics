@@ -110,7 +110,6 @@ function wireEvents() {
 }
 
 function syncForm(event) {
-  cancelPointRows();
   const form = state.form;
   form.periodTypes = readChecks('cluster-periods');
   form.priceTypes = readChecks('cluster-prices');

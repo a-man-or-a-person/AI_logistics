@@ -1,6 +1,6 @@
 # Clustering Product v1 workflow
 
-> **Статус: SUPPORTING / CURRENT.** Документ детализирует реализованный Product workflow. Каноническая архитектура находится в [current-state.md](architecture/current-state.md), а desktop-таблица кластеров относится к **NEXT** и описана в [CONTEXT.md](../CONTEXT.md), а не здесь.
+> **Статус: SUPPORTING / CURRENT.** Документ детализирует реализованный Product workflow. Каноническая архитектура находится в [current-state.md](architecture/current-state.md), а продуктовый смысл — в [CONTEXT.md](../CONTEXT.md).
 
 ## Контур
 
@@ -9,18 +9,22 @@ Pulse + coordinate cache
   → single origin + single destination region
   → period / price / vehicle / tonnage filters
   → Geography | Geography + Cost | Geography + Volume | Bear Cost | Bear Volume
-  → points + representatives + outliers
-  → inspector
-  → comparison on one dataset snapshot
+  → points + representatives + outliers + cluster table
+  → synchronized map + table + inspector
+  → lazy paginated Pulse rows for one destination
+  → cached comparison on one data snapshot
 ```
 
 ## API
 
 - `GET /api/clustering/options` — режимы, фильтры, K bounds, defaults и Bear thresholds;
 - `GET /api/clustering/origins?q=&limit=` — searchable origin catalog по FIAS;
-- `POST /api/clustering/run` — canonical point-only result;
+- `POST /api/clustering/run` — canonical point result with `data_snapshot` and a compact
+  `cluster_table` for Geography, Geo+Cost and Geo+Volume;
 - `POST /api/clustering/compare` — пять фиксированных режимов на одном data slice,
   `winner = null`;
+- `POST /api/clustering/point-rows` — snapshot-safe Pulse rows for one destination,
+  newest first, in pages of at most 50;
 - `POST /api/clustering/preview` — совместимый диагностический preview.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
@@ -40,13 +44,19 @@ Backend переиспользует location/spatial context и result LRU; UI 
 
 - `state.js` — form state, result snapshot, stale и comparison context;
 - `controls.js` — динамические options и mode-specific controls;
-- `inspector.js` — summary, metrics, cluster/Bear details;
+- `inspector.js` — summary, metrics, cluster/Bear details и lazy Pulse rows;
+- `table.js` — desktop cluster table, raw-value sorting и table actions;
 - `comparison.js` — нейтральные карточки и одна переключаемая карта;
-- `controller.js` — orchestration и map ↔ inspector selection.
+- `controller.js` — orchestration, cached mode activation и map ↔ table ↔ inspector selection.
 
 Изменение формы не удаляет предыдущий результат, а переводит его в stale-state.
 Повторный расчёт оставляет карту видимой. `no_bears` — успешный пустой результат,
 а connectedness violation — отдельный invalid state.
+
+Geography, Geo+Cost и Geo+Volume показывают одну backend-calculated cluster table;
+Bear Cost и Bear Volume сохраняют прежнее представление. Раскрытие Pulse rows загружает
+первую страницу только по запросу пользователя; смена точки, результата или comparison mode
+не позволяет позднему ответу попасть в новый контекст.
 
 Desktop использует три колонки. На tablet inspector становится drawer, на mobile
 controls и inspector открываются bottom-sheet поверх карты. Все drawers и dropdowns закрываются

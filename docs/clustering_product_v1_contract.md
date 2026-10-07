@@ -1,6 +1,6 @@
 # Canonical clustering Product v1 contract
 
-Дата актуализации: 2026-08-31.
+Дата актуализации: 2026-10-08.
 
 ## Назначение
 
@@ -80,9 +80,20 @@ Bear eligibility требует положительный `trip_count` и ва�
 ## Результат
 
 Ответ содержит `status`, `analysis`, `data_quality`, `warnings`, `metrics`,
-`graph_metrics`, `regional_economics`, `regional_volume`, `points`, `clusters` и `outliers`.
+`graph_metrics`, `regional_economics`, `regional_volume`, `data_snapshot`, `cluster_table`,
+`points`, `clusters` и `outliers`.
 Кластеры содержат medoid representative и признак
 `connected`. Product API не возвращает и frontend не строит полигоны.
+
+Для `geography`, `geo_cost` и `geo_volume` поле `cluster_table` содержит компактные
+backend-calculated строки фактических кластеров; для Bear-режимов оно равно
+`{"supported": false}`. `data_snapshot` фиксирует поколения Pulse и coordinate cache.
+
+`POST /api/clustering/point-rows` принимает тот же frozen data slice, `data_snapshot`,
+`destination_fias`, `offset` и `limit`. Endpoint возвращает не более 50 исходных строк Pulse
+в детерминированном newest-first порядке. Несовпадение snapshot возвращает
+`STALE_DATA_SNAPSHOT` (HTTP 409), а точка вне frozen result —
+`UNKNOWN_DESTINATION_POINT` (HTTP 422).
 
 Нормальные result states: `success`, `no_bears`. Нарушение связности не выдаётся
 как успешный результат, а возвращает typed error `CONNECTIVITY_VIOLATION`.

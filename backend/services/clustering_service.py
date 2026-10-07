@@ -807,13 +807,6 @@ class ClusteringService:
         )
         try:
             expected_source = token[:3]
-            if not self.repository.source_rows(
-                **context, period_types=set(), price_types=set(), vehicle_types=set(),
-                tonnage_ids=set(), expected_fingerprint=expected_source,
-            ):
-                raise ProductClusteringError(
-                    "UNKNOWN_DESTINATION_POINT", "Точка назначения не найдена.", 422
-                )
             rows = self.repository.source_rows(
                 **context,
                 period_types=set(frozen.period_types),
@@ -824,6 +817,10 @@ class ClusteringService:
             )
             if self._source_token() != token:
                 raise SourceGenerationMismatch
+            if not rows:
+                raise ProductClusteringError(
+                    "UNKNOWN_DESTINATION_POINT", "Точка назначения не найдена.", 422
+                )
         except SourceGenerationMismatch as error:
             raise ProductClusteringError(
                 "STALE_DATA_SNAPSHOT",

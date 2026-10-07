@@ -177,6 +177,10 @@ def test_point_rows_rejects_stale_snapshot_unknown_destination_and_invalid_pagin
         "/api/clustering/point-rows",
         json={**detail_payload, "destination_fias": "missing"},
     )
+    outside_filters = client.post(
+        "/api/clustering/point-rows",
+        json={**detail_payload, "destination_fias": "c"},
+    )
     empty = client.post(
         "/api/clustering/point-rows", json={**detail_payload, "tonnage_ids": ["999"]}
     )
@@ -190,7 +194,7 @@ def test_point_rows_rejects_stale_snapshot_unknown_destination_and_invalid_pagin
     def change_source_during_query(**kwargs):
         nonlocal calls
         calls += 1
-        if calls == 2:
+        if calls == 1:
             existing = list(csv.DictReader(source.open(encoding="utf-8-sig")))
             _write_csv(source, [*existing, _row("new", "New")])
         return original_source_rows(**kwargs)
@@ -204,6 +208,10 @@ def test_point_rows_rejects_stale_snapshot_unknown_destination_and_invalid_pagin
 
     assert (invalid.status_code, invalid.get_json()["code"]) == (400, "INVALID_REQUEST")
     assert (missing.status_code, missing.get_json()["code"]) == (
+        422,
+        "UNKNOWN_DESTINATION_POINT",
+    )
+    assert (outside_filters.status_code, outside_filters.get_json()["code"]) == (
         422,
         "UNKNOWN_DESTINATION_POINT",
     )

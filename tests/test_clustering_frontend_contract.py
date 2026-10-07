@@ -747,6 +747,57 @@ def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_chan
     }
 
 
+def test_stale_form_keeps_open_pulse_request_on_the_frozen_result():
+    controller = re.sub(
+        r"^import[\s\S]*?;\n",
+        "",
+        _read("frontend/js/clustering/controller.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      const document = {{
+        getElementById: () => ({{value: '2'}}),
+        querySelector: selector => ({{
+          value: selector.includes('analysis-mode') ? 'geography' : '0.3',
+        }}),
+      }};
+      const requests = [];
+      function fetchClusteringPointRows(payload, options) {{
+        let resolve;
+        const promise = new Promise(yes => {{ resolve = yes; }});
+        requests.push({{signal: options.signal, resolve}});
+        return promise;
+      }}
+      function renderInspector() {{}}
+      function focusClusteringPoint() {{}}
+      function requestSignature(value) {{ return JSON.stringify(value); }}
+      function readChecks() {{ return []; }}
+      function modeParameter() {{ return null; }}
+      {controller}
+      const result = {{
+        data_snapshot: 'snapshot-1',
+        cluster_table: {{supported: true}},
+        analysis: {{origin: {{fias_id: 'origin-1'}}, destination_region: 'Region A', filters: {{period_types: ['current'], price_types: ['spot'], vehicle_types: [], tonnage_ids: []}}}},
+        points: [{{id: 'a', fias_id: 'a'}}], clusters: [],
+      }};
+      state = {{
+        form: {{periodTypes: ['current'], priceTypes: ['spot'], vehicleTypes: [], tonnageIds: [], mode: 'geography', kMode: 'auto', k: 2, costWeight: 0.3, volumeWeight: 0.3, bearThreshold: 0.35, bearVolumeThreshold: 0.35, singletonThreshold: 0.7}},
+        modeCapabilities: [],
+        result: {{data: result}},
+        ui: {{selectedPoint: 'a', selectedCluster: null, pointRows: new Map()}},
+      }};
+      const pending = loadPointRows();
+      const detail = pointRowsForSelection();
+      syncForm({{target: {{name: 'price-type'}}}});
+      const preserved = !requests[0].signal.aborted && detail.open && detail.status === 'loading';
+      requests[0].resolve({{rows: [{{source_row_id: '1'}}], total: 1, has_more: false}});
+      await pending;
+      console.log(JSON.stringify({{preserved, status: detail.status, rows: detail.rows.length}}));
+    """
+
+    assert _run_node_script(script) == {"preserved": True, "status": "success", "rows": 1}
+
+
 def test_cached_comparison_switches_the_active_product_result_without_recalculation():
     state_module = re.sub(
         r"^import .*?;\n",
