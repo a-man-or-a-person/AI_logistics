@@ -48,8 +48,12 @@ class LocationPoint:
     y: float | None
     record_count: int
     trip_count: int
+    weighted_route_length: float | None
     weighted_price: float | None
     weighted_rub_per_km: float | None
+    valid_route_length_trip_count: int
+    valid_price_trip_count: int
+    valid_rub_per_km_trip_count: int
     economic_status: str
     active_period_count: int
     coordinate_source: str
@@ -184,8 +188,12 @@ def resolve_location_routes(
                 y=y,
                 record_count=route.record_count,
                 trip_count=route.trip_count,
+                weighted_route_length=route.weighted_route_length,
                 weighted_price=route.weighted_price,
                 weighted_rub_per_km=route.weighted_rub_per_km,
+                valid_route_length_trip_count=route.valid_route_length_trip_count,
+                valid_price_trip_count=route.valid_price_trip_count,
+                valid_rub_per_km_trip_count=route.valid_rub_per_km_trip_count,
                 economic_status=(
                     "available"
                     if route.weighted_rub_per_km is not None

@@ -5,6 +5,7 @@ from __future__ import annotations
 import threading
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +53,9 @@ class ClusteringSourceRow:
     vehicle_type: str | None
     tonnage_id: str | None
     price_type: str | None
+    tech_ts: datetime | None
+    validation_errors: tuple[str, ...]
+    source_row_number: int
 
     @property
     def rub_per_km(self) -> float | None:
@@ -62,7 +66,7 @@ class ClusteringSourceRow:
         return self.price / self.route_length
 
 
-def _source_row(record: LogisticsRecord) -> ClusteringSourceRow | None:
+def _source_row(record: LogisticsRecord, source_row_number: int) -> ClusteringSourceRow | None:
     if not record.origin_fias or not record.destination_region:
         return None
     return ClusteringSourceRow(
@@ -80,6 +84,27 @@ def _source_row(record: LogisticsRecord) -> ClusteringSourceRow | None:
         vehicle_type=record.vehicle_type,
         tonnage_id=record.tonnage_id,
         price_type=record.price_type,
+        tech_ts=record.tech_ts,
+        validation_errors=record.validation_errors,
+        source_row_number=source_row_number,
+    )
+
+
+def _newest_first(row: ClusteringSourceRow) -> tuple[bool, int, bool, float, int]:
+    period = (
+        int(row.period_id)
+        if row.period_id and len(row.period_id) == 6 and row.period_id.isdigit()
+        else None
+    )
+    timestamp = row.tech_ts
+    if timestamp is not None and timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=UTC)
+    return (
+        period is None,
+        -(period or 0),
+        timestamp is None,
+        -(timestamp.timestamp() if timestamp is not None else 0),
+        -row.source_row_number,
     )
 
 
@@ -112,9 +137,9 @@ class ClusteringRepository:
         origin_names: dict[str, Counter[str]] = defaultdict(Counter)
         origin_regions: dict[str, Counter[str]] = defaultdict(Counter)
         raw_rows = 0
-        for record in iter_records(self.source_path):
+        for source_row_number, record in enumerate(iter_records(self.source_path), start=1):
             raw_rows += 1
-            row = _source_row(record)
+            row = _source_row(record, source_row_number)
             if row is None:
                 continue
             grouped[(row.origin_fias, row.destination_region)].append(row)
@@ -212,3 +237,26 @@ class ClusteringRepository:
             tonnage_ids=tonnage_ids,
             dataset_raw_rows=self._raw_rows,
         )
+
+    def source_rows(
+        self,
+        *,
+        origin_fias: str,
+        destination_region: str,
+        destination_fias: str,
+        period_types: set[str],
+        price_types: set[str],
+        vehicle_types: set[str],
+        tonnage_ids: set[str],
+    ) -> list[ClusteringSourceRow]:
+        """Return one destination's normalized rows in deterministic newest-first order."""
+        rows = (
+            row
+            for row in self._rows(origin_fias, destination_region)
+            if row.destination_fias == destination_fias
+            and (not period_types or row.period_type in period_types)
+            and (not price_types or row.price_type in price_types)
+            and (not vehicle_types or row.vehicle_type in vehicle_types)
+            and (not tonnage_ids or row.tonnage_id in tonnage_ids)
+        )
+        return sorted(rows, key=_newest_first)

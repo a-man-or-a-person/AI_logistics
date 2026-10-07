@@ -27,8 +27,12 @@ class ClusteringRoute:
     destination_region: str
     record_count: int
     trip_count: int
+    weighted_route_length: float | None
     weighted_price: float | None
     weighted_rub_per_km: float | None
+    valid_route_length_trip_count: int
+    valid_price_trip_count: int
+    valid_rub_per_km_trip_count: int
     active_period_count: int
     period_types: tuple[str, ...]
     price_types: tuple[str, ...]
@@ -42,6 +46,8 @@ class _Accumulator:
     names: Counter[str] = field(default_factory=Counter)
     record_count: int = 0
     trip_count: int = 0
+    route_length_numerator: float = 0.0
+    route_length_denominator: int = 0
     price_numerator: float = 0.0
     price_denominator: int = 0
     rubkm_numerator: float = 0.0
@@ -55,6 +61,7 @@ class _Accumulator:
 
     def add(self, record: LogisticsRecord) -> None:
         self.record_count += 1
+        self.flags.update(record.validation_errors)
         if record.destination_name:
             self.names[record.destination_name] += 1
         if record.period_id:
@@ -73,6 +80,11 @@ class _Accumulator:
             self.flags.add("missing_or_nonpositive_trip_count")
             return
         self.trip_count += trips
+        if record.route_length is not None and record.route_length > 0:
+            self.route_length_numerator += record.route_length * trips
+            self.route_length_denominator += trips
+        else:
+            self.flags.add("missing_or_nonpositive_route_length")
         if record.price is not None and record.price > 0:
             self.price_numerator += record.price * trips
             self.price_denominator += trips
@@ -90,7 +102,7 @@ def _matches(value: str | None, selected: set[str]) -> bool:
 
 
 def _weighted(numerator: float, denominator: int) -> float | None:
-    return round(numerator / denominator, 6) if denominator > 0 else None
+    return numerator / denominator if denominator > 0 else None
 
 
 def build_clustering_routes(
@@ -177,12 +189,19 @@ def aggregate_clustering_records(
                 destination_region=destination_region,
                 record_count=accumulator.record_count,
                 trip_count=accumulator.trip_count,
+                weighted_route_length=_weighted(
+                    accumulator.route_length_numerator,
+                    accumulator.route_length_denominator,
+                ),
                 weighted_price=_weighted(
                     accumulator.price_numerator, accumulator.price_denominator
                 ),
                 weighted_rub_per_km=_weighted(
                     accumulator.rubkm_numerator, accumulator.rubkm_denominator
                 ),
+                valid_route_length_trip_count=accumulator.route_length_denominator,
+                valid_price_trip_count=accumulator.price_denominator,
+                valid_rub_per_km_trip_count=accumulator.rubkm_denominator,
                 active_period_count=len(accumulator.periods),
                 period_types=tuple(sorted(accumulator.period_types)),
                 price_types=tuple(sorted(accumulator.price_types)),
@@ -229,8 +248,10 @@ def aggregate_clustering_records(
             "grain": "one origin_fias x one destination_region x destination_fias",
             "price_source": "Pulse.units",
             "trip_count_source": "Pulse.bid_count",
+            "route_length": "trip-weighted Pulse.route_length for positive values",
             "rub_per_km": "price / route_length for positive values",
             "economic_weight": "trip_count",
+            "metric_denominator": "positive trip_count on rows valid for that metric",
         },
     }
     return routes, report

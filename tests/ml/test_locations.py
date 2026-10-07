@@ -57,7 +57,11 @@ def test_locations_are_unique_by_fias_and_do_not_use_region_center(tmp_path):
     assert len(points) == 2
     assert points[0].trip_count == 5
     assert points[0].weighted_price == 1120
+    assert points[0].weighted_route_length == 100
     assert points[0].weighted_rub_per_km == 11.2
+    assert points[0].valid_route_length_trip_count == 5
+    assert points[0].valid_price_trip_count == 5
+    assert points[0].valid_rub_per_km_trip_count == 5
     assert points[0].x is not None
     assert points[0].coordinate_source == "unverified_cache"
     assert points[0].coordinate_status == "resolved"
