@@ -1,4 +1,4 @@
-import { clusterLabel, decimal, escapeHtml, fmt, km, MODE_LABELS, percent, rubKm } from './formatters.js';
+import { clusterLabel, decimal, escapeHtml, fmt, km, MODE_LABELS, PERIOD_LABELS, percent, rubKm } from './formatters.js';
 
 const $ = id => document.getElementById(id);
 
@@ -162,7 +162,8 @@ function renderPointDetails(point, mode, handlers) {
     bear_volume_candidate: 'Кандидат по объёму', bear_volume_zone: 'Объёмная медвежья зона', high_volume_singleton: 'Аномально объёмная точка',
     spatial_outlier: 'Пространственно изолирована', economic_unavailable: 'Нет экономики',
   };
-  const economics = !['geo_cost', 'bear_zones'].includes(mode) ? '' : `
+  const tableMode = ['geography', 'geo_cost', 'geo_volume'].includes(mode);
+  const economics = !tableMode && mode !== 'bear_zones' ? '' : `
       ${point.weighted_price == null ? '' : `<div><dt>Средневзвешенная цена</dt><dd>${decimal(point.weighted_price, 0)} ₽</dd></div>`}
       ${point.weighted_rub_per_km == null ? '' : `<div><dt>Средневзвешенный ₽/км</dt><dd>${rubKm(point.weighted_rub_per_km)}</dd></div>`}
       ${point.regional_weighted_rub_per_km == null ? '' : `<div><dt>Региональный ₽/км</dt><dd>${rubKm(point.regional_weighted_rub_per_km)}</dd></div>`}
@@ -178,6 +179,8 @@ function renderPointDetails(point, mode, handlers) {
       <div><dt>Статус</dt><dd>${escapeHtml(statuses[point.status] || point.status)}</dd></div>
       <div><dt>Кластер</dt><dd>${point.cluster_id == null ? '—' : Number(point.cluster_id) + 1}</dd></div>
       <div><dt>Перевозки</dt><dd>${fmt(point.trip_count)}</dd></div>
+      ${tableMode ? `<div><dt>Маршрут</dt><dd>${km(point.weighted_route_length)}</dd></div>` : ''}
+      ${tableMode ? `<div><dt>Периоды</dt><dd>${(point.period_types || []).map(value => escapeHtml(PERIOD_LABELS[value] || value)).join(', ') || '—'}</dd></div>` : ''}
       ${economics}
       ${volume}
     </dl>`;

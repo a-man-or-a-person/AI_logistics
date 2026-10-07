@@ -526,7 +526,8 @@ function mlClusterStyleFunction(feature) {
     if (['bear_candidate', 'bear_volume_candidate'].includes(status) && !_clusteringLayerVisibility.candidates) return null;
     const clusterId = feature.get('clusterId');
     const selected = _selectedMlZoneId;
-    const active = selected != null && Number(clusterId) === selected;
+    const active = (selected != null && Number(clusterId) === selected)
+      || (_hoveredMlZoneId != null && Number(clusterId) === _hoveredMlZoneId);
     const dimmed = selected != null && Number(clusterId) !== selected;
     const unavailable = ['spatial_outlier', 'economic_unavailable'].includes(status);
     return new ol.style.Style({
@@ -540,7 +541,8 @@ function mlClusterStyleFunction(feature) {
 
   if (feature.get('isProductLabel')) {
     if (!_clusteringLayerVisibility.labels) return null;
-    const active = Number(feature.get('clusterId')) === _selectedMlZoneId;
+    const active = Number(feature.get('clusterId')) === _selectedMlZoneId
+      || Number(feature.get('clusterId')) === _hoveredMlZoneId;
     return new ol.style.Style({
       text: new ol.style.Text({
         text: feature.get('zoneLabel'),
@@ -672,6 +674,11 @@ export function focusClusteringPoint(pointId) {
 
 export function highlightCluster(clusterId, fit = false) {
   selectMlZone(clusterId, fit);
+}
+
+export function hoverCluster(clusterId) {
+  _hoveredMlZoneId = clusterId == null ? null : Number(clusterId);
+  _mlVectorLayer?.changed();
 }
 
 export function clearClusteringResult() {

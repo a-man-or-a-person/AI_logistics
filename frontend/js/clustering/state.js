@@ -85,7 +85,15 @@ export function createClusteringState(options = {}) {
     },
     result: { status: 'empty', data: null, error: null, requestSnapshot: null, cache: new Map() },
     comparison: { open: false, status: 'empty', context: null, contextDisplay: null, results: {}, activeMode: null, error: null, cache: new Map() },
-    ui: { selectedCluster: null, selectedPoint: null, inspectorMode: 'summary' },
+    ui: {
+      selectedCluster: null,
+      selectedPoint: null,
+      hoveredCluster: null,
+      inspectorMode: 'summary',
+      tableVisible: false,
+      tableOpen: false,
+      tableSort: { key: 'trip_count', direction: 'desc' },
+    },
   };
 }
 

@@ -27,6 +27,36 @@ def _edge_path() -> str | None:
     return next((str(path) for path in candidates if path.exists()), None)
 
 
+def _run_browser_script(script: str) -> dict:
+    edge = _edge_path()
+    if edge is None:
+        pytest.skip("A browser JavaScript runtime is required for the frontend contract")
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        page = root / "frontend-contract.html"
+        profile = root / "profile"
+        page.write_text(f"<!doctype html><body><script>{script}</script></body>", encoding="utf-8")
+        completed = subprocess.run(
+            [
+                edge,
+                "--headless=new",
+                "--disable-gpu",
+                "--no-first-run",
+                f"--user-data-dir={profile}",
+                "--dump-dom",
+                page.as_uri(),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+        )
+    match = re.search(r'data-result="([^"]+)"', completed.stdout)
+    assert match is not None, completed.stdout
+    return json.loads(match.group(1).replace("&quot;", '"'))
+
+
 def test_product_workspace_contains_all_v1_controls():
     html = _read("frontend/index.html")
     for required in (
@@ -34,6 +64,8 @@ def test_product_workspace_contains_all_v1_controls():
         'id="data-map-view"',
         'id="clustering-controls"',
         'id="clustering-map"',
+        'id="clustering-center"',
+        'id="cluster-table-panel"',
         'id="clustering-inspector"',
         'id="comparison-view"',
         'id="cluster-origin"',
@@ -337,30 +369,7 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
       }};
       document.body.dataset.result = JSON.stringify(actual);
     """
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        page = root / "capability-contract.html"
-        profile = root / "profile"
-        page.write_text(f"<!doctype html><body><script>{script}</script></body>", encoding="utf-8")
-        completed = subprocess.run(
-            [
-                edge,
-                "--headless=new",
-                "--disable-gpu",
-                "--no-first-run",
-                f"--user-data-dir={profile}",
-                "--dump-dom",
-                page.as_uri(),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=30,
-        )
-    match = re.search(r'data-result="([^"]+)"', completed.stdout)
-    assert match is not None, completed.stdout
-    actual = json.loads(match.group(1).replace("&quot;", '"'))
+    actual = _run_browser_script(script)
     assert actual == {
         "modes": order,
         "renderedModes": order,
@@ -392,5 +401,244 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
                 "geography_weight": 0.59,
                 "economics_weight": 0.41,
             },
+        },
+    }
+
+
+def test_cluster_table_renders_and_interacts_through_the_product_ui_seam():
+    table = re.sub(
+        r"^import .*?;\n",
+        "",
+        _read("frontend/js/clustering/table.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    result = {
+        "status": "success",
+        "analysis": {"mode": "geography"},
+        "cluster_table": {
+            "supported": True,
+            "period_types": ["current", "forecast"],
+            "methodology": {
+                "version": "product_cluster_table_v1",
+                "distributions": "unweighted_destination_points",
+                "weighted_values": "metric_valid_trip_count",
+            },
+            "rows": [
+                {
+                    "cluster_id": 2,
+                    "point_count": 4,
+                    "trip_count": 9,
+                    "trip_share": 0.81818,
+                    "weighted_route_length": 120.05,
+                    "price": {"min": 0, "median": 2166.525, "weighted": 3111.116, "max": 5000},
+                    "rub_per_km": {"min": 10, "median": 10.0005, "weighted": 14.0001, "max": 30},
+                    "economic_coverage": {
+                        "valid_points": 3, "total_points": 4,
+                        "valid_trip_count": 5, "total_trip_count": 9,
+                    },
+                    "coverage": {
+                        "price": {"valid_points": 4, "total_points": 4, "valid_trip_count": 8, "total_trip_count": 9},
+                        "rub_per_km": {"valid_points": 3, "total_points": 4, "valid_trip_count": 5, "total_trip_count": 9},
+                    },
+                },
+                {
+                    "cluster_id": 0,
+                    "point_count": 1,
+                    "trip_count": 2,
+                    "trip_share": 0.18182,
+                    "weighted_route_length": 200,
+                    "price": {"min": None, "median": None, "weighted": None, "max": None},
+                    "rub_per_km": {"min": None, "median": None, "weighted": None, "max": None},
+                    "economic_coverage": {
+                        "valid_points": 0, "total_points": 1,
+                        "valid_trip_count": 0, "total_trip_count": 2,
+                    },
+                },
+            ],
+        },
+    }
+    shell = '<section id="cluster-table-panel" class="hidden"></section>'
+    script = f"""
+      const MODE_LABELS = {{geography: 'По географии', geo_cost: 'География + стоимость', geo_volume: 'География + объём'}};
+      const PERIOD_LABELS = {{retro: 'Архив', current: 'Текущий', forecast: 'Прогноз'}};
+      const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({{'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}})[char]);
+      {table}
+      document.body.innerHTML = {json.dumps(shell)};
+      const state = {{
+        result: {{status: 'success', data: {json.dumps(result)}}},
+        ui: {{tableOpen: true, tableSort: {{key: 'trip_count', direction: 'desc'}}, selectedCluster: null}},
+      }};
+      const events = [];
+      const handlers = {{
+        isStale: () => true,
+        onToggle: open => events.push(['toggle', open]),
+        onSort: (key, direction) => {{ state.ui.tableSort = {{key, direction}}; render(); }},
+        onClusterHover: id => events.push(['hover', id]),
+        onClusterSelect: id => events.push(['select', id]),
+      }};
+      const render = () => renderClusterTable(state, handlers);
+      render();
+      const panel = document.getElementById('cluster-table-panel');
+      const initial = {{
+        hidden: panel.classList.contains('hidden'),
+        stale: panel.classList.contains('stale'),
+        headers: panel.querySelectorAll('thead th').length,
+        rowIds: [...panel.querySelectorAll('tbody tr')].map(row => Number(row.dataset.clusterId)),
+        firstCells: [...panel.querySelector('tbody tr').children].map(cell => cell.textContent.trim()),
+        periods: [...panel.querySelectorAll('.cluster-table-period')].map(item => item.textContent.trim()),
+        methodology: panel.querySelector('.cluster-table-methodology').textContent.replace(/\\s+/g, ' ').trim(),
+        coverageTitle: panel.querySelector('tbody tr td:last-child').title,
+        sort: panel.querySelector('[data-sort-key="trip_count"]').closest('th').getAttribute('aria-sort'),
+        selectedRows: panel.querySelectorAll('tbody tr.selected').length,
+      }};
+      panel.querySelector('[data-sort-key="price.min"]').click();
+      const sorted = [...panel.querySelectorAll('tbody tr')].map(row => Number(row.dataset.clusterId));
+      const row = panel.querySelector('tbody tr');
+      row.dispatchEvent(new MouseEvent('mouseenter'));
+      row.querySelector('button').focus();
+      row.querySelector('button').click();
+      panel.querySelector('[data-table-toggle]').click();
+      state.result.data.cluster_table = {{supported: false}};
+      render();
+      document.body.dataset.result = JSON.stringify({{
+        initial, sorted, events, unsupportedHidden: panel.classList.contains('hidden'),
+      }});
+    """
+
+    assert _run_browser_script(script) == {
+        "initial": {
+            "hidden": False,
+            "stale": True,
+            "headers": 14,
+            "rowIds": [2, 0],
+            "firstCells": [
+                "Кластер 3", "4", "9", "81,8%", "120,1 км", "0 ₽", "2 167 ₽",
+                "3 111 ₽", "5 000 ₽", "10,0 ₽/км", "10,0 ₽/км", "14,0 ₽/км",
+                "30,0 ₽/км", "75,0% точек · 55,6% машин",
+            ],
+            "periods": ["Текущий", "Прогноз Pulse"],
+            "methodology": (
+                "Методика расчёта Min, медиана и max рассчитаны по точкам назначения без весов. "
+                "Средневзвешенные значения учитывают машины только с доступной метрикой. "
+                "Пропуски не превращаются в нули и отражены в покрытии. "
+                "Периоды: Текущий, Прогноз Pulse. "
+                "Режим: По географии — экономика показана описательно и не влияла на разбиение."
+            ),
+            "coverageTitle": (
+                "Покрытие: 3/4 точек; 5/9 машин; цена: 4/4 точек, 8/9 машин; "
+                "₽/км: 3/4 точек, 5/9 машин"
+            ),
+            "sort": "descending",
+            "selectedRows": 0,
+        },
+        "sorted": [2, 0],
+        "events": [["hover", 2], ["hover", 2], ["select", 2], ["toggle", False], ["hover", None]],
+        "unsupportedHidden": True,
+    }
+
+
+def test_cluster_table_lifecycle_uses_the_existing_result_state():
+    table = re.sub(
+        r"^import .*?;\n",
+        "",
+        _read("frontend/js/clustering/table.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      const MODE_LABELS = {{geography: 'По географии', geo_cost: 'География + стоимость', geo_volume: 'География + объём'}};
+      const PERIOD_LABELS = {{current: 'Текущий'}};
+      const escapeHtml = value => String(value ?? '');
+      {table}
+      document.body.innerHTML = '<section id="cluster-table-panel"></section>';
+      const panel = document.getElementById('cluster-table-panel');
+      const state = {{result: {{status: 'empty', data: null}}, ui: {{tableVisible: true, tableOpen: true}}}};
+      const render = () => renderClusterTable(state, {{}});
+      render();
+      const beforeRunHidden = panel.classList.contains('hidden');
+      const result = mode => ({{
+        analysis: {{mode}},
+        cluster_table: {{supported: true, period_types: ['current'], methodology: {{}}, rows: []}},
+      }});
+      const supportedModes = ['geography', 'geo_cost', 'geo_volume'].map(mode => {{
+        state.result = {{status: 'success', data: result(mode)}};
+        render();
+        return !panel.classList.contains('hidden');
+      }});
+      const emptyText = panel.querySelector('.cluster-table-state').textContent.trim();
+      state.result.status = 'loading';
+      render();
+      const loading = {{visible: !panel.classList.contains('hidden'), busy: panel.getAttribute('aria-busy')}};
+      state.result = {{status: 'success', data: result('geography')}};
+      delete state.result.data.cluster_table.rows;
+      render();
+      const invalidText = panel.querySelector('.cluster-table-state.error').textContent.trim();
+      state.result = {{status: 'error', data: null}};
+      render();
+      document.body.dataset.result = JSON.stringify({{
+        beforeRunHidden, supportedModes, emptyText, loading, invalidText,
+        failedRunHidden: panel.classList.contains('hidden'),
+      }});
+    """
+
+    assert _run_browser_script(script) == {
+        "beforeRunHidden": True,
+        "supportedModes": [True, True, True],
+        "emptyText": "В результате нет кластеров для таблицы.",
+        "loading": {"visible": True, "busy": "true"},
+        "invalidText": "Некорректные данные таблицы.",
+        "failedRunHidden": True,
+    }
+
+
+def test_cluster_table_controller_handlers_keep_map_inspector_and_panel_in_sync():
+    controller = re.sub(
+        r"^import[\s\S]*?;\n",
+        "",
+        _read("frontend/js/clustering/controller.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      const calls = {{renders: 0, map: [], hover: [], inspector: [], runs: 0}};
+      let tableHandlers;
+      function renderClusterTable(currentState, handlers) {{
+        calls.renders += 1;
+        tableHandlers = handlers;
+      }}
+      function isResultStale() {{ return false; }}
+      function highlightCluster(id, focus) {{ calls.map.push([id, focus]); }}
+      function hoverCluster(id) {{ calls.hover.push(id); }}
+      function renderInspector(currentState) {{ calls.inspector.push(currentState.ui.selectedCluster); }}
+      function runClustering() {{ calls.runs += 1; }}
+      {controller}
+      state = {{
+        ui: {{tableOpen: true, hoveredCluster: null, selectedCluster: null, selectedPoint: null}},
+        result: {{data: {{}}}},
+      }};
+      renderClusterTableState();
+      tableHandlers.onToggle(false);
+      const collapsed = state.ui.tableOpen;
+      tableHandlers.onToggle(true);
+      const reopened = state.ui.tableOpen;
+      tableHandlers.onClusterHover(3);
+      tableHandlers.onClusterSelect(3);
+      document.body.dataset.result = JSON.stringify({{
+        collapsed, reopened,
+        selected: state.ui.selectedCluster,
+        hovered: state.ui.hoveredCluster,
+        calls,
+      }});
+    """
+
+    assert _run_browser_script(script) == {
+        "collapsed": False,
+        "reopened": True,
+        "selected": 3,
+        "hovered": 3,
+        "calls": {
+            "renders": 4,
+            "map": [[3, True]],
+            "hover": [3],
+            "inspector": [3],
+            "runs": 0,
         },
     }

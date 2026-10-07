@@ -10,8 +10,9 @@ import { readChecks, renderFormState, renderOptionControls } from './controls.js
 import { renderErrorState, renderInspector } from './inspector.js';
 import { renderComparison } from './comparison.js';
 import { MODE_LABELS, PERIOD_LABELS, PRICE_LABELS } from './formatters.js';
+import { renderClusterTable } from './table.js';
 import {
-  clearClusteringResult, focusClusteringPoint, highlightCluster,
+  clearClusteringResult, focusClusteringPoint, highlightCluster, hoverCluster,
   renderClusteringPoints, setClusteringLayers, setMlResultStale,
 } from '../map.js';
 
@@ -87,6 +88,10 @@ function wireEvents() {
     if (event.detail.clusterId != null) selectCluster(event.detail.clusterId);
     state.ui.selectedPoint = event.detail.pointId;
     renderInspectorState();
+  });
+  window.addEventListener('ml-zone-hover', event => {
+    state.ui.hoveredCluster = event.detail.clusterId;
+    renderClusterTableState();
   });
   document.querySelectorAll('details.multi-select').forEach(details => {
     details.querySelector('summary')?.setAttribute('aria-expanded', String(details.open));
@@ -247,6 +252,7 @@ async function executeRun() {
   const cached = state.result.cache.get(requestSignature(request));
   if (cached) {
     setResult(state, cached, request);
+    showSingleRunTable(cached);
     renderClusteringPoints(cached);
     $('empty-state').classList.add('hidden');
     renderAll();
@@ -256,6 +262,7 @@ async function executeRun() {
   runController = new AbortController();
   const repeated = Boolean(state.result.data);
   state.result.status = 'loading';
+  renderClusterTableState();
   $('loading-overlay').classList.toggle('hidden', repeated);
   $('update-badge').classList.toggle('hidden', !repeated);
   $('loading-text').textContent = 'Рассчитываем зоны…';
@@ -264,6 +271,7 @@ async function executeRun() {
   try {
     const result = await runClustering(request, { signal: runController.signal });
     setResult(state, result, request);
+    showSingleRunTable(result);
     renderClusteringPoints(result);
     $('empty-state').classList.add('hidden');
     renderAll();
@@ -276,6 +284,7 @@ async function executeRun() {
       $('empty-state').querySelector('.empty-sub').textContent = 'Измените сегмент данных и повторите расчёт.';
       $('empty-state').classList.remove('hidden');
     }
+    renderClusterTableState();
   } finally {
     $('loading-overlay').classList.add('hidden');
     $('update-badge').classList.add('hidden');
@@ -297,6 +306,14 @@ function selectCluster(clusterId, focus = false) {
   state.ui.selectedCluster = clusterId;
   highlightCluster(clusterId, focus);
   renderInspectorState();
+  renderClusterTableState();
+}
+
+function showSingleRunTable(result) {
+  state.ui.tableVisible = result.cluster_table?.supported === true;
+  state.ui.tableOpen = state.ui.tableVisible;
+  state.ui.tableSort = { key: 'trip_count', direction: 'desc' };
+  state.ui.hoveredCluster = null;
 }
 
 function openComparison() {
@@ -379,6 +396,7 @@ function activateComparisonMode(mode) {
     ?? state.form.singletonThreshold;
   const request = buildRequest(state.form, mode);
   setResult(state, result, request);
+  state.ui.tableVisible = false;
   renderClusteringPoints(result);
   renderAll();
 }
@@ -392,7 +410,28 @@ function renderAll() {
   setMlResultStale(stale);
   renderEmptyState();
   renderInspectorState();
+  renderClusterTableState();
   renderComparisonState();
+}
+
+function renderClusterTableState() {
+  renderClusterTable(state, {
+    isStale: () => isResultStale(state),
+    onToggle: open => {
+      state.ui.tableOpen = open;
+      renderClusterTableState();
+      window.dispatchEvent(new Event('resize'));
+    },
+    onSort: (key, direction) => {
+      state.ui.tableSort = { key, direction };
+      renderClusterTableState();
+    },
+    onClusterHover: clusterId => {
+      state.ui.hoveredCluster = clusterId;
+      hoverCluster(clusterId);
+    },
+    onClusterSelect: clusterId => selectCluster(clusterId, true),
+  });
 }
 
 function comparisonContext(form) {

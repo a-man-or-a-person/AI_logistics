@@ -80,6 +80,7 @@
       </form>
     </aside>
 
+    <div id="clustering-center" class="clustering-center">
     <main id="clustering-map" aria-label="Карта результата">
       <div id="map"></div>
       <div class="map-control base-layer-control"><label for="layer-select">Подложка</label><select id="layer-select"><option value="2gis">Карта</option><option value="hybrid">Спутник</option></select></div>
@@ -92,6 +93,8 @@
       <div id="update-badge" class="update-badge hidden">Обновляем результат…</div>
       <button id="mobile-controls-btn" class="mobile-sheet-button mobile-only" type="button">Настроить анализ</button><button id="mobile-inspector-btn" class="mobile-sheet-button secondary mobile-only" type="button">Результат</button>
     </main>
+    <section id="cluster-table-panel" class="cluster-table-panel hidden" aria-label="Таблица кластеров"></section>
+    </div>
 
     <aside id="clustering-inspector" class="analysis-inspector" aria-label="Результат анализа">
       <div class="panel-heading"><div><span class="eyebrow">Результат</span><h2>Анализ</h2></div><button class="panel-close mobile-only" data-close-panel="inspector" type="button" aria-label="Закрыть результат">×</button></div>
