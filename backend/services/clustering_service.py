@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import logging
+import statistics
 import time
 from collections import Counter, OrderedDict
 from collections.abc import Callable, Iterable
@@ -44,7 +46,7 @@ def _string_list(payload: dict[str, Any], name: str, default: tuple[str, ...]) -
         not isinstance(item, str) or not item.strip() for item in value
     ):
         raise ProductClusteringError("INVALID_REQUEST", f"{name} должен быть списком строк.", 400)
-    return tuple(dict.fromkeys(item.strip() for item in value))
+    return tuple(sorted({item.strip() for item in value}))
 
 
 @dataclass(frozen=True, slots=True)
@@ -570,12 +572,13 @@ class ClusteringService:
         cluster_id: int | None = None,
         regional_rate: float | None = None,
         regional_mean_trip_count: float | None = None,
+        include_table_analytics: bool = False,
     ) -> dict[str, Any]:
         if location.latitude is None or location.longitude is None:
             status = "unresolved"
         elif status is None:
             status = "ordinary"
-        return {
+        point = {
             "id": location.id,
             "fias_id": location.fias_id,
             "name": location.name,
@@ -600,6 +603,18 @@ class ClusteringService:
             "coordinate_source": location.coordinate_source,
             "data_quality_flags": list(location.data_quality_flags),
         }
+        if include_table_analytics:
+            point.update(
+                {
+                    "weighted_route_length": location.weighted_route_length,
+                    "valid_route_length_trip_count": location.valid_route_length_trip_count,
+                    "valid_price_trip_count": location.valid_price_trip_count,
+                    "valid_rub_per_km_trip_count": location.valid_rub_per_km_trip_count,
+                    "active_period_count": location.active_period_count,
+                    "period_types": list(location.period_types),
+                }
+            )
+        return point
 
     def _origin(self, fias_id: str) -> dict[str, Any]:
         matches = self.origins(fias_id, limit=1)
@@ -814,8 +829,14 @@ class ClusteringService:
         regional_price = weighted_mean(
             (point.weighted_price, point.trip_count) for point in locations
         )
+        table_supported = next(
+            capability.result_kind == "partition"
+            for capability in self.product_mode_catalog.manifest()
+            if capability.mode_id == request.mode
+        )
         return {
             "status": outcome.status,
+            "data_snapshot": hashlib.sha256(repr(self._cache_generation).encode()).hexdigest(),
             "analysis": self._analysis(request, result),
             "contains_forecast": quality["contains_forecast"],
             "data_quality": quality,
@@ -844,13 +865,131 @@ class ClusteringService:
                     cluster_id=result.point_assignments.get(point.id),
                     regional_rate=regional_rate,
                     regional_mean_trip_count=regional_mean_trip_count,
+                    include_table_analytics=True,
                 )
                 for point in locations
             ],
             "clusters": [
                 self._cluster_json(cluster, location_by_id) for cluster in result.clusters
             ],
+            "cluster_table": self._cluster_table(
+                result.clusters,
+                location_by_id,
+                request.period_types,
+                supported=table_supported,
+            ),
             "outliers": list(result.outliers),
+        }
+
+    @staticmethod
+    def _cluster_table(
+        clusters: tuple[Any, ...],
+        locations: dict[str, LocationPoint],
+        period_types: tuple[str, ...],
+        *,
+        supported: bool,
+    ) -> dict[str, Any]:
+        if not supported:
+            return {"supported": False}
+
+        def coverage(
+            members: list[LocationPoint],
+            value_name: str,
+            weight_name: str,
+            total_trip_count: int,
+        ) -> dict[str, int]:
+            return {
+                "valid_points": sum(getattr(point, value_name) is not None for point in members),
+                "total_points": len(members),
+                "valid_trip_count": sum(getattr(point, weight_name) for point in members),
+                "total_trip_count": total_trip_count,
+            }
+
+        rows = []
+        all_cluster_trips = sum(cluster.trip_count for cluster in clusters)
+        for cluster in clusters:
+            members = [locations[point_id] for point_id in cluster.point_ids]
+            prices = [point.weighted_price for point in members if point.weighted_price is not None]
+            rates = [
+                point.weighted_rub_per_km
+                for point in members
+                if point.weighted_rub_per_km is not None
+            ]
+            total_trips = sum(point.trip_count for point in members)
+            price_coverage = coverage(
+                members, "weighted_price", "valid_price_trip_count", total_trips
+            )
+            rubkm_coverage = coverage(
+                members,
+                "weighted_rub_per_km",
+                "valid_rub_per_km_trip_count",
+                total_trips,
+            )
+            rows.append(
+                {
+                    "cluster_id": cluster.cluster_id,
+                    "point_count": len(members),
+                    "trip_count": total_trips,
+                    "trip_share": total_trips / all_cluster_trips if all_cluster_trips else None,
+                    "weighted_route_length": weighted_mean(
+                        (
+                            point.weighted_route_length,
+                            point.valid_route_length_trip_count,
+                        )
+                        for point in members
+                    ),
+                    "price": {
+                        "min": min(prices) if prices else None,
+                        "median": statistics.median(prices) if prices else None,
+                        "weighted": weighted_mean(
+                            (point.weighted_price, point.valid_price_trip_count)
+                            for point in members
+                        ),
+                        "max": max(prices) if prices else None,
+                    },
+                    "rub_per_km": {
+                        "min": min(rates) if rates else None,
+                        "median": statistics.median(rates) if rates else None,
+                        "weighted": weighted_mean(
+                            (
+                                point.weighted_rub_per_km,
+                                point.valid_rub_per_km_trip_count,
+                            )
+                            for point in members
+                        ),
+                        "max": max(rates) if rates else None,
+                    },
+                    "coverage": {
+                        "route_length": coverage(
+                            members,
+                            "weighted_route_length",
+                            "valid_route_length_trip_count",
+                            total_trips,
+                        ),
+                        "price": price_coverage,
+                        "rub_per_km": rubkm_coverage,
+                    },
+                    "economic_coverage": {
+                        **rubkm_coverage,
+                        "valid_points": sum(
+                            point.weighted_price is not None
+                            and point.weighted_rub_per_km is not None
+                            for point in members
+                        ),
+                    },
+                    "point_ids": list(cluster.point_ids),
+                }
+            )
+        rows.sort(key=lambda row: (-row["trip_count"], row["cluster_id"]))
+        return {
+            "supported": True,
+            "period_types": list(period_types),
+            "methodology": {
+                "version": "product_cluster_table_v1",
+                "distributions": "unweighted_destination_points",
+                "weighted_values": "metric_valid_trip_count",
+            },
+            "rows": rows,
         }
 
     @staticmethod

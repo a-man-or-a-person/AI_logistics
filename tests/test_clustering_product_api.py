@@ -444,6 +444,8 @@ def test_run_returns_ui_contract_and_reports_unresolved(product_client):
         "regional_economics",
         "regional_volume",
         "regional_weighted_rub_per_km",
+        "data_snapshot",
+        "cluster_table",
         "points",
         "clusters",
         "outliers",
@@ -475,6 +477,14 @@ def test_run_returns_ui_contract_and_reports_unresolved(product_client):
     assert unresolved["lon"] is None
     assert unresolved["cluster_id"] is None
     assert "zones" not in result
+
+
+def test_preview_does_not_expose_run_table_analytics(product_client):
+    result = product_client.post("/api/clustering/preview", json=_payload()).get_json()
+
+    assert "cluster_table" not in result
+    assert "data_snapshot" not in result
+    assert "weighted_route_length" not in result["points"][0]
 
 
 class CapturingClusterer:
@@ -1603,6 +1613,14 @@ def test_compare_uses_fixed_fact_only_contract(product_client, product_service):
     }
     assert len(filters) == 1
     assert len(point_ids) == 1
+    assert all(
+        result["results"][mode]["cluster_table"]["supported"]
+        for mode in ("geography", "geo_cost", "geo_volume")
+    )
+    assert all(
+        result["results"][mode]["cluster_table"] == {"supported": False}
+        for mode in ("bear_zones", "bear_volume_zones")
+    )
 
 
 def test_compare_sources_order_and_fixed_selections_from_catalog_metadata(product_files):

@@ -56,6 +56,7 @@ class LocationPoint:
     valid_rub_per_km_trip_count: int
     economic_status: str
     active_period_count: int
+    period_types: tuple[str, ...]
     coordinate_source: str
     coordinate_status: str
     coordinate_match: str
@@ -200,6 +201,7 @@ def resolve_location_routes(
                     else "insufficient_weight"
                 ),
                 active_period_count=route.active_period_count,
+                period_types=route.period_types,
                 coordinate_source=coordinate_source,
                 coordinate_status=(
                     "resolved" if latitude is not None else "unresolved"
