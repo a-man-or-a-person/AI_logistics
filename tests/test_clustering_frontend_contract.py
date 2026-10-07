@@ -58,14 +58,17 @@ def _run_browser_script(script: str) -> dict:
 
 
 def _run_node_script(script: str) -> dict:
-    completed = subprocess.run(
-        ["node", "--input-type=module", "--eval", script],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        timeout=30,
-    )
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "frontend-contract.mjs"
+        path.write_text(script, encoding="utf-8")
+        completed = subprocess.run(
+            ["node", str(path)],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+        )
     return json.loads(completed.stdout)
 
 
@@ -741,6 +744,167 @@ def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_chan
         "stale": "stale",
         "offsets": [0, 50, 0, 0, 0, 0],
         "renders": 14,
+    }
+
+
+def test_cached_comparison_switches_the_active_product_result_without_recalculation():
+    state_module = re.sub(
+        r"^import .*?;\n",
+        "",
+        _read("frontend/js/clustering/state.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    controller = re.sub(
+        r"^import[\s\S]*?;\n",
+        "",
+        _read("frontend/js/clustering/controller.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      const elements = new Map();
+      const element = id => elements.get(id) || elements.set(id, {{
+        textContent: '',
+        classList: {{toggle() {{}}, add() {{}}, remove() {{}}}},
+      }}).get(id);
+      globalThis.document = {{getElementById: element}};
+      globalThis.window = {{dispatchEvent() {{}}}};
+      const MODE_LABELS = {{}}, PERIOD_LABELS = {{}}, PRICE_LABELS = {{}};
+      const maps = [], tables = [], inspectors = [], pointRequests = [];
+      let compareRequests = 0, runRequests = 0;
+      function renderFormState() {{}}
+      function renderOptionControls() {{}}
+      function renderErrorState() {{}}
+      function renderComparison() {{}}
+      function renderClusteringPoints(result) {{ maps.push(result.analysis.mode); }}
+      function renderClusterTable(currentState) {{
+        tables.push([
+          currentState.result.data.analysis.mode,
+          currentState.ui.tableVisible,
+          currentState.result.data.cluster_table?.rows?.[0]?.cluster_id ?? null,
+        ]);
+      }}
+      function renderInspector(currentState) {{ inspectors.push(currentState.result.data.analysis.mode); }}
+      function setMlResultStale() {{}}
+      function clearClusteringResult() {{}}
+      function focusClusteringPoint() {{}}
+      function highlightCluster() {{}}
+      function hoverCluster() {{}}
+      function setClusteringLayers() {{}}
+      function readChecks() {{ return []; }}
+      function runClustering() {{ runRequests += 1; }}
+      function fetchClusteringPointRows(payload, options) {{
+        let resolve;
+        const promise = new Promise(yes => {{ resolve = yes; }});
+        pointRequests.push({{payload, signal: options.signal, resolve}});
+        return promise;
+      }}
+      const comparisonResult = (mode, supported, clusterId) => ({{
+        status: 'success',
+        data_snapshot: 'snapshot-1',
+        analysis: {{
+          mode,
+          origin: {{fias_id: 'origin-1'}},
+          destination_region: 'Region A',
+          filters: {{period_types: ['current'], price_types: ['spot'], vehicle_types: [], tonnage_ids: []}},
+          parameters: mode === 'geo_cost'
+            ? {{k_mode: 'auto', n_clusters: 2, economics_weight: 0.3}}
+            : mode === 'geo_volume'
+              ? {{k_mode: 'auto', n_clusters: 2, volume_weight: 0.3}}
+              : mode === 'bear_zones'
+                ? {{bear_threshold: 0.35}}
+                : mode === 'bear_volume_zones'
+                  ? {{volume_threshold: 0.35}}
+                  : {{k_mode: 'auto', n_clusters: 2}},
+        }},
+        points: [{{id: `${{mode}}-point`, fias_id: `${{mode}}-point`, cluster_id: clusterId}}],
+        clusters: [{{cluster_id: clusterId}}],
+        cluster_table: supported
+          ? {{
+              supported: true,
+              period_types: mode === 'geo_cost' ? ['forecast'] : mode === 'geo_volume' ? ['current', 'forecast'] : ['current'],
+              methodology: {{version: mode}},
+              rows: [{{cluster_id: clusterId, economic_coverage: {{valid_points: clusterId}}}}],
+            }}
+          : {{supported: false}},
+      }});
+      const response = {{
+        results: Object.fromEntries([
+          ['geography', comparisonResult('geography', true, 1)],
+          ['geo_cost', comparisonResult('geo_cost', true, 2)],
+          ['geo_volume', comparisonResult('geo_volume', true, 3)],
+          ['bear_zones', comparisonResult('bear_zones', false, 4)],
+          ['bear_volume_zones', comparisonResult('bear_volume_zones', false, 5)],
+        ]),
+      }};
+      async function runClusteringComparison() {{ compareRequests += 1; return response; }}
+      {state_module}
+      {controller}
+      const capabilities = Object.keys(response.results).map(id => ({{
+        id,
+        comparison: {{supported: true}},
+        parameters: id.startsWith('geo') || id === 'geography'
+          ? [{{name: 'k_mode', default: 'auto'}}, {{name: 'n_clusters', manual_default: 2}}]
+          : [{{name: 'singleton_threshold', default: 0.75}}],
+      }}));
+      state = createClusteringState({{mode_capabilities: capabilities, defaults: {{mode: 'geography'}}}});
+      Object.assign(state.form, {{
+        origin: {{fias_id: 'origin-1', name: 'Origin'}}, destinationRegion: 'Region A',
+        periodTypes: ['current'], priceTypes: ['spot'],
+      }});
+      await runComparison();
+      const order = Object.keys(state.comparison.results);
+      state.ui.selectedCluster = 1;
+      state.ui.selectedPoint = 'geography-point';
+      const pendingRows = loadPointRows();
+      const oldPointRowsKey = pointRowsKey();
+      activateComparisonMode('geo_cost');
+      const selectionAfterSwitch = [state.ui.selectedCluster, state.ui.selectedPoint];
+      const pulseCancelled = pointRequests[0].signal.aborted;
+      pointRequests[0].resolve({{rows: [{{source_row_id: 'old'}}], total: 1, has_more: false}});
+      await pendingRows;
+      const leakedPointRows = state.ui.pointRows.get(oldPointRowsKey).rows.length;
+      const snapshots = [];
+      for (const mode of ['geo_cost', 'geo_volume', 'bear_zones', 'bear_volume_zones', 'geography']) {{
+        activateComparisonMode(mode);
+        snapshots.push([
+          state.comparison.activeMode,
+          state.result.data.analysis.mode,
+          state.ui.tableVisible,
+          state.result.data.cluster_table?.rows?.[0]?.cluster_id ?? null,
+          state.result.data.cluster_table?.period_types?.join('+') ?? null,
+          state.result.data.cluster_table?.methodology?.version ?? null,
+          state.result.data.cluster_table?.rows?.[0]?.economic_coverage?.valid_points ?? null,
+          `${{state.ui.tableSort.key}}:${{state.ui.tableSort.direction}}`,
+        ]);
+      }}
+      state.form.periodTypes = ['forecast'];
+      activateComparisonMode('geo_volume');
+      console.log(JSON.stringify({{
+        compareRequests, runRequests, order,
+        snapshots, maps, selectionAfterSwitch, pulseCancelled, leakedPointRows,
+        stale: isComparisonStale(state) && isResultStale(state),
+        lastTable: tables.at(-1), lastInspector: inspectors.at(-1),
+      }}));
+    """
+
+    assert _run_node_script(script) == {
+        "compareRequests": 1,
+        "runRequests": 0,
+        "order": ["geography", "geo_cost", "geo_volume", "bear_zones", "bear_volume_zones"],
+        "snapshots": [
+            ["geo_cost", "geo_cost", True, 2, "forecast", "geo_cost", 2, "trip_count:desc"],
+            ["geo_volume", "geo_volume", True, 3, "current+forecast", "geo_volume", 3, "trip_count:desc"],
+            ["bear_zones", "bear_zones", False, None, None, None, None, "trip_count:desc"],
+            ["bear_volume_zones", "bear_volume_zones", False, None, None, None, None, "trip_count:desc"],
+            ["geography", "geography", True, 1, "current", "geography", 1, "trip_count:desc"],
+        ],
+        "maps": ["geography", "geo_cost", "geo_cost", "geo_volume", "bear_zones", "bear_volume_zones", "geography", "geo_volume"],
+        "selectionAfterSwitch": [None, None],
+        "pulseCancelled": True,
+        "leakedPointRows": 0,
+        "stale": True,
+        "lastTable": ["geo_volume", True, 3],
+        "lastInspector": "geo_volume",
     }
 
 

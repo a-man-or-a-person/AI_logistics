@@ -398,9 +398,9 @@ function activateComparisonMode(mode) {
   if (mode === 'bear_volume_zones') state.form.bearVolumeThreshold = result.analysis.parameters.volume_threshold ?? state.form.bearVolumeThreshold;
   state.form.singletonThreshold = modeParameter(state.modeCapabilities, mode, 'singleton_threshold')?.default
     ?? state.form.singletonThreshold;
-  const request = buildRequest(state.form, mode);
+  const request = { ...buildRequest(state.form, mode), ...state.comparison.context };
   setResult(state, result, request);
-  state.ui.tableVisible = false;
+  showSingleRunTable(result);
   renderClusteringPoints(result);
   renderAll();
 }
