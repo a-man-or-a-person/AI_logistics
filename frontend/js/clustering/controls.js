@@ -76,6 +76,14 @@ export function readChecks(id) {
 
 export function renderFormState(state) {
   const { form } = state;
+  for (const [name, value] of [
+    ['analysis-mode', form.mode], ['k-mode', form.kMode],
+    ['cost-weight', form.costWeight], ['volume-weight', form.volumeWeight],
+    ['bear-threshold', form.bearThreshold], ['bear-volume-threshold', form.bearVolumeThreshold],
+  ]) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(input => { input.checked = input.value === String(value); });
+  }
+  $('manual-k').value = form.k;
   const isZoneMode = modeResultKind(state.modeCapabilities, form.mode) === 'zones';
   document.querySelectorAll('.mode-card').forEach(card => card.classList.toggle('selected', card.querySelector('input').value === form.mode));
   $('k-controls').classList.toggle('hidden', isZoneMode);

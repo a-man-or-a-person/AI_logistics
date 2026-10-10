@@ -1065,6 +1065,98 @@ def test_stale_form_keeps_open_pulse_request_on_the_frozen_result():
     assert _run_node_script(script) == {"preserved": True, "status": "success", "rows": 1}
 
 
+def test_cached_comparison_keeps_form_mode_and_presets_after_filter_edit():
+    from backend.product_modes import default_product_mode_catalog
+
+    options = {
+        "mode_capabilities": [mode.as_dict() for mode in default_product_mode_catalog().manifest()],
+        "period_types": ["current", "retro"], "price_types": ["spot"],
+    }
+    modules = []
+    for name in ("formatters", "state", "controls", "comparison", "controller"):
+        source = re.sub(r"^import[\s\S]*?;\n", "", _read(f"frontend/js/clustering/{name}.js"), flags=re.MULTILINE)
+        source = source.replace("export ", "").replace("const $ = id => document.getElementById(id);", "")
+        modules.append(source)
+    shell = re.sub(r"<script[\s\S]*?</script>", "", _read("frontend/index.html"))
+    script = f"""
+      const $ = id => document.getElementById(id);
+      {''.join(modules)}
+      document.body.innerHTML = {json.dumps(shell)};
+      const options = {json.dumps(options)};
+      const runs = []; let compares = 0;
+      const fetchClusteringOptions = async () => options;
+      const fetchClusteringOrigins = async () => [{{fias_id: 'origin', name: 'Origin'}}];
+      const renderClusteringPoints = () => {{}}, setMlResultStale = () => {{}};
+      const renderClusterTable = current => $('cluster-table-panel').classList.toggle('hidden', !current.ui.tableVisible);
+      const renderInspector = current => {{
+        $('result-title').textContent = current.result.data?.analysis.mode || '';
+        $('result-context').textContent = JSON.stringify(current.result.requestSnapshot);
+      }};
+      const saved = {{results: {{}}}};
+      for (const mode of ['geography', 'geo_cost', 'geo_volume', 'bear_zones', 'bear_volume_zones']) {{
+        saved.results[mode] = {{status: 'success', data_snapshot: 'saved', points: [], clusters: [],
+          analysis: {{mode, parameters: {{k_mode: 'auto', n_clusters: 3, economics_weight: 0.3,
+            volume_weight: 0.3, bear_threshold: 0.35, volume_threshold: 0.35}}}},
+          cluster_table: {{supported: !mode.startsWith('bear')}}, data_quality: {{}}}};
+      }}
+      const runClustering = async request => {{runs.push(request); return saved.results[request.mode];}};
+      const runClusteringComparison = async () => {{compares++; return saved;}};
+      (async () => {{
+        await initClustering();
+        const q = selector => document.querySelector(selector);
+        const click = async selector => {{q(selector).click(); for (let i=0; i<10; i++) await Promise.resolve();}};
+        const checked = name => q('input[name="' + name + '"]:checked')?.value;
+        const observe = () => [checked('analysis-mode'), $('preview-mode').textContent, q('.mode-card.selected input').value];
+        await click('[data-origin-index="0"]');
+        $('cluster-region').add(new Option('Region A', 'Region A'));
+        $('cluster-region').value = 'Region A';
+        $('cluster-region').dispatchEvent(new Event('change', {{bubbles: true}}));
+        for (let i=0; i<10; i++) await Promise.resolve();
+        await click('.mode-bear_volume_zones'); await click('#btn-run-clustering');
+        await click('#compare-modes'); await click('[data-show-on-map="geography"]');
+        const before = observe(), frozen = $('result-context').textContent;
+        await click('#cluster-periods input[value="retro"]');
+        const after = observe(), unchanged = frozen === $('result-context').textContent;
+        const stale = !$('analysis-stale').classList.contains('hidden');
+        await click('#btn-run-clustering'); const submitted = runs.at(-1);
+        await click('#cluster-periods input[value="retro"]');
+        for (const [mode, name, value] of [
+          ['geo_cost', 'cost-weight', '0.4'], ['geo_volume', 'volume-weight', '0.2'],
+          ['bear_zones', 'bear-threshold', '0.5'], ['bear_volume_zones', 'bear-volume-threshold', '0.2'],
+        ]) {{ await click('.mode-' + mode); await click('input[name="' + name + '"][value="' + value + '"]'); }}
+        await click('.mode-geography'); await click('input[name="k-mode"][value="manual"]');
+        $('manual-k').value = '7'; $('manual-k').dispatchEvent(new Event('input', {{bubbles: true}}));
+        await click('#compare-modes'); const restored = [];
+        for (const [mode, name] of [
+          ['geo_cost', 'cost-weight'], ['geo_volume', 'volume-weight'],
+          ['bear_zones', 'bear-threshold'], ['bear_volume_zones', 'bear-volume-threshold'], ['geography', 'k-mode'],
+        ]) {{
+          await click('[data-comparison-mode="' + mode + '"]');
+          await click('#cluster-periods input[value="retro"]');
+          restored.push([checked('analysis-mode'), checked(name), checked('k-mode'), $('manual-k').value]);
+          await click('#cluster-periods input[value="retro"]');
+        }}
+        await click('[data-show-on-map="geography"]'); const count = runs.length;
+        await click('#btn-run-clustering'); const reused = count === runs.length;
+        await click('.mode-geo_cost'); const explicit = [checked('analysis-mode'), $('result-title').textContent];
+        document.body.dataset.result = JSON.stringify({{before, after, unchanged, stale,
+          submitted: [submitted.mode, submitted.period_types], restored, reused, explicit, compares}});
+      }})().catch(error => {{document.body.dataset.result = JSON.stringify({{error: String(error)}});}});
+    """
+    result = _run_browser_script(script)
+    assert "error" not in result, result
+    assert result["before"] == result["after"] == ["geography", "По географии", "geography"]
+    assert result["unchanged"] and result["stale"]
+    assert result["submitted"] == ["geography", ["current", "retro"]]
+    assert result["restored"] == [
+        ["geo_cost", "0.3", "auto", "3"], ["geo_volume", "0.3", "auto", "3"],
+        ["bear_zones", "0.35", "auto", "3"], ["bear_volume_zones", "0.35", "auto", "3"],
+        ["geography", "auto", "auto", "3"],
+    ]
+    assert result["reused"] and result["compares"] == 1
+    assert result["explicit"] == ["geo_cost", "geography"]
+
+
 def test_cached_comparison_switches_the_active_product_result_without_recalculation():
     state_module = re.sub(
         r"^import .*?;\n",
