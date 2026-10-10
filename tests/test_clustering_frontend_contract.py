@@ -1226,9 +1226,10 @@ def test_cached_comparison_switches_the_active_product_result_without_recalculat
     }
 
 
-@pytest.mark.parametrize("late_kind", ["run", "compare"])
 @pytest.mark.parametrize("late_error", [False, True])
-@pytest.mark.parametrize("replacement", ["cached", "reset", "fresh"])
+@pytest.mark.parametrize("late_kind,replacement", [
+    (kind, replacement) for kind in ("run", "compare") for replacement in ("cached", "reset", "fresh")
+] + [("compare", "comparison_tab")])
 def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error, replacement):
     state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
     controller = re.sub(
@@ -1267,8 +1268,19 @@ def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error,
           filters: datasetSnapshot(state.form), parameters: {{k_mode: 'auto'}}}},
         cluster_table: {{supported: true}}, points: [], clusters: []}});
       const old = result('old'), fresh = result('fresh');
+      if ({json.dumps(replacement)} === 'comparison_tab') {{
+        state.comparison.context = datasetSnapshot(state.form);
+        state.comparison.results = {{geography: old}};
+        setResult(state, old, buildRequest(state.form));
+        state.form.destinationRegion = 'New Region';
+      }}
       const first = {json.dumps(late_kind)} === 'run' ? executeRun() : runComparison();
-      if ({json.dumps(replacement)} === 'reset') reset();
+      if ({json.dumps(replacement)} === 'comparison_tab') {{
+        activateComparisonMode('geography');
+        assert.equal(pending[0].signal.aborted, false, 'old tab cannot cancel new comparison');
+        assert.equal(state.result.requestSnapshot.destination_region, 'R', 'old result keeps frozen context');
+        assert.equal(isResultStale(state), true);
+      }} else if ({json.dumps(replacement)} === 'reset') reset();
       else {{
         if ({json.dumps(replacement)} === 'cached') state.result.cache.set(requestSignature(buildRequest(state.form)), fresh);
         const next = executeRun();
@@ -1277,11 +1289,12 @@ def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error,
         }}
         await next;
       }}
-      assert.equal(pending[0].signal.aborted, true, 'superseded request cancelled');
+      assert.equal(pending[0].signal.aborted, {json.dumps(replacement)} !== 'comparison_tab', 'request cancellation');
       if ({json.dumps(late_error)}) pending[0].reject(new Error('late error'));
-      else pending[0].resolve({json.dumps(late_kind)} === 'run' ? old : {{results: {{geography: old}}}});
+      else pending[0].resolve({json.dumps(late_kind)} === 'run' ? old : {{results: {{geography: {json.dumps(replacement)} === 'comparison_tab' ? fresh : old}}}});
       await first;
-      assert.equal(state.result.data, {json.dumps(replacement)} === 'reset' ? null : fresh);
+      assert.equal(state.result.data, {json.dumps(replacement)} === 'reset' ? null
+        : {json.dumps(replacement)} === 'comparison_tab' && {json.dumps(late_error)} ? old : fresh);
       assert.equal(state.result.error, null);
       assert.equal(document.getElementById('btn-run-clustering').disabled, false);
       console.log(JSON.stringify({{safe: true}}));

@@ -335,8 +335,6 @@ function showSingleRunTable(result) {
 function openComparison() {
   comparisonFocusReturn = document.activeElement;
   state.comparison.open = true;
-  state.comparison.context = datasetSnapshot(state.form);
-  state.comparison.contextDisplay = comparisonContext(state.form);
   renderComparisonState();
   $('comparison-view').focus();
   runComparison();
@@ -377,6 +375,8 @@ async function runComparison() {
     cache,
     open: true,
     status: 'loading',
+    results: {},
+    activeMode: null,
     context: dataset,
     contextDisplay: comparisonContext(state.form),
     error: null,
