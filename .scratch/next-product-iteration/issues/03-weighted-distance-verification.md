@@ -1,7 +1,7 @@
 # 03: NPI-06 — Подтвердить weighted distance и coverage для origin union
 
 ID: NPI-06
-Status: backend verified; independent reviews and PR verification pending
+Status: backend verified; independent reviews passed; required PR verification tracked in PR #9 checks
 Priority: NEXT Product
 Blocked by: NPI-02
 
@@ -179,3 +179,26 @@ Python executable: repository `.codex-impl-env/Scripts/python.exe`; cwd isolated
 
 Independent Standards/Spec/Ponytail findings, final candidate and PR/CI links follow
 after execution. No merge authorized or performed. Ticket03/04/XLSX excluded.
+
+Final local gates after combined-period cluster assertions: **359 PASS in22.75s,
+zero skips,43 frontend cases** with `REQUIRE_FRONTEND_BROWSER=1`, same command using
+`--basetemp=.scratch/npi06-final --junitxml=.scratch/npi06-final-results.xml`.
+XML count/skip assertions passed. Ruff over every tracked Python file passed;
+`ruff check .` also passed (host warning for generated restricted pytest-temp directory,
+no tracked source omitted). All12 JS syntax checks and full baseline diff check PASS.
+
+Independent reviews at code commit `9a78c998db58389f1cf4824c52377206cebb3f1d`:
+- Standards: **0 hard violations/blockers**. One optional duplicated CSV setup
+  observation; retained explicit setup at two uses, avoiding an unnecessary helper.
+- Spec: **PASS,0 findings**. Independently ran union/table suites:94 PASS.
+- Ponytail: **Ship,0 findings**. Independently ran union/table suites:94 PASS;
+  connected normalization/filter/accumulator/location/table/five-mode paths checked.
+Review limitations: no fresh human whole-scenario walkthrough, workbook, live confidential
+data or production capacity check. Scope and downstream UNVERIFIED branches unchanged.
+
+Published [PR #9](https://github.com/a-man-or-a-person/AI_logistics/pull/9),
+base main `5923cd90`, branch `test/npi06-weighted-verification`.
+The final documentation commit adds only this gate/review record. Required GitHub Actions
+`verification` must succeed on its exact HEAD; the authoritative final status/run is
+available in [PR checks](https://github.com/a-man-or-a-person/AI_logistics/pull/9/checks)
+and the completion report. A previous-HEAD green is insufficient. No automatic merge.
