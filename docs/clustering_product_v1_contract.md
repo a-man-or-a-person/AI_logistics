@@ -1,6 +1,6 @@
 # Canonical clustering Product v1 contract
 
-Дата актуализации: 2026-10-08.
+Дата актуализации: 2026-10-10.
 
 ## Назначение
 
@@ -19,10 +19,12 @@ Product v1 — рабочее место сравнения пяти спосо�
 
 Один Product запрос содержит непустой набор origin FIAS и один
 `destination_region`. Селектор — ровно один из `origin_fias` (старый scalar)
-или `origin_fiases` (список строк); список очищается от пробелов, сортируется
+или `origin_fiases` (список строк), или `all_origins: true`; список очищается от пробелов, сортируется
 и дедуплицируется. Пустой/null/конфликтующий селектор возвращает
 `INVALID_REQUEST` (400), неизвестный FIAS — `UNKNOWN_ORIGIN` (422).
-Отсутствующий origin никогда не означает All; региональный All пока не реализован.
+Отсутствующий origin никогда не означает All. All разрешается в полный набор origins,
+имеющих строки в выбранном destination region, до segment filters и независимо от q/limit.
+False/null/строка/число вместо JSON true, а также смешанные селекторы отклоняются.
 Периоды, типы цены, типы кузова и тоннаж — общие для всех origins списки:
 
 ```json
@@ -46,6 +48,14 @@ Product v1 — рабочее место сравнения пяти спосо�
 использует собственный валидный вес машин. Исходные одинаковые строки с разными
 source-row IDs сохраняются. Preview не строит graph/кластеры; пустой срез на
 preview/run/compare возвращает `NO_DATA` (422).
+
+`GET /origins?q=&limit=&destination_region=` ограничивает suggestions регионом;
+q/limit сохраняют прежнюю семантику. `GET /options?all_origins=true&destination_region=…`
+возвращает полный региональный каталог и union facets. Без destination region All
+возвращает `INVALID_REQUEST` (400); отсутствующий регион/пустой каталог —
+`UNKNOWN_DESTINATION_REGION` (422). Каталог и calculation rows проверяются в одном
+generation; гонка возвращает `STALE_DATA_SNAPSHOT` (409), ошибка чтения — typed
+`INTERNAL_ERROR` (500), без частичного успешного результата.
 
 ## Параметры режимов
 
@@ -121,6 +131,14 @@ null cluster, а не выдуманную membership. После eviction/resta
 `analysis.origin_fiases`, `selection_intent`, `origins` и `origin_coverage`
 фиксируют canonical выбор, display metadata и origins без строк после фильтров.
 Scalar `analysis.origin`/`origin_fias` сохранены для singleton; у union они null.
+Для All `analysis.selection_intent = {"all_origins": true}`, а `origin_fiases`
+содержит фактический sorted/deduplicated набор, включая origins без строк после
+фильтров. `analysis.frozen_request` всегда содержит explicit resolved origin_fiases,
+без all_origins: detail принимает именно этот контекст и никогда не разрешает All.
+Переданный All в point-rows возвращает `INVALID_REQUEST` (400). Cache reuse для
+одинакового набора explicit/All сохраняет intent текущего запроса; calculation и
+saved membership общие. После нового generation старый detail получает 409;
+только новый preview/run/compare может разрешить расширенный каталог.
 Location cache связан с generation/origins/region/filters, result cache дополнительно
 с mode и нормализованными parameters; сохранённый ответ хранит фактическую membership
 и exclusions. Source/coordinate generation проверяется также перед завершением
@@ -147,6 +165,8 @@ XLSX и origin-summary endpoints пока отсутствуют.
 `POST /api/clustering/compare` фиксирует Geography Auto, Geo+Cost 70/30 Auto,
 Geo+Volume 70/30 Auto, Bear Cost +35 и Bear Volume +35 на одном data slice.
 Поле `winner` всегда равно `null`.
+All разрешается один раз перед пятью вариантами compare; каждый вариант использует
+тот же resolved set, generation и полный geographic graph. Preview не запускает clustering.
 
 Координаты берутся из существующего `backend/cache/coords_cache.json`.
 Неразрешённые координаты учитываются в data quality и исключаются из ML.

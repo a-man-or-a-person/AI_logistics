@@ -109,7 +109,11 @@ Pulse — источник архивных, текущих и уже рассч
 нормализованные parameters с точным result-cache entry и saved membership;
 eviction/restart даёт `RESULT_UNAVAILABLE` без rerun. Старый scalar detail сохраняет
 slice compatibility. Generation проверяется до публикации caches и завершения
-preview/run/compare/detail. All/summary/export остаются будущими возможностями.
+preview/run/compare/detail. Backend regional All разрешает полный набор origins
+выбранного региона до segment filters, один раз для compare. Selection intent
+сохраняется отдельно от resolved set; detail использует только frozen explicit
+set и saved membership, без повторного All resolution. All UI/summary/export
+остаются будущими возможностями.
 
 ## Границы контуров
 
