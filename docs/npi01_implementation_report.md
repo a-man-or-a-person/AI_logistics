@@ -83,6 +83,9 @@ criteria remain with their owners and NPI-12; no integrated release PASS inferre
 - `python -m pytest tests/ml/test_clustering_repository.py tests/ml/test_pulse_semantics.py tests/test_product_cluster_table.py tests/test_clustering_product_api.py -q --basetemp=.codex-pytest-tmp-npi01`
   completed successfully: 104 tests, no skips. Existing synthetic tests only.
 - `git diff --check`: passed.
+- Inline assertion check: all local Markdown targets exist, all five R4 criterion
+  IDs are present, all 17 ATI register entries explicitly say UNKNOWN and name
+  blocked work, changed scope contains only the four listed Markdown files.
 - Documentation links/source symbols, exact criterion coverage and documentation-only
   scope checked against code. Publication has the existing GitHub Actions
   `verification` gate, including locked dependencies, Ruff, Python and mandatory
@@ -92,5 +95,21 @@ criteria remain with their owners and NPI-12; no integrated release PASS inferre
 
 ## Review and publication
 
-Standards, Spec and Ponytail review results and candidate CI links are recorded after
-review/publication. Until that evidence is available: READY TO MERGE NO.
+Independent Standards review: PASS, no blocking violations. One optional consistency
+suggestion was resolved by clarifying the canonical Product point-row contract.
+Independent Spec review: PASS, zero findings against exact R4-01 through R4-05.
+Both reviews use fixed baseline `9f665ed` and reviewed implementation through
+`712741e`; subsequent report edits record evidence only.
+
+Ponytail technical review: this change documents the actual Pulse flow and names
+the prerequisites for future ATI work. Checked connected ingestion, aggregation,
+coordinates, cache/detail validation, adapters and synthetic regression coverage.
+No correctness, confidentiality, scope or speculative-abstraction blockers found.
+Verdict: Ship, subject to required CI. Existing metadata-token, currency and
+slice-validation limits are documented; repairing them is outside this ticket.
+
+Publication: narrow documentation PR against main, no automatic merge. The PR body
+and existing local ticket evidence record the final candidate SHA, actual GitHub
+Actions verification run/job URL and final READY TO MERGE decision after CI. This
+committed report does not claim that an as-yet-unpublished commit passed its own CI.
+ATI integration and production capacity remain UNKNOWN/UNVERIFIED.
