@@ -39,25 +39,71 @@ def _run_browser_script(script: str) -> dict:
         page = root / "frontend-contract.html"
         profile = root / "profile"
         page.write_text(f"<!doctype html><body><script>{script}</script></body>", encoding="utf-8")
-        completed = subprocess.run(
-            [
-                edge,
-                "--headless=new",
-                "--disable-gpu",
-                "--no-first-run",
-                f"--user-data-dir={profile}",
-                "--dump-dom",
-                page.as_uri(),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            timeout=30,
-        )
-    match = re.search(r'data-result="([^"]+)"', completed.stdout)
-    assert match is not None, completed.stdout
-    return json.loads(match.group(1).replace("&quot;", '"'))
+        return _run_node_script(f"""
+          import {{spawn}} from 'node:child_process';
+          import {{readFile}} from 'node:fs/promises';
+          const browser = spawn({json.dumps(edge)}, [
+            '--headless=new', '--disable-gpu', '--no-first-run', '--remote-debugging-port=0',
+            {json.dumps(f'--user-data-dir={profile}')}, 'about:blank',
+          ], {{windowsHide: true, stdio: ['ignore', 'ignore', 'pipe']}});
+          let diagnostics = '';
+          browser.stderr.on('data', chunk => {{diagnostics += chunk;}});
+          browser.on('error', error => {{diagnostics += error.message;}});
+          const pause = () => new Promise(resolve => setTimeout(resolve, 50));
+          let socket;
+          let deadline;
+          try {{
+            await Promise.race([
+              new Promise((_, reject) => {{
+                deadline = setTimeout(() => reject(new Error('Edge execution timed out')), 20000);
+              }}),
+              (async () => {{
+            let port;
+            for (let attempt = 0; attempt < 200 && !port; attempt++) {{
+              try {{ port = (await readFile({json.dumps(str(profile / 'DevToolsActivePort'))}, 'utf8')).split('\\n')[0]; }} catch {{ await pause(); }}
+            }}
+            if (!port) throw new Error('Edge startup failed: ' + diagnostics);
+            const tabs = await (await fetch(`http://127.0.0.1:${{port}}/json/list`)).json();
+            socket = new WebSocket(tabs.find(tab => tab.type === 'page').webSocketDebuggerUrl);
+            await new Promise((resolve, reject) => {{
+              socket.addEventListener('open', resolve, {{once: true}});
+              socket.addEventListener('error', reject, {{once: true}});
+            }});
+            let id = 0;
+            const pending = new Map();
+            socket.addEventListener('message', event => {{
+              const reply = JSON.parse(event.data);
+              if (!reply.id) return;
+              const request = pending.get(reply.id);
+              pending.delete(reply.id);
+              reply.error ? request.reject(reply.error) : request.resolve(reply.result);
+            }});
+            const send = (method, params = {{}}) => new Promise((resolve, reject) => {{
+              pending.set(++id, {{resolve, reject}});
+              socket.send(JSON.stringify({{id, method, params}}));
+            }});
+            // Headless focus must be deterministic for the existing keyboard assertions.
+            await send('Emulation.setFocusEmulationEnabled', {{enabled: true}});
+            await send('Page.navigate', {{url: {json.dumps(page.as_uri())}}});
+            for (let attempt = 0; attempt < 200; attempt++) {{
+              const reply = await send('Runtime.evaluate', {{expression: 'document.body?.dataset.result', returnByValue: true}});
+              if (reply.result.value) {{ console.log(reply.result.value); break; }}
+              if (attempt === 199) throw new Error('Frontend browser script produced no result');
+              await pause();
+            }}
+            await send('Browser.close');
+              }})(),
+            ]);
+          }} finally {{
+            clearTimeout(deadline);
+            socket?.close();
+            if (browser.pid && browser.exitCode === null && browser.signalCode === null) {{
+              const closed = new Promise(resolve => browser.once('close', resolve));
+              browser.kill();
+              await closed;
+            }}
+          }}
+        """)
 
 
 def _run_node_script(script: str) -> dict:
@@ -66,12 +112,12 @@ def _run_node_script(script: str) -> dict:
         path.write_text(script, encoding="utf-8")
         completed = subprocess.run(
             ["node", str(path)],
-            check=True,
             capture_output=True,
             text=True,
             encoding="utf-8",
             timeout=30,
         )
+    assert completed.returncode == 0, completed.stderr
     return json.loads(completed.stdout)
 
 
