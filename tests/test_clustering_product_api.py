@@ -6,6 +6,7 @@ from dataclasses import replace
 
 import pytest
 
+from backend import data_processor
 from backend.app import app
 from backend.clustering_api import get_clustering_service, set_clustering_service
 from backend.product_modes import (
@@ -1904,7 +1905,14 @@ def test_product_result_remains_points_only_when_boundary_exists(product_files, 
     assert result["points"]
 
 
-def test_legacy_map_endpoints_remain_available(client):
-    assert client.get("/api/points").status_code == 200
-    assert client.get("/api/records?town=A&region=Region&type=shipment").status_code == 200
-    assert client.get("/api/ml-cluster").status_code == 400
+def test_legacy_map_endpoints_remain_available(client, product_files, monkeypatch):
+    monkeypatch.setattr("backend.app.geocode_all_towns_background", lambda towns: None)
+    monkeypatch.setattr(data_processor, "CSV_FILE", str(product_files[0]))
+    monkeypatch.setattr(data_processor, "_data", None)
+    data_processor._get_map_points_cached.cache_clear()
+    try:
+        assert client.get("/api/points").status_code == 200
+        assert client.get("/api/records?town=A&region=Region&type=shipment").status_code == 200
+        assert client.get("/api/ml-cluster").status_code == 400
+    finally:
+        data_processor._get_map_points_cached.cache_clear()

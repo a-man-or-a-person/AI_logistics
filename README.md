@@ -44,6 +44,22 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\ruff.exe check .
 ```
 
+GitHub Actions запускает эти проверки для PR в `main` и push в `main`:
+один job на `windows-2022`, Python 3.12.10, Node 22.23.3 и зависимости из
+`requirements-lock.txt`. Node-тесты и браузерные тесты Edge входят в
+`tests/test_clustering_frontend_contract.py` и выполняются отдельным шагом.
+Перед ними проверяется запуск Node и Edge; любой пропущенный frontend-тест
+делает job неуспешным. `REQUIRE_FRONTEND_BROWSER=1` запрещает пропуск при
+отсутствии Edge. Для такой же локальной проверки:
+
+```powershell
+$env:REQUIRE_FRONTEND_BROWSER = "1"
+.\.venv\Scripts\python.exe -m pytest tests/test_clustering_frontend_contract.py -ra
+```
+
+Для запрета merge при красном CI владелец репозитория должен назначить
+`Quality / verification` обязательной проверкой в правилах ветки `main`.
+
 ## Clustering Product v1
 
 Главный продуктовый экран решает одну задачу: пользователь выбирает один пункт

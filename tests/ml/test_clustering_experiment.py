@@ -61,7 +61,7 @@ def test_kmeans_sweep_writes_zones_when_approved_boundary_is_supplied(tmp_path):
     assert leaderboard[0]["polygon_coverage_pct"] >= 99.999
     assert leaderboard[0]["polygon_overlap_pct"] == 0
     assert (output / "kmeans_k2" / "zones.geojson").exists()
-    metrics = json.loads((output / "kmeans_k2" / "metrics.json").read_text())
+    metrics = json.loads((output / "kmeans_k2" / "metrics.json").read_text(encoding="utf-8"))
     assert metrics["territorialization_metrics"]["zone_count"] == 2
     with (output / "leaderboard.csv").open(encoding="utf-8-sig", newline="") as stream:
         row = next(csv.DictReader(stream))
