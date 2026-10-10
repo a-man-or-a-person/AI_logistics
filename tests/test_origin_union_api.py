@@ -303,6 +303,121 @@ def test_union_cluster_table_reconstructs_metric_valid_weights(union_client):
     assert yz["coverage"]["route_length"]["valid_trip_count"] == 10
 
 
+@pytest.mark.parametrize("mode", ["geography", "geo_cost", "geo_volume"])
+def test_union_metrics_keep_independent_denominators(union_client, mode):
+    client, service = union_client
+    with service.source_path.open(encoding="utf-8-sig", newline="") as stream:
+        records = list(csv.DictReader(stream))
+    records[2]["units"] = "2000"  # Price-valid machines with no route or rate.
+    with service.source_path.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=PULSE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(records)
+    response = client.post("/api/clustering/run", json=payload(mode=mode))
+    assert response.status_code == 200, response.get_json()
+    result = response.get_json()
+    x = next(point for point in result["points"] if point["id"] == "x")
+    assert x["trip_count"] == 60
+    assert x["weighted_route_length"] == 250  # 10000 / 40, not / 60.
+    assert x["weighted_price"] == pytest.approx(3833.3333333333335)  # 230000 / 60.
+    assert x["weighted_rub_per_km"] == 17.5  # 700 / 40, not price / mean route.
+    assert (x["valid_route_length_trip_count"], x["valid_price_trip_count"],
+            x["valid_rub_per_km_trip_count"]) == (40, 60, 40)
+    y = next(point for point in result["points"] if point["id"] == "y")
+    assert y["weighted_route_length"] == 200
+    assert y["valid_route_length_trip_count"] == 5
+    assert y["weighted_price"] is y["weighted_rub_per_km"] is None
+    assert y["status"] == ("economic_unavailable" if mode == "geo_cost" else "normal")
+    if mode == "geography":
+        wx = next(row for row in result["cluster_table"]["rows"] if row["point_ids"] == ["w", "x"])
+        assert wx["weighted_route_length"] == pytest.approx(233.33333333333333)
+        assert wx["price"] == pytest.approx({"min": 1000, "median": 2416.666666666667,
+                                            "weighted": 3615.3846153846152, "max": 3833.3333333333335})
+        assert wx["rub_per_km"] == pytest.approx({"min": 10, "median": 13.75,
+                                                 "weighted": 16.666666666666668, "max": 17.5})
+        assert wx["coverage"]["route_length"] == {"valid_points": 2, "total_points": 2,
+                                                   "valid_trip_count": 45, "total_trip_count": 65}
+        assert wx["coverage"]["price"]["valid_trip_count"] == 65
+        assert wx["coverage"]["rub_per_km"]["valid_trip_count"] == 45
+
+
+@pytest.mark.parametrize("field,value", [
+    ("route_length", ""), ("route_length", "0"), ("route_length", "-10"),
+    ("route_length", "invalid"), ("route_length", "NaN"),
+    ("bid_count", ""), ("bid_count", "0"), ("bid_count", "-2"), ("bid_count", "invalid"),
+])
+def test_union_unavailable_route_is_null_with_zero_valid_weight(union_client, field, value):
+    client, service = union_client
+    with service.source_path.open(encoding="utf-8-sig", newline="") as stream:
+        records = list(csv.DictReader(stream))
+    for row in records:
+        row[field] = value
+    with service.source_path.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=PULSE_COLUMNS)
+        writer.writeheader()
+        writer.writerows(records)
+    response = client.post("/api/clustering/run", json=payload())
+    assert response.status_code == 200, response.get_json()
+    result = response.get_json()
+    assert len(result["points"]) == 4
+    assert all(point["weighted_route_length"] is None
+               and point["valid_route_length_trip_count"] == 0 for point in result["points"])
+    for row in result["cluster_table"]["rows"]:
+        assert row["weighted_route_length"] is None
+        assert row["coverage"]["route_length"]["valid_points"] == 0
+        assert row["coverage"]["route_length"]["valid_trip_count"] == 0
+        assert row["coverage"]["route_length"]["total_trip_count"] == row["trip_count"]
+    assert all(point["weighted_rub_per_km"] is None for point in result["points"])
+
+
+@pytest.mark.parametrize("origins,route,valid,total", [
+    (["a"], 100, 10, 10), (["b"], 300, 30, 50), (["a", "b"], 250, 40, 60),
+])
+def test_scalar_and_union_route_constants(union_client, origins, route, valid, total):
+    client, _ = union_client
+    request = payload(origin_fiases=origins)
+    result = client.post("/api/clustering/run", json=request).get_json()
+    x = next(point for point in result["points"] if point["id"] == "x")
+    assert (x["weighted_route_length"], x["valid_route_length_trip_count"], x["trip_count"]) == (route, valid, total)
+    if len(origins) == 1:
+        request.pop("origin_fiases")
+        request["origin_fias"] = origins[0]
+        assert client.post("/api/clustering/run", json=request).get_json() == result
+
+
+def test_union_periods_and_segments_change_route_numerator_and_denominator(union_client):
+    client, service = union_client
+    extras = [
+        _row("x", "X", origin="a", period="retro", price_type="tender", trips="5", route_length="500"),
+        _row("x", "X", origin="b", period="forecast", trips="10", price="8000", route_length="400"),
+        _row("x", "X", origin="a", vehicle="van", tonnage="10", trips="100", route_length="900"),
+    ]
+    with service.source_path.open("a", encoding="utf-8", newline="") as stream:
+        csv.DictWriter(stream, fieldnames=PULSE_COLUMNS).writerows(extras)
+    cases = [
+        ({}, 250, 40, 60, 233.33333333333333, False),
+        ({"period_types": ["current", "forecast"]}, 280, 50, 70, 263.6363636363636, True),
+        ({"period_types": ["current", "retro"], "price_types": ["spot", "tender"]},
+         277.77777777777777, 45, 65, 260, False),
+        ({"vehicle_types": [], "tonnage_ids": ["20", "10"]}, 714.2857142857143, 140, 160, 693.1034482758621, False),
+    ]
+    for changes, mean, valid, total, cluster_mean, forecast in cases:
+        request = payload(**{"vehicle_types": ["tent"], "tonnage_ids": ["20"], **changes})
+        response = client.post("/api/clustering/run", json=request)
+        assert response.status_code == 200, response.get_json()
+        result = response.get_json()
+        x = next(point for point in result["points"] if point["id"] == "x")
+        assert x["weighted_route_length"] == pytest.approx(mean)
+        assert (x["valid_route_length_trip_count"], x["trip_count"]) == (valid, total)
+        assert result["contains_forecast"] is forecast
+        assert result["cluster_table"]["period_types"] == sorted(request["period_types"])
+        assert result["cluster_table"]["methodology"]["weighted_values"] == "metric_valid_trip_count"
+        wx = next(row for row in result["cluster_table"]["rows"] if row["point_ids"] == ["w", "x"])
+        assert wx["weighted_route_length"] == pytest.approx(cluster_mean)
+        assert wx["coverage"]["route_length"]["valid_trip_count"] == valid + 5
+        assert wx["coverage"]["route_length"]["total_trip_count"] == total + 5
+
+
 @pytest.mark.parametrize("query,code,status", [
     ("origin_fiases=&destination_region=Region+A", "INVALID_REQUEST", 400),
     ("origin_fias=a&origin_fiases=b", "INVALID_REQUEST", 400),
