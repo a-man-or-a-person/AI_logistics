@@ -17,8 +17,13 @@ Product v1 — рабочее место сравнения пяти спосо�
 
 ## Dataset
 
-Один запрос всегда содержит одну origin point (`origin_fias`) и один
-`destination_region`. Периоды, типы цены, типы кузова и тоннаж — списки:
+Один Product запрос содержит непустой набор origin FIAS и один
+`destination_region`. Селектор — ровно один из `origin_fias` (старый scalar)
+или `origin_fiases` (список строк); список очищается от пробелов, сортируется
+и дедуплицируется. Пустой/null/конфликтующий селектор возвращает
+`INVALID_REQUEST` (400), неизвестный FIAS — `UNKNOWN_ORIGIN` (422).
+Отсутствующий origin никогда не означает All; региональный All пока не реализован.
+Периоды, типы цены, типы кузова и тоннаж — общие для всех origins списки:
 
 ```json
 {
@@ -34,6 +39,13 @@ Product v1 — рабочее место сравнения пяти спосо�
 `price = Pulse.units`, `trip_count = Pulse.bid_count`, а экономический признак
 вычисляется как `price / route_length` и агрегируется backend с весом
 `trip_count`.
+
+`GET /options` поддерживает повторяемый `origin_fiases`; facets объединяют строки
+выбранных origins без повторного подсчёта. Строки выбранного среза объединяются
+по destination FIAS до coordinates и полного SpatialGraph. Каждый metric mean
+использует собственный валидный вес машин. Исходные одинаковые строки с разными
+source-row IDs сохраняются. Preview не строит graph/кластеры; пустой срез на
+preview/run/compare возвращает `NO_DATA` (422).
 
 ## Параметры режимов
 
@@ -93,9 +105,28 @@ backend-calculated строки фактических кластеров; дл�
 `destination_fias`, `offset` и `limit`. Endpoint возвращает не более 50 исходных строк Pulse
 в детерминированном newest-first порядке. Несовпадение snapshot возвращает
 `STALE_DATA_SNAPSHOT` (HTTP 409), а отсутствие строк точки в frozen data slice —
-`UNKNOWN_DESTINATION_POINT` (HTTP 422). CURRENT проверяет наличие cached result с
-тем же срезом данных, а не точную membership активного режима. Snapshot сам по себе
-не идентифицирует результат; ограничения описаны в [Pulse contract and ATI readiness](pulse_ati_readiness.md).
+`UNKNOWN_DESTINATION_POINT` (HTTP 422). Старый scalar payload без mode/parameters
+сохраняет проверку cached data slice и прежнюю форму rows.
+Новый payload с `origin_fiases` либо mode/parameters требует обоих полей
+mode/parameters и точного saved result. Удобный готовый контекст —
+`analysis.frozen_request`: resolved origins, region, четыре filters, mode и
+нормализованные request parameters (отдельно от диагностических `analysis.parameters`).
+Добавьте `data_snapshot` и `destination_fias`; необязательный `detail_origin_fias`
+может только сузить выбранный набор, иначе `UNKNOWN_ORIGIN` (422).
+Rows аддитивно содержат origin/name/фактический row region,
+destination/name/region и saved `cluster_id`/`status`. Unassigned point имеет
+null cluster, а не выдуманную membership. После eviction/restart точного результата
+возвращается `RESULT_UNAVAILABLE` (409), без пересчёта или подстановки другого режима.
+
+`analysis.origin_fiases`, `selection_intent`, `origins` и `origin_coverage`
+фиксируют canonical выбор, display metadata и origins без строк после фильтров.
+Scalar `analysis.origin`/`origin_fias` сохранены для singleton; у union они null.
+Location cache связан с generation/origins/region/filters, result cache дополнительно
+с mode и нормализованными parameters; сохранённый ответ хранит фактическую membership
+и exclusions. Source/coordinate generation проверяется также перед завершением
+preview/run/compare/detail и публикацией cache entries: гонка даёт
+`STALE_DATA_SNAPSHOT` (409). Snapshot сам по себе не идентифицирует результат.
+XLSX и origin-summary endpoints пока отсутствуют.
 
 Нормальные result states: `success`, `no_bears`. Нарушение связности не выдаётся
 как успешный результат, а возвращает typed error `CONNECTIVITY_VIOLATION`.

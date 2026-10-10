@@ -81,12 +81,16 @@ def _json_payload() -> dict[str, Any]:
 @clustering_blueprint.get("/options")
 def clustering_options():
     try:
-        origin_fias = request.args.get("origin_fias") or None
+        selectors = {name: request.args.get(name) for name in ("origin_fias", "all_origins")
+                     if name in request.args}
+        if "origin_fiases" in request.args:
+            selectors["origin_fiases"] = request.args.getlist("origin_fiases")
+        origins = ClusteringRequest.origin_selector(selectors) if selectors else None
         destination_region = request.args.get("destination_region") or None
         return jsonify(
             {
                 "ok": True,
-                **get_clustering_service().options(origin_fias, destination_region),
+                **get_clustering_service().options(destination_region=destination_region, origin_fiases=origins),
             }
         )
     except ProductClusteringError as error:

@@ -23,7 +23,8 @@ units → shipment_count отменены.
 
 ## Grain и фильтры
 
-Один эксперимент обязан иметь:
+Один RESEARCH эксперимент обязан иметь (Product API поддерживает explicit
+origin set; его отдельный контракт указан выше):
 
     ONE origin_fias × ONE destination_region
 

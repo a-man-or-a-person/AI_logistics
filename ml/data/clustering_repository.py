@@ -197,21 +197,28 @@ class ClusteringRepository:
         return bool(self._rows(origin_fias, destination_region))
 
     def options(
-        self, origin_fias: str | None = None, destination_region: str | None = None
+        self, origin_fias: str | None = None, destination_region: str | None = None,
+        *, origin_fiases: tuple[str, ...] | None = None,
     ) -> dict[str, Any]:
         fingerprint = self.fingerprint()
+        origins = tuple(sorted(set(origin_fiases or ((origin_fias,) if origin_fias else ()))))
         result: dict[str, Any] = {
             "origins": list(self._origin_metadata.values()),
             "period_types": sorted(CLUSTERING_ALLOWED_PERIOD_TYPES),
             "dataset_fingerprint": fingerprint.as_dict(),
         }
-        if origin_fias:
-            result["destination_regions"] = self.destination_regions(origin_fias)
-        if origin_fias and destination_region:
-            result["facets"] = self._facet_index.get(
-                (origin_fias, destination_region),
-                {"period_types": [], "price_types": [], "vehicle_types": [], "tonnage_ids": []},
-            )
+        if origins:
+            result["destination_regions"] = sorted({region for origin, region in self._index
+                                                    if origin in origins})
+        if origins and destination_region:
+            facets = {}
+            for name in ("period_types", "price_types", "vehicle_types", "tonnage_ids"):
+                counts: Counter[str] = Counter()
+                for origin in origins:
+                    for item in self._facet_index.get((origin, destination_region), {}).get(name, []):
+                        counts[item["value"]] += item["count"]
+                facets[name] = [{"value": value, "count": counts[value]} for value in sorted(counts)]
+            result["facets"] = facets
         return result
 
     @staticmethod
@@ -222,19 +229,24 @@ class ClusteringRepository:
     def aggregate(
         self,
         *,
-        origin_fias: str,
+        origin_fias: str | None = None,
+        origin_fiases: tuple[str, ...] | None = None,
         destination_region: str,
         period_types: set[str],
         price_types: set[str],
         vehicle_types: set[str],
         tonnage_ids: set[str],
     ) -> tuple[list[ClusteringRoute], dict[str, Any]]:
-        rows = self._rows(origin_fias, destination_region)
+        self.fingerprint()
+        origins = tuple(sorted(set(origin_fiases or ((origin_fias,) if origin_fias else ()))))
+        rows = tuple(row for origin in origins
+                     for row in self._index.get((origin, destination_region), ()))
         return aggregate_clustering_records(
             rows,  # type: ignore[arg-type]
             source_path=self.source_path,
             destination_region=destination_region,
             origin_fias=origin_fias,
+            origin_fiases=origin_fiases,
             period_types=period_types,
             price_types=price_types,
             vehicle_types=vehicle_types,
@@ -245,7 +257,8 @@ class ClusteringRepository:
     def source_rows(
         self,
         *,
-        origin_fias: str,
+        origin_fias: str | None = None,
+        origin_fiases: tuple[str, ...] | None = None,
         destination_region: str,
         destination_fias: str,
         period_types: set[str],
@@ -259,9 +272,11 @@ class ClusteringRepository:
             current = self.fingerprint().cache_token()
             if expected_fingerprint is not None and current != expected_fingerprint:
                 raise SourceGenerationMismatch
+            origins = tuple(sorted(set(origin_fiases or ((origin_fias,) if origin_fias else ()))))
             rows = (
                 row
-                for row in self._index.get((origin_fias, destination_region), ())
+                for origin in origins
+                for row in self._index.get((origin, destination_region), ())
                 if row.destination_fias == destination_fias
                 and (not period_types or row.period_type in period_types)
                 and (not price_types or row.price_type in price_types)

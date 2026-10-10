@@ -6,7 +6,7 @@
 
 ```text
 Pulse + coordinate cache
-  → single origin + single destination region
+  → explicit origin set + single destination region (frontend remains scalar)
   → period / price / vehicle / tonnage filters
   → Geography | Geography + Cost | Geography + Volume | Bear Cost | Bear Volume
   → points + representatives + outliers + cluster table
@@ -26,6 +26,12 @@ Pulse + coordinate cache
 - `POST /api/clustering/point-rows` — snapshot-safe Pulse rows for one destination,
   newest first, in pages of at most 50;
 - `POST /api/clustering/preview` — совместимый диагностический preview.
+
+Backend принимает scalar или canonical `origin_fiases`; options использует
+повторяемый query parameter. Новые detail-клиенты передают
+`analysis.frozen_request` + snapshot/destination для точного saved result,
+получая row attribution и сохранённую membership. Старый scalar detail остаётся
+совместимым. All, multi-origin UI, summary и export пока отсутствуют.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
 Backend переиспользует location/spatial context и result LRU; UI переключает

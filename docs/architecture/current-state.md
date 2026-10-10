@@ -35,7 +35,7 @@ flowchart TD
     Capabilities --> Controls[Frontend renders controls]
     Form --> Request[preview / run / compare]
     Request --> PulseAnalytics[Pulse analytics and filtering]
-    PulseAnalytics --> Aggregate[Destination-point aggregation\none origin × one destination region]
+    PulseAnalytics --> Aggregate[Destination-point aggregation\nexplicit origin set × one destination region]
     Aggregate --> Resolve[Resolve destination coordinates]
     Resolve --> Project[Project resolved points]
     Project --> Graph[Build full SpatialGraph\nfrom geography only]
@@ -52,7 +52,7 @@ flowchart TD
 ```
 
 1. Frontend получает направления, фильтры и машинно-читаемые возможности режимов через Product API. Эти данные определяют доступные контролы и значения; интерфейс не содержит второго независимого каталога возможностей.
-2. Запрос фиксирует один `origin_fias`, один регион назначения и выбранные типы периода, цены, транспорта и тоннажа. `ClusteringService` фильтрует и агрегирует соответствующие строки Pulse по точкам назначения.
+2. Backend-запрос фиксирует canonical набор `origin_fiases` (scalar `origin_fias` эквивалентен singleton), один регион назначения и общие типы периода, цены, транспорта и тоннажа. `ClusteringService` объединяет строки Pulse по destination FIAS до coordinates. Frontend пока выбирает один origin.
 3. Сервис сопоставляет агрегированные точки с локальным кэшем координат. Неразрешённые точки остаются в отчёте качества данных, но не передаются пространственному алгоритму.
 4. Разрешённые координаты проецируются, после чего сервис строит полный `SpatialGraph` только из пространственных данных. Экономика не создаёт рёбра.
 5. Сервис формирует общий `ModeDataset`: точки с доступными признаками, полный граф и сведения о качестве. Выбранный адаптер нормализует параметры, определяет допустимые точки, выбирает полный или индуцированный граф и вызывает алгоритм своего режима.
@@ -104,6 +104,12 @@ Pulse — источник архивных, текущих и уже рассч
 Текущий Product также использует локальный кэш координат. Покрытие координатами и покрытие перевозок отражаются раздельно. Пропущенная координата исключает точку из пространственного расчёта, но сохраняется в диагностике качества.
 
 `data_snapshot` фиксирует поколения Pulse и кэша координат для результата. Детализация точки принимается только для того же снимка, замороженного контекста фильтров и точки из соответствующего результата; изменение данных требует нового расчёта.
+
+Новый detail-контекст дополнительно связывает canonical origins, mode и
+нормализованные parameters с точным result-cache entry и saved membership;
+eviction/restart даёт `RESULT_UNAVAILABLE` без rerun. Старый scalar detail сохраняет
+slice compatibility. Generation проверяется до публикации caches и завершения
+preview/run/compare/detail. All/summary/export остаются будущими возможностями.
 
 ## Границы контуров
 

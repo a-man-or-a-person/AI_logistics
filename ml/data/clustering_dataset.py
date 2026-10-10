@@ -135,6 +135,7 @@ def aggregate_clustering_records(
     source_path: str | Path,
     destination_region: str | None = None,
     origin_fias: str | None = None,
+    origin_fiases: tuple[str, ...] | None = None,
     period_types: set[str] | None = None,
     price_types: set[str] | None = None,
     vehicle_types: set[str] | None = None,
@@ -142,8 +143,15 @@ def aggregate_clustering_records(
     dataset_raw_rows: int | None = None,
 ) -> tuple[list[ClusteringRoute], dict[str, Any]]:
     """Apply the canonical aggregation to a stream or repository slice."""
-    if not origin_fias:
-        raise ValueError("A single origin_fias is required")
+    if origin_fiases is not None and origin_fias is not None:
+        raise ValueError("Conflicting origin selectors")
+    origins = tuple(sorted(set(origin_fiases or ((origin_fias,) if origin_fias else ()))))
+    if not origins:
+        raise ValueError("A nonempty origin_fias or origin_fiases selection is required")
+    origin_set = set(origins)
+    scalar_origin = origins[0] if len(origins) == 1 else ""
+    origin_rows: Counter[str] = Counter()
+    origin_trips: Counter[str] = Counter()
     if not destination_region:
         raise ValueError("A single destination_region is required")
 
@@ -162,7 +170,7 @@ def aggregate_clustering_records(
     accumulators: dict[str, _Accumulator] = {}
     for record in records:
         raw_rows += 1
-        if record.origin_fias != origin_fias or record.destination_region != destination_region:
+        if record.origin_fias not in origin_set or record.destination_region != destination_region:
             continue
         if not _matches(record.period_type, selected_periods):
             continue
@@ -173,6 +181,8 @@ def aggregate_clustering_records(
         if not _matches(record.tonnage_id, selected_tonnages):
             continue
         filtered_rows += 1
+        origin_rows[record.origin_fias] += 1
+        origin_trips[record.origin_fias] += max(record.trip_count or 0, 0)
         if not record.destination_fias:
             unusable_rows += 1
             continue
@@ -183,7 +193,7 @@ def aggregate_clustering_records(
         name = accumulator.names.most_common(1)[0][0] if accumulator.names else "<missing>"
         routes.append(
             ClusteringRoute(
-                origin_fias=origin_fias,
+                origin_fias=scalar_origin,
                 destination_fias=destination_fias,
                 destination_name=name,
                 destination_region=destination_region,
@@ -226,13 +236,19 @@ def aggregate_clustering_records(
         "canonical_destination_rows": len(routes),
         "trip_count_total": sum(route.trip_count for route in routes),
         "filters": {
-            "origin_fias": origin_fias,
+            "origin_fias": scalar_origin,
+            "origin_fiases": list(origins),
             "destination_region": destination_region,
             "period_types": sorted(selected_periods),
             "price_types": sorted(selected_prices),
             "vehicle_types": sorted(selected_vehicles),
             "tonnage_ids": sorted(selected_tonnages),
         },
+        "origin_coverage": [
+            {"fias_id": origin, "source_row_count": origin_rows[origin],
+             "trip_count": origin_trips[origin], "zero_match": origin_rows[origin] == 0}
+            for origin in origins
+        ],
         "metadata": {
             "contains_forecast": "forecast" in observed_periods,
             "mixed_price_types": len(observed_prices) > 1,
