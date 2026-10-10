@@ -33,8 +33,10 @@
 
 Product API поддерживает явно выбранный canonical набор origin FIAS с общими
 фильтрами в один регион назначения; строки объединяются по destination FIAS.
-Scalar API и текущий frontend с одним origin сохранены. Regional All, выбор
-нескольких origins в UI, origin summary/navigation и XLSX ещё не реализованы.
+Scalar API и текущий frontend с одним origin сохранены. Backend regional All
+разрешает полный origin catalog выбранного региона до общих фильтров; saved detail
+использует frozen resolved set. All/несколько origins в UI, origin summary/navigation
+и XLSX ещё не реализованы.
 Новый detail-контекст связан с точным saved result и его membership; eviction
 требует пересчёта. Контракт: [Product API](docs/clustering_product_v1_contract.md).
 
