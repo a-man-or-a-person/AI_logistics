@@ -296,7 +296,8 @@ class ClusteringService:
             repository_options = {
                 "origins": [item.as_dict() for item in self._load_catalog()],
                 "destination_regions": sorted(
-                    self._destination_regions.get(origin_fias or "", set())
+                    {region for origin in origins
+                     for region in self._destination_regions.get(origin, set())}
                 ),
             }
         facets = repository_options.get("facets", {})
@@ -722,7 +723,7 @@ class ClusteringService:
             ),
             request_id,
             request.mode,
-            request.origin_fias,
+            request.origin_fiases,
             request.destination_region,
             request.filters(),
             quality["source_row_count"],
@@ -762,7 +763,7 @@ class ClusteringService:
                 ),
                 request_id,
                 request.mode,
-                request.origin_fias,
+                request.origin_fiases,
                 request.destination_region,
                 request.filters(),
                 quality["source_row_count"],
@@ -772,8 +773,9 @@ class ClusteringService:
                 "hit" if location_cache_hit else "miss",
                 (time.perf_counter() - started) * 1000,
             )
+            response = copy.deepcopy(cached)
             self._assert_generation(token)
-            return copy.deepcopy(cached)
+            return response
         try:
             result, graph_cache_hit = self._calculate(request, token)
         except ProductClusteringError as error:
@@ -781,13 +783,14 @@ class ClusteringService:
                 "clustering request_id=%s mode=%s origin=%s destination=%s error_code=%s",
                 request_id,
                 request.mode,
-                request.origin_fias,
+                request.origin_fiases,
                 request.destination_region,
                 error.code,
             )
             raise
+        cached_result = copy.deepcopy(result)
         self._assert_generation(token)
-        self._result_cache[cache_key] = copy.deepcopy(result)
+        self._result_cache[cache_key] = cached_result
         while len(self._result_cache) > RESULT_CACHE_SIZE:
             self._result_cache.popitem(last=False)
         quality = result["data_quality"]
@@ -798,7 +801,7 @@ class ClusteringService:
                 "location_cache=%s result_cache=miss graph_cache=%s calculation_ms=%.2f"
             ),
             request.mode,
-            request.origin_fias,
+            request.origin_fiases,
             request.destination_region,
             quality["destination_points_total"],
             quality["resolved_points"],

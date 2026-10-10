@@ -1,7 +1,7 @@
 # 02: NPI-02 — Рассчитать origin union через API с точной frozen identity
 
 ID: NPI-02
-Status: implemented ? verification/review in progress
+Status: implemented ? local gates passed; final review/PR CI pending
 Priority: NEXT Product
 Blocked by: P1
 
@@ -134,3 +134,48 @@ Verification in progress; final commands, review dispositions, PR/CI will be app
 here. All resolver, multi-origin frontend, summaries/navigation,XLSX,ATI,new modes,
 unrelated Bear/RESEARCH/LEGACY changes are excluded. Existing file metadata tokens
 and in-memory result lifetime remain; no production capacity or durable snapshot claim.
+
+
+Final local gates after review fixes (Python3.12.14, Node22.23.3,
+Edge155.0.4283.45, pytest8.3.5, Ruff0.9.10; Windows desktop):
+- Locked install: `python -m pip install -r requirements-lock.txt` ? all exact pins installed;
+  `python -m pip check` ? No broken requirements found. No dependency changes.
+- Mandatory startup: workflow's runpy Node JSON assertion + Edge dataset assertion ? PASS.
+- Full: `REQUIRE_FRONTEND_BROWSER=1 python -m pytest -ra -p no:cacheprovider
+  --basetemp=.scratch/npi02-reviewed-temp --junitxml=.scratch/npi02-reviewed-results.xml`
+  ? **343 passed in19.47s, zero skips** (43frontend+300other).
+  XML assertion confirmed no skipped testcase and43 frontend cases.
+- `python -m pytest tests/test_origin_union_api.py -ra` ? **68 passed in3.14s**.
+- `python -m ruff check .` ? PASS. `node --check` on all12 frontend JS files ? PASS.
+  `git diff --check` ? PASS.
+- Initial sandbox browser failures were interrupted and are not PASS evidence.
+  Authorized normal Edge/process execution succeeded. Earlier full339/340 passes
+  preceded subsequent review fixes; final343 is authoritative. Cacheprovider was
+  disabled to avoid host filesystem cache warnings, not to skip any tests.
+
+P1 regressions: `test_unchanged_recalculation_recovers_after_real_snapshot_conflict`
+uses actual live Flask HTTP+Node controller, mutates the synthetic CSV, observes409,
+verifies rejected cache bypass, failed refresh preserving display, new snapshot/rows
+and safe comparison recovery. Selective rejected-snapshot cache tests PASS.
+P2: `test_cached_comparison_keeps_form_mode_and_presets_after_filter_edit` uses real
+Edge DOM mode/K/preset/radio controls, cached switch then period edit and next submitted
+Geography; frozen membership/metrics and request-free switching PASS.
+No frontend production edits. Fresh human desktop walkthrough of historical whole
+scenarios10/12/16 is not claimed; it remains NPI-12 integration evidence.
+
+Reviews: independent Standards at b4fb40a:0 blockers; advisory graph collaborator
+assertions retained because R1-09 explicitly requires full graph sharing/eligibility.
+Independent Spec found injected scalar options region regression; reproduced RED
+(empty region list) and repaired canonical-origin collection, new HTTP test GREEN.
+Ponytail review (local desktop app load, no capacity assumption) found source change
+during cached/new result deepcopy could return success; both cases reproduced RED200
+versus expected409. Copy now precedes generation validation/cache publication, both
+GREEN. Union logs now record all canonical origins; audit grain label reflects union.
+No remaining known blocker; independent re-review is requested on final source.
+Ponytail verdict: Ship after these fixes. No dependency, new mode or speculative layer.
+
+All six owned criterion rows have PASS backend evidence above; future All intent,
+UI and export branches remain explicitly UNVERIFIED/delegated. Production capacity,
+metadata-token hash limitations and in-memory result lifetime remain documented.
+Publication/actual-head CI result will be recorded after GitHub verification completes;
+no automatic merge authorized or performed.

@@ -392,3 +392,40 @@ def test_origin_display_uses_exact_identity_not_search_suggestion(union_client):
     result = client.post("/api/clustering/run", json=payload()).get_json()
     assert [(o["fias_id"], o["name"]) for o in result["analysis"]["origins"]] == [
         ("a", "b Warehouse"), ("b", "Origin Town")]
+
+
+
+@pytest.mark.parametrize("cached", [False, True])
+def test_generation_change_during_result_copy_is_rejected(union_client, monkeypatch, cached):
+    import backend.services.clustering_service as module
+    client, service = union_client
+    if cached:
+        assert client.post("/api/clustering/run", json=payload()).status_code == 200
+    deepcopy = module.copy.deepcopy
+    changed = False
+    def race(value, *args, **kwargs):
+        nonlocal changed
+        result = deepcopy(value, *args, **kwargs)
+        if not changed and isinstance(value, dict) and "data_snapshot" in value:
+            with service.source_path.open("a", encoding="utf-8") as stream:
+                stream.write("\n")
+            changed = True
+        return result
+    monkeypatch.setattr(module.copy, "deepcopy", race)
+    response = client.post("/api/clustering/run", json=payload())
+    assert response.status_code == 409, response.get_json()
+    assert response.get_json()["code"] == "STALE_DATA_SNAPSHOT"
+    assert not service._result_cache
+
+
+
+def test_injected_options_preserves_scalar_and_union_regions(union_client):
+    from ml.data.loader import iter_records
+    client, service = union_client
+    injected = ClusteringService(service.source_path, coordinate_cache_path=service.coordinate_cache_path,
+        records_factory=lambda: iter_records(service.source_path))
+    set_clustering_service(injected)
+    for selector in ("origin_fias=a", "origin_fiases=a&origin_fiases=b"):
+        result = client.get("/api/clustering/options?" + selector + "&destination_region=Region+A")
+        assert result.status_code == 200
+        assert result.get_json()["destination_regions"] == ["Region A"]

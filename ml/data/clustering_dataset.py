@@ -261,7 +261,8 @@ def aggregate_clustering_records(
         },
         "contract": {
             "version": "clustering-contract-v1",
-            "grain": "one origin_fias x one destination_region x destination_fias",
+            "grain": ("one origin_fias x one destination_region x destination_fias"
+                      if len(origins) == 1 else "origin_fiases x one destination_region x destination_fias"),
             "price_source": "Pulse.units",
             "trip_count_source": "Pulse.bid_count",
             "route_length": "trip-weighted Pulse.route_length for positive values",
