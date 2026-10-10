@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -30,6 +31,8 @@ def _edge_path() -> str | None:
 def _run_browser_script(script: str) -> dict:
     edge = _edge_path()
     if edge is None:
+        if os.environ.get("REQUIRE_FRONTEND_BROWSER") == "1":
+            raise RuntimeError("Required Edge browser is unavailable")
         pytest.skip("A browser JavaScript runtime is required for the frontend contract")
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
