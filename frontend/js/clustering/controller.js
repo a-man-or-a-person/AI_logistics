@@ -4,7 +4,7 @@ import {
 } from '../api.js';
 import {
   buildRequest, createClusteringState, datasetSnapshot, isComparisonStale,
-  isResultStale, modeParameter, requestSignature, setResult, updateClusteringOptions,
+  isResultStale, modeParameter, rejectDataSnapshot, requestSignature, setResult, updateClusteringOptions,
 } from './state.js';
 import { readChecks, renderFormState, renderOptionControls } from './controls.js';
 import { renderErrorState, renderInspector } from './inspector.js';
@@ -244,11 +244,25 @@ function validate(request) {
   return null;
 }
 
+function cancelCalculation() {
+  runController?.abort();
+  runController = null;
+  $('loading-overlay').classList.add('hidden');
+  $('update-badge').classList.add('hidden');
+  $('loading-sub').textContent = '';
+  $('btn-run-clustering').disabled = false;
+  if (state.result.status === 'loading') state.result.status = state.result.data?.status || 'empty';
+  if (state.comparison.status === 'loading') {
+    state.comparison.status = Object.keys(state.comparison.results).length ? 'success' : 'empty';
+  }
+}
+
 async function executeRun() {
   cancelPointRows();
   const request = buildRequest(state.form);
   const error = validate(request);
   if (error) return showFormError(error);
+  cancelCalculation();
   $('analysis-form-error').classList.add('hidden');
   const cached = state.result.cache.get(requestSignature(request));
   if (cached) {
@@ -259,8 +273,8 @@ async function executeRun() {
     renderAll();
     return;
   }
-  runController?.abort();
-  runController = new AbortController();
+  const controller = new AbortController();
+  runController = controller;
   const repeated = Boolean(state.result.data);
   state.result.status = 'loading';
   renderClusterTableState();
@@ -270,13 +284,15 @@ async function executeRun() {
   $('loading-sub').textContent = MODE_LABELS[state.form.mode] || state.form.mode;
   $('btn-run-clustering').disabled = true;
   try {
-    const result = await runClustering(request, { signal: runController.signal });
+    const result = await runClustering(request, { signal: controller.signal });
+    if (controller.signal.aborted) return;
     setResult(state, result, request);
     showSingleRunTable(result);
     renderClusteringPoints(result);
     $('empty-state').classList.add('hidden');
     renderAll();
   } catch (runError) {
+    if (controller.signal.aborted) return;
     state.result.status = 'error';
     state.result.error = { code: runError.code, message: runError.message };
     renderErrorState(state.result.error);
@@ -287,14 +303,12 @@ async function executeRun() {
     }
     renderClusterTableState();
   } finally {
-    $('loading-overlay').classList.add('hidden');
-    $('update-badge').classList.add('hidden');
-    $('loading-sub').textContent = '';
-    $('btn-run-clustering').disabled = false;
+    if (runController === controller) cancelCalculation();
   }
 }
 
 function reset() {
+  cancelCalculation();
   cancelPointRows();
   state = createClusteringState(state.options);
   renderOptionControls(state);
@@ -352,6 +366,9 @@ async function runComparison() {
   const dataset = datasetSnapshot(state.form);
   const error = validate(buildRequest(state.form));
   if (error) return showFormError(error);
+  cancelCalculation();
+  const controller = new AbortController();
+  runController = controller;
   const cache = state.comparison.cache || new Map();
   const signature = requestSignature(dataset);
   const cached = cache.get(signature);
@@ -366,7 +383,11 @@ async function runComparison() {
   };
   renderComparisonState();
   try {
-    const response = cached || await runClusteringComparison(dataset);
+    const response = cached || await runClusteringComparison(dataset, {signal: controller.signal});
+    if (controller.signal.aborted) return;
+    if (Object.values(response.results || {}).some(result => state.rejectedSnapshots?.has(result.data_snapshot))) {
+      throw Object.assign(new Error('Данные Pulse изменились. Пересчитайте результат.'), {code: 'STALE_DATA_SNAPSHOT'});
+    }
     cache.set(signature, response);
     state.comparison.results = response.results || {};
     state.comparison.activeMode = state.comparison.results[state.form.mode]
@@ -375,9 +396,11 @@ async function runComparison() {
     state.comparison.status = 'success';
     if (state.comparison.activeMode) activateComparisonMode(state.comparison.activeMode);
   } catch (error) {
+    if (controller.signal.aborted) return;
     state.comparison.status = 'error';
     state.comparison.error = { code: error.code, message: error.message };
   }
+  if (runController === controller) runController = null;
   renderComparisonState();
 }
 
@@ -385,6 +408,7 @@ function activateComparisonMode(mode) {
   cancelPointRows();
   const result = state.comparison.results[mode];
   if (!result) return;
+  cancelCalculation();
   state.comparison.activeMode = mode;
   state.form.mode = mode;
   if (modeParameter(state.modeCapabilities, mode, 'n_clusters')) {
@@ -496,7 +520,8 @@ function pointRowsForSelection() {
   const key = pointRowsKey();
   if (!key) return {status: 'idle', rows: [], total: null, hasMore: false, open: false};
   if (!state.ui.pointRows.has(key)) {
-    state.ui.pointRows.set(key, {status: 'idle', rows: [], total: null, hasMore: false, open: false, error: null});
+    const status = state.rejectedSnapshots?.has(state.result.data.data_snapshot) ? 'stale' : 'idle';
+    state.ui.pointRows.set(key, {status, rows: [], total: null, hasMore: false, open: false, error: null});
   }
   return state.ui.pointRows.get(key);
 }
@@ -519,6 +544,7 @@ async function loadPointRows({restart = false} = {}) {
   const result = state.result.data;
   const point = result?.points.find(item => item.id === state.ui.selectedPoint);
   if (!point || result.cluster_table?.supported !== true) return;
+  if (state.rejectedSnapshots?.has(result.data_snapshot)) return;
   const key = pointRowsKey();
   const detail = pointRowsForSelection();
   detail.open = true;
@@ -552,6 +578,10 @@ async function loadPointRows({restart = false} = {}) {
     detail.status = 'success';
   } catch (error) {
     if (controller.signal.aborted || key !== pointRowsKey()) return;
+    if (error.code === 'STALE_DATA_SNAPSHOT') {
+      rejectDataSnapshot(state, result.data_snapshot);
+      renderAll();
+    }
     detail.status = error.code === 'STALE_DATA_SNAPSHOT' ? 'stale' : 'error';
     detail.error = error.message;
   } finally {

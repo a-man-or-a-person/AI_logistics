@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import csv
 import json
+import re
+import threading
 
 import pytest
+from test_clustering_frontend_contract import _read, _run_node_script
+from werkzeug.serving import make_server
 
 from backend.app import app
 from backend.clustering_api import set_clustering_service
@@ -105,6 +109,102 @@ def table_service(tmp_path):
 
 def _request(mode="geography", parameters=None):
     return ClusteringRequest.from_payload(_payload(mode, parameters))
+
+
+def test_unchanged_recalculation_recovers_after_real_snapshot_conflict(table_service):
+    service, _, _, _ = table_service
+    server = make_server("127.0.0.1", 0, app)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    controller = re.sub(
+        r"^import[\s\S]*?;\n", "", _read("frontend/js/clustering/controller.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      import assert from 'node:assert/strict';
+      import {{appendFile}} from 'node:fs/promises';
+      const base = 'http://127.0.0.1:{server.server_port}';
+      const calls = [];
+      let failRun = false;
+      async function post(path, payload, options = {{}}) {{
+        calls.push(path);
+        if (path === 'run' && failRun) throw new Error('offline');
+        const response = await fetch(base + '/api/clustering/' + path, {{
+          method: 'POST', headers: {{'Content-Type': 'application/json'}},
+          body: JSON.stringify(payload), signal: options.signal,
+        }});
+        const data = await response.json();
+        if (!response.ok) throw Object.assign(new Error(data.error), {{code: data.code}});
+        return data;
+      }}
+      const runClustering = (payload, options) => post('run', payload, options);
+      const fetchClusteringPointRows = (payload, options) => post('point-rows', payload, options);
+      const runClusteringComparison = payload => post('compare', payload);
+      const elements = new Map();
+      globalThis.document = {{getElementById: id => {{
+        if (!elements.has(id)) elements.set(id, {{textContent: '', disabled: false,
+          classList: {{add() {{}}, remove() {{}}, toggle() {{}}}}, querySelector() {{return this;}}}});
+        return elements.get(id);
+      }}}};
+      const MODE_LABELS = {{}}, PERIOD_LABELS = {{}}, PRICE_LABELS = {{}};
+      const renderFormState = () => {{}}, renderErrorState = () => {{}};
+      const renderComparison = () => {{}}, renderClusteringPoints = () => {{}};
+      const renderClusterTable = () => {{}}, renderInspector = () => {{}};
+      const setMlResultStale = () => {{}};
+      {state_module}
+      {controller}
+      const options = await (await fetch(base + '/api/clustering/options')).json();
+      state = createClusteringState(options);
+      Object.assign(state.form, {{origin: {{fias_id: 'origin-1', name: 'Origin'}},
+        destinationRegion: 'Region A'}});
+      await executeRun();
+      await executeRun();
+      assert.equal(calls.filter(path => path === 'run').length, 1, 'valid cache hit');
+      await runComparison();
+      await runComparison();
+      assert.equal(calls.filter(path => path === 'compare').length, 1, 'valid comparison cache');
+      const original = state.result.data;
+      selectPoint('a');
+      await loadPointRows();
+      const loaded = pointRowsForSelection();
+      assert.equal(loaded.rows.length, 2);
+      await appendFile({json.dumps(str(service.source_path))}, '\\n');
+      selectPoint('b');
+      await loadPointRows();
+      assert.equal(pointRowsForSelection().status, 'stale', 'real HTTP 409');
+      activateComparisonMode('geo_cost');
+      assert.equal(state.result.data, original, 'saved comparison cannot restore rejected snapshot');
+      failRun = true;
+      await executeRun();
+      assert.equal(state.result.status, 'error', 'rejected cache must force refresh');
+      assert.equal(state.result.data, original, 'preserve frozen display on failure');
+      assert.equal(isResultStale(state), true, 'rejected display remains honestly stale');
+      selectPoint('a');
+      assert.equal(pointRowsForSelection().status, 'stale');
+      assert.equal(pointRowsForSelection().rows.length, 0, 'previous source rows invalidated');
+      failRun = false;
+      await executeRun();
+      assert.notEqual(state.result.data.data_snapshot, original.data_snapshot);
+      assert.equal(isResultStale(state), false);
+      selectPoint('a');
+      await loadPointRows();
+      assert.equal(pointRowsForSelection().status, 'success');
+      assert.equal(pointRowsForSelection().rows.length, 2);
+      await executeRun();
+      assert.equal(calls.filter(path => path === 'run').length, 3, 'fresh cache still works');
+      await runComparison();
+      assert.notEqual(state.result.data.data_snapshot, original.data_snapshot);
+      await runComparison();
+      assert.equal(calls.filter(path => path === 'compare').length, 2, 'fresh comparison remains cached');
+      console.log(JSON.stringify({{recovered: true}}));
+    """
+    try:
+        assert _run_node_script(script) == {"recovered": True}
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+        server.server_close()
 
 
 def _payload(mode="geography", parameters=None):

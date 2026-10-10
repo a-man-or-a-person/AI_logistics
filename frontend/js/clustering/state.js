@@ -84,6 +84,7 @@ export function createClusteringState(options = {}) {
       singletonThreshold: value('bear_zones', 'singleton_threshold'),
     },
     result: { status: 'empty', data: null, error: null, requestSnapshot: null, cache: new Map() },
+    rejectedSnapshots: new Set(),
     comparison: { open: false, status: 'empty', context: null, contextDisplay: null, results: {}, activeMode: null, error: null, cache: new Map() },
     ui: {
       selectedCluster: null,
@@ -155,7 +156,7 @@ export function requestSignature(request) {
 }
 
 export function isResultStale(state) {
-  return Boolean(state.result.requestSnapshot)
+  return state.rejectedSnapshots?.has(state.result.data?.data_snapshot) || Boolean(state.result.requestSnapshot)
     && !semanticallyEqual(buildRequest(state.form), state.result.requestSnapshot);
 }
 
@@ -165,11 +166,34 @@ export function isComparisonStale(state) {
 }
 
 export function setResult(state, data, request) {
+  if (state.rejectedSnapshots?.has(data.data_snapshot)) {
+    throw Object.assign(new Error('Данные Pulse изменились. Пересчитайте результат.'), {code: 'STALE_DATA_SNAPSHOT'});
+  }
   const cache = state.result.cache || new Map();
   cache.set(requestSignature(request), data);
   state.result = { status: data.status || 'success', data, error: null, requestSnapshot: clone(request), cache };
   state.ui.selectedCluster = null;
   state.ui.selectedPoint = null;
+}
+
+export function rejectDataSnapshot(state, snapshot) {
+  (state.rejectedSnapshots ||= new Set()).add(snapshot);
+  for (const [key, result] of state.result.cache || []) {
+    if (result.data_snapshot === snapshot) state.result.cache.delete(key);
+  }
+  for (const [key, response] of state.comparison?.cache || []) {
+    if (Object.values(response.results || {}).some(result => result.data_snapshot === snapshot)) {
+      state.comparison.cache.delete(key);
+    }
+  }
+  for (const [mode, result] of Object.entries(state.comparison?.results || {})) {
+    if (result.data_snapshot === snapshot) delete state.comparison.results[mode];
+  }
+  for (const [key, detail] of state.ui.pointRows) {
+    if (JSON.parse(key).data_snapshot === snapshot) {
+      Object.assign(detail, {status: 'stale', rows: [], total: null, hasMore: false, error: null});
+    }
+  }
 }
 
 export function warningKinds(form, capabilities) {
