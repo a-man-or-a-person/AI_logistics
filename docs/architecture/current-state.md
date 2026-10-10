@@ -117,6 +117,7 @@ Pulse — источник архивных, текущих и уже рассч
 
 ## Куда идти глубже
 
+- [Pulse contract and ATI readiness](../pulse_ati_readiness.md) — проверенные Pulse responsibilities, ограничения source seam и UNKNOWN будущей ATI-интеграции; CURRENT и NEXT разделены.
 - [Project Brief](../project/project-brief.md) — короткий обзор Product и направлений обсуждения.
 - [CONTEXT.md](../../CONTEXT.md) — термины, продуктовый смысл, NEXT и LATER.
 - [Product v1 contract](../clustering_product_v1_contract.md) — точное текущее поведение режимов и API.
