@@ -47,6 +47,7 @@ export function renderInspector(state, handlers = {}) {
       handlers,
       state.ui.pointRows?.get(key),
       result.cluster_table?.supported === true,
+      result.analysis.filters?.period_types || [],
     );
   }
   $('cluster-list').innerHTML = result.clusters.map(cluster => `
@@ -164,7 +165,7 @@ function renderClusterDetails(result, cluster, mode) {
     <button type="button" data-point-id="${escapeHtml(point.id)}"><span>${escapeHtml(point.name)}</span><strong>${fmt(point.trip_count)}</strong></button>`).join('');
 }
 
-function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false) {
+function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false, periodTypes = []) {
   const statuses = {
     assigned: 'В кластере', normal: 'В кластере', ordinary: 'Обычная точка', bear_candidate: 'Кандидат',
     bear_zone: 'Медвежья зона', expensive_singleton: 'Аномально дорогая точка',
@@ -172,10 +173,10 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
     spatial_outlier: 'Пространственно изолирована', economic_unavailable: 'Нет экономики',
   };
   const economics = !tableMode && mode !== 'bear_zones' ? '' : `
-      ${point.weighted_price == null ? '' : `<div><dt>Средневзвешенная цена</dt><dd>${decimal(point.weighted_price, 0)} ₽</dd></div>`}
-      ${point.weighted_rub_per_km == null ? '' : `<div><dt>Средневзвешенный ₽/км</dt><dd>${rubKm(point.weighted_rub_per_km)}</dd></div>`}
-      ${point.regional_weighted_rub_per_km == null ? '' : `<div><dt>Региональный ₽/км</dt><dd>${rubKm(point.regional_weighted_rub_per_km)}</dd></div>`}
-      ${point.relative_rate_delta == null ? '' : `<div><dt>Отклонение</dt><dd>${percent(point.relative_rate_delta)}</dd></div>`}`;
+      ${!tableMode && point.weighted_price == null ? '' : `<div><dt>Средневзвешенная цена</dt><dd>${point.weighted_price == null ? '—' : `${decimal(point.weighted_price, 0)} ₽`}</dd></div>`}
+      ${!tableMode && point.weighted_rub_per_km == null ? '' : `<div><dt>Средневзвешенный ₽/км</dt><dd>${rubKm(point.weighted_rub_per_km)}</dd></div>`}
+      ${!tableMode && point.regional_weighted_rub_per_km == null ? '' : `<div><dt>Региональный ₽/км</dt><dd>${rubKm(point.regional_weighted_rub_per_km)}</dd></div>`}
+      ${!tableMode && point.relative_rate_delta == null ? '' : `<div><dt>Отклонение</dt><dd>${percent(point.relative_rate_delta)}</dd></div>`}`;
   const volume = !['geo_volume', 'bear_volume_zones'].includes(mode) ? '' : `
       ${point.regional_mean_trip_count == null ? '' : `<div><dt>Средний объём региона</dt><dd>${decimal(point.regional_mean_trip_count, 1)} перевозки/точку</dd></div>`}
       ${point.relative_volume_delta == null ? '' : `<div><dt>Отклонение объёма</dt><dd>${percent(point.relative_volume_delta)}</dd></div>`}`;
@@ -210,7 +211,7 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
       <div><dt>Кластер</dt><dd>${point.cluster_id == null ? '—' : Number(point.cluster_id) + 1}</dd></div>
       <div><dt>${tableMode ? 'Машины' : 'Перевозки'}</dt><dd>${fmt(point.trip_count)}</dd></div>
       ${tableMode ? `<div><dt>Маршрут</dt><dd>${km(point.weighted_route_length)}</dd></div>` : ''}
-      ${tableMode ? `<div><dt>Периоды</dt><dd>${(point.period_types || []).map(value => escapeHtml(PERIOD_LABELS[value] || value)).join(', ') || '—'}</dd></div>` : ''}
+      ${tableMode ? `<div><dt>Периоды</dt><dd>${periodTypes.map(value => escapeHtml(value === 'forecast' ? 'Прогноз Pulse' : PERIOD_LABELS[value] || value)).join(', ') || '—'}</dd></div>` : ''}
       ${tableMode && point.data_quality_flags?.length ? `<div><dt>Качество</dt><dd>${point.data_quality_flags.map(escapeHtml).join(', ')}</dd></div>` : ''}
       ${economics}
       ${volume}

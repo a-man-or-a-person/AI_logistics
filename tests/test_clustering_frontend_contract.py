@@ -122,6 +122,120 @@ def _run_node_script(script: str) -> dict:
     return json.loads(completed.stdout)
 
 
+@pytest.fixture(scope="module")
+def point_detail_presentations():
+    formatters = _read("frontend/js/clustering/formatters.js").replace("export ", "")
+    inspector = re.sub(
+        r"^import .*?;\n", "", _read("frontend/js/clustering/inspector.js"), flags=re.MULTILINE,
+    ).replace("export ", "")
+    shell = "".join(
+        f'<div id="{item}"></div>' for item in (
+            "inspector-empty", "inspector-result", "result-status", "result-title",
+            "result-subtitle", "result-total-trips", "result-outliers", "result-warnings",
+            "result-context", "result-quality", "result-metrics", "point-details",
+            "cluster-list", "cluster-details",
+        )
+    )
+    return _run_browser_script(f"""
+      {formatters}
+      {inspector}
+      document.body.innerHTML = {json.dumps(shell)};
+      const point = {{id: 'a', fias_id: 'a', name: 'A', lat: 1, lon: 1,
+        trip_count: 5, status: 'assigned', weighted_route_length: 100,
+        period_types: ['current'], weighted_price: null, weighted_rub_per_km: null,
+        regional_weighted_rub_per_km: null, relative_rate_delta: null}};
+      const saved = (mode, periods) => ({{status: 'success',
+        analysis: {{mode, parameters: {{k_mode: 'manual', n_clusters: 2}},
+          filters: {{period_types: periods}}}},
+        data_quality: {{}}, points: [point], clusters: [], cluster_table: {{supported: true}}}});
+      const geography = saved('geography', ['current', 'forecast']);
+      const cost = saved('geo_cost', ['retro']);
+      const volume = saved('geo_volume', ['current']);
+      const state = {{form: {{periodTypes: ['current', 'forecast']}},
+        result: {{data: geography}}, ui: {{selectedPoint: 'a', selectedCluster: null}}}};
+      const capture = () => {{
+        renderInspector(state);
+        return Object.fromEntries(Array.from(document.querySelectorAll('.point-facts > div'))
+          .map(row => [row.querySelector('dt').textContent, row.querySelector('dd').textContent]));
+      }};
+      const selected = capture();
+      state.form.periodTypes = ['retro'];
+      const edited = capture();
+      const switched = [];
+      for (const result of [cost, volume, geography]) {{
+        state.result.data = result;
+        switched.push(capture());
+      }}
+      const missing = {{}};
+      for (const result of [geography, cost, volume]) {{
+        state.result.data = result;
+        missing[result.analysis.mode] = capture();
+      }}
+      Object.assign(point, {{weighted_price: 1234, weighted_rub_per_km: 12.5,
+        regional_weighted_rub_per_km: 12.5, relative_rate_delta: 0}});
+      const valid = capture();
+      const bear = {{}};
+      for (const mode of ['bear_zones', 'bear_volume_zones']) {{
+        state.result.data = saved(mode, ['forecast']);
+        state.result.data.cluster_table = {{supported: false}};
+        const populated = capture();
+        Object.assign(point, {{weighted_price: null, weighted_rub_per_km: null,
+          regional_weighted_rub_per_km: null, relative_rate_delta: null}});
+        bear[mode] = {{populated, missing: capture(), pulse: !!document.querySelector('.pulse-details')}};
+        Object.assign(point, {{weighted_price: 1234, weighted_rub_per_km: 12.5,
+          regional_weighted_rub_per_km: 12.5, relative_rate_delta: 0}});
+      }}
+      document.body.dataset.result = JSON.stringify({{selected, edited, switched, missing, valid, bear}});
+    """)
+
+
+def test_point_detail_shows_selected_periods_instead_of_observed_periods(point_detail_presentations):
+    assert point_detail_presentations["selected"]["Периоды"] == "Текущий, Прогноз Pulse"
+
+
+def test_point_detail_keeps_result_periods_after_form_edit(point_detail_presentations):
+    assert point_detail_presentations["edited"]["Периоды"] == "Текущий, Прогноз Pulse"
+
+
+def test_point_detail_switches_saved_result_period_context(point_detail_presentations):
+    assert [row["Периоды"] for row in point_detail_presentations["switched"]] == [
+        "Архив", "Текущий", "Текущий, Прогноз Pulse",
+    ]
+
+
+@pytest.mark.parametrize("mode", ["geography", "geo_cost", "geo_volume"])
+def test_point_detail_shows_missing_economic_metrics(point_detail_presentations, mode):
+    facts = point_detail_presentations["missing"][mode]
+    for label in ("Средневзвешенная цена", "Средневзвешенный ₽/км", "Региональный ₽/км", "Отклонение"):
+        assert facts.get(label) == "—"
+
+
+def test_point_detail_preserves_valid_economics_and_zero_deviation(point_detail_presentations):
+    facts = point_detail_presentations["valid"]
+    assert facts["Средневзвешенная цена"] == "1\u00a0234 ₽"
+    assert facts["Средневзвешенный ₽/км"] == "12,5 ₽/км"
+    assert facts["Региональный ₽/км"] == "12,5 ₽/км"
+    assert facts["Отклонение"] == "0%"
+    assert facts["Маршрут"] == "100 км"
+    assert facts["Машины"] == "5"
+
+
+@pytest.mark.parametrize("mode", ["bear_zones", "bear_volume_zones"])
+def test_point_detail_preserves_bear_presentation(point_detail_presentations, mode):
+    bear = point_detail_presentations["bear"][mode]
+    assert not bear["pulse"]
+    for facts in (bear["populated"], bear["missing"]):
+        assert facts["Перевозки"] == "5"
+        assert not {"Машины", "Маршрут", "Периоды"}.intersection(facts)
+    labels = {"Средневзвешенная цена", "Средневзвешенный ₽/км", "Региональный ₽/км", "Отклонение"}
+    assert not labels.intersection(bear["missing"])
+    if mode == "bear_zones":
+        assert bear["populated"]["Средневзвешенная цена"] == "1\u00a0234 ₽"
+        assert bear["populated"]["Отклонение"] == "0%"
+    else:
+        assert not labels.intersection(bear["populated"])
+
+
 def test_product_workspace_contains_all_v1_controls():
     html = _read("frontend/index.html")
     for required in (
