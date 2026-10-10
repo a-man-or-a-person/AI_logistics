@@ -83,6 +83,7 @@ def _run_browser_script(script: str) -> dict:
               socket.send(JSON.stringify({{id, method, params}}));
             }});
             // Headless focus must be deterministic for the existing keyboard assertions.
+            await send('Emulation.setDeviceMetricsOverride', {{width: 1600, height: 1000, deviceScaleFactor: 1, mobile: false}});
             await send('Emulation.setFocusEmulationEnabled', {{enabled: true}});
             await send('Page.navigate', {{url: {json.dumps(page.as_uri())}}});
             for (let attempt = 0; attempt < 200; attempt++) {{
@@ -599,6 +600,107 @@ def test_cluster_table_renders_and_interacts_through_the_product_ui_seam():
         "sorted": [2, 0],
         "events": [["hover", 2], ["hover", 2], ["select", 2], ["toggle", False], ["hover", None]],
         "unsupportedHidden": True,
+    }
+
+
+def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_clipping():
+    table = re.sub(
+        r"^import .*?;\n", "", _read("frontend/js/clustering/table.js"), flags=re.MULTILINE
+    ).replace("export ", "")
+    formatters = _read("frontend/js/clustering/formatters.js").replace("export ", "")
+    css = _read("frontend/css/style.css")
+    script = f"""
+      const {{escapeHtml, MODE_LABELS, PERIOD_LABELS}} = (() => {{
+        {formatters}
+        return {{escapeHtml, MODE_LABELS, PERIOD_LABELS}};
+      }})();
+      {table}
+      document.head.insertAdjacentHTML('beforeend', '<style>' + {json.dumps(css)} + '</style>');
+      document.body.innerHTML = '<div class="clustering-center" style="width:700px;height:800px">'
+        + '<div style="flex:1"></div><section id="cluster-table-panel" class="cluster-table-panel"></section></div>';
+      const state = {{result: {{status: 'success', data: {{
+        analysis: {{mode: 'geography'}},
+        cluster_table: {{supported: true, period_types: ['current'], rows: [{{cluster_id: 0}}]}},
+      }}}}, ui: {{tableOpen: true}}}};
+      const render = () => renderClusterTable(state, {{
+        onSort: (key, direction) => {{state.ui.tableSort = {{key, direction}}; render();}},
+        onToggle: open => {{state.ui.tableOpen = open; render();}},
+      }});
+      render();
+      const panel = document.getElementById('cluster-table-panel');
+      let help = panel.querySelector('[data-sort-key="price.weighted"]').closest('th').querySelector('.cluster-table-help');
+      help.scrollIntoView();
+      function visibleHelp() {{
+        const tip = document.getElementById(help.getAttribute('aria-describedby'));
+        if (!tip) return null;
+        const rect = tip.getBoundingClientRect();
+        const style = getComputedStyle(tip);
+        const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return {{
+          text: tip.textContent.trim(), role: tip.getAttribute('role'),
+          readable: rect.width > 0 && rect.height > 0 && style.visibility === 'visible'
+            && style.display !== 'none' && Number(style.opacity) > 0 && parseFloat(style.fontSize) >= 12,
+          inViewport: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
+          unclipped: hit === tip || tip.contains(hit),
+        }};
+      }}
+      help.dispatchEvent(new MouseEvent('mouseenter'));
+      const hover = visibleHelp();
+      help.dispatchEvent(new MouseEvent('mouseleave'));
+      const hiddenAfterLeave = !visibleHelp()?.readable;
+      help.focus();
+      const focus = visibleHelp();
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Escape', bubbles: true}}));
+      const hiddenAfterEscape = !visibleHelp()?.readable;
+      help.blur();
+      const hiddenAfterBlur = !visibleHelp()?.readable;
+      const focusPriceHelp = () => {{
+        help = panel.querySelector('[data-sort-key="price.weighted"]').closest('th').querySelector('.cluster-table-help');
+        help.focus();
+        return visibleHelp();
+      }};
+      panel.querySelector('[data-sort-key="price.weighted"]').click();
+      const afterSort = focusPriceHelp();
+      panel.querySelector('[data-table-toggle]').click();
+      const collapsedHasNoTooltip = !panel.querySelector('.cluster-table-tooltip:popover-open');
+      panel.querySelector('[data-table-toggle]').click();
+      const afterReopen = focusPriceHelp();
+      const supportedModes = ['geography', 'geo_cost', 'geo_volume'].map(mode => {{
+        state.result.data = {{...state.result.data, analysis: {{mode}}}};
+        render();
+        return focusPriceHelp();
+      }});
+      const allMetrics = [...panel.querySelectorAll('.cluster-table-help')].map(trigger => {{
+        help = trigger;
+        help.scrollIntoView();
+        help.focus();
+        const snapshot = visibleHelp();
+        return snapshot.readable && snapshot.inViewport && snapshot.unclipped;
+      }});
+      panel.querySelector('.cluster-table-scroll').dispatchEvent(new Event('scroll'));
+      const hiddenAfterScroll = !visibleHelp()?.readable;
+      const bearModes = ['bear_zones', 'bear_volume_zones'].map(mode => {{
+        state.result.data = {{analysis: {{mode}}, cluster_table: {{supported: false}}}};
+        render();
+        return panel.classList.contains('hidden') && !panel.querySelector('[role="tooltip"]');
+      }});
+      document.body.dataset.result = JSON.stringify({{
+        hover, focus, hiddenAfterLeave, hiddenAfterBlur, hiddenAfterEscape,
+        afterSort, collapsedHasNoTooltip, afterReopen, supportedModes, allMetrics, hiddenAfterScroll, bearModes,
+      }});
+    """
+    expected = {
+        "text": "Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—».",
+        "role": "tooltip",
+        "readable": True,
+        "inViewport": True,
+        "unclipped": True,
+    }
+    assert _run_browser_script(script) == {
+        "hover": expected, "focus": expected, "hiddenAfterLeave": True, "hiddenAfterBlur": True,
+        "hiddenAfterEscape": True, "afterSort": expected, "collapsedHasNoTooltip": True,
+        "afterReopen": expected, "supportedModes": [expected] * 3,
+        "allMetrics": [True] * 12, "hiddenAfterScroll": True, "bearModes": [True, True],
     }
 
 

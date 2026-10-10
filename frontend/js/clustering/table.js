@@ -37,7 +37,7 @@ function sortedRows(rows, sort) {
 }
 
 function header(key, label, hint = '') {
-  const help = hint ? `<span class="cluster-table-help" role="note" tabindex="0" title="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}">ⓘ</span>` : '';
+  const help = hint ? `<span class="cluster-table-help" role="note" tabindex="0" aria-label="Формула: ${escapeHtml(label)}" aria-describedby="cluster-formula-${key}">ⓘ<span id="cluster-formula-${key}" class="cluster-table-tooltip" role="tooltip" popover="manual">${escapeHtml(hint)}</span></span>` : '';
   return `<th scope="col"><button type="button" data-sort-key="${key}" aria-label="Сортировать: ${escapeHtml(label)}">${escapeHtml(label)}</button>${help}</th>`;
 }
 
@@ -118,13 +118,34 @@ export function renderClusterTable(state, handlers = {}) {
       ${stale ? '<p class="cluster-table-state">Таблица рассчитана для предыдущих параметров.</p>' : ''}
       ${rows == null ? '<p class="cluster-table-state error">Некорректные данные таблицы.</p>' : rows.length === 0 ? '<p class="cluster-table-state">В результате нет кластеров для таблицы.</p>' : `<div class="cluster-table-scroll"><table><thead><tr>
         ${header('cluster_id', 'Кластер')}${header('point_count', 'Точки')}${header('trip_count', 'Машины', 'Сумма машин в точках кластера.')}${header('trip_share', 'Доля машин', 'Доля машин кластера от всех машин кластеризованного результата.')}
-        ${header('weighted_route_length', 'Маршрут', 'Средняя длина маршрута, взвешенная по машинам с доступной длиной.')}
-        ${header('price.min', 'Мин. цена', 'Минимум значений точек.')}${header('price.median', 'Медианная цена', 'Медиана значений точек.')}${header('price.weighted', 'Ср.-взв. цена', 'Среднее по машинам с доступной ценой.')}${header('price.max', 'Макс. цена', 'Максимум значений точек.')}
-        ${header('rub_per_km.min', 'Мин. ₽/км', 'Минимум значений точек.')}${header('rub_per_km.median', 'Медианный ₽/км', 'Медиана значений точек.')}${header('rub_per_km.weighted', 'Ср.-взв. ₽/км', 'Среднее по машинам с доступной метрикой.')}${header('rub_per_km.max', 'Макс. ₽/км', 'Максимум значений точек.')}
-        ${header('economic_coverage', 'Покрытие экономики', 'Точки и машины с доступными ценой и ₽/км.')}
+        ${header('weighted_route_length', 'Маршрут', 'Сумма (длина маршрута точки × машины с доступной длиной) / сумма машин с доступной длиной. Пропуски исключены; при отсутствии данных — «—».')}
+        ${header('price.min', 'Мин. цена', 'Минимум доступных средневзвешенных цен точек назначения.')}${header('price.median', 'Медианная цена', 'Медиана доступных средневзвешенных цен точек без весов; при чётном числе точек — среднее двух центральных значений.')}${header('price.weighted', 'Ср.-взв. цена', 'Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—».')}${header('price.max', 'Макс. цена', 'Максимум доступных средневзвешенных цен точек назначения.')}
+        ${header('rub_per_km.min', 'Мин. ₽/км', 'Минимум доступных средневзвешенных ₽/км точек назначения.')}${header('rub_per_km.median', 'Медианный ₽/км', 'Медиана доступных средневзвешенных ₽/км точек без весов; при чётном числе точек — среднее двух центральных значений.')}${header('rub_per_km.weighted', 'Ср.-взв. ₽/км', 'Сумма (₽/км точки × машины с доступным ₽/км) / сумма машин с доступным ₽/км. В Pulse ₽/км = цена / длина маршрута каждой строки, затем взвешивание по машинам; это не отношение средних цены и длины. Пропуски исключены; при отсутствии данных — «—».')}${header('rub_per_km.max', 'Макс. ₽/км', 'Максимум доступных средневзвешенных ₽/км точек назначения.')}
+        ${header('economic_coverage', 'Покрытие экономики', 'Доля точек с доступными ценой и ₽/км от всех точек кластера; доля машин строк с положительными ценой и длиной маршрута от всех машин кластера. Доли показаны в процентах.')}
       </tr></thead><tbody>${rows.map(row => rowHtml(row, state.ui.selectedCluster, state.ui.hoveredCluster)).join('')}</tbody></table></div>`}
       ${methodologyHtml(result)}
     </div>`;
+
+  const hideHelp = () => panel.querySelectorAll('.cluster-table-tooltip:popover-open').forEach(tip => tip.hidePopover());
+  panel.querySelectorAll('.cluster-table-help').forEach(help => {
+    const tip = help.querySelector('.cluster-table-tooltip');
+    const show = () => {
+      hideHelp();
+      tip.showPopover();
+      const anchor = help.getBoundingClientRect();
+      const bounds = tip.getBoundingClientRect();
+      tip.style.left = `${Math.max(8, Math.min(anchor.left, innerWidth - bounds.width - 8))}px`;
+      tip.style.top = `${Math.max(8, anchor.top >= bounds.height + 8 ? anchor.top - bounds.height : Math.min(anchor.bottom, innerHeight - bounds.height - 8))}px`;
+    };
+    help.addEventListener('mouseenter', show);
+    help.addEventListener('focus', show);
+    help.addEventListener('mouseleave', () => { if (!help.matches(':focus')) tip.hidePopover(); });
+    help.addEventListener('blur', () => { if (!help.matches(':hover')) tip.hidePopover(); });
+    help.addEventListener('keydown', event => { if (event.key === 'Escape') tip.hidePopover(); });
+  });
+  panel.querySelectorAll('.cluster-table-content, .cluster-table-scroll').forEach(container => {
+    container.addEventListener('scroll', hideHelp);
+  });
 
   panel.querySelectorAll('[data-sort-key]').forEach(button => {
     const active = button.dataset.sortKey === sort.key;
