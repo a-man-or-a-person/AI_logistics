@@ -1,7 +1,7 @@
 # 02: NPI-02 — Рассчитать origin union через API с точной frozen identity
 
 ID: NPI-02
-Status: implemented ? local gates passed; final review/PR CI pending
+Status: implemented ? reviews passed; PR verification pending
 Priority: NEXT Product
 Blocked by: P1
 
@@ -179,3 +179,17 @@ UI and export branches remain explicitly UNVERIFIED/delegated. Production capaci
 metadata-token hash limitations and in-memory result lifetime remain documented.
 Publication/actual-head CI result will be recorded after GitHub verification completes;
 no automatic merge authorized or performed.
+
+
+Final independent re-review at source HEAD `a32a1f34b92b4924bf173ac500940248f584a449`:
+Standards:0 blocking findings; graph test advisory accepted under R1-09.
+Spec:0 remaining blockers; reviewer independently ran68 union tests PASS.
+Original injected-options finding is resolved; Ponytail generation-copy finding is
+resolved. Verdict: Ship, conditional on required actual PR HEAD verification success.
+
+Publication: [PR #8](https://github.com/a-man-or-a-person/AI_logistics/pull/8),
+`feat/npi02-origin-union` ? latest protected main `73bca251`.
+No automatic merge. Source candidate `a32a1f34`; this final evidence commit changes
+only this existing Ticket02 card. GitHub Actions `verification` on the final PR HEAD
+is checked after pushing this evidence; authoritative current result is in PR checks
+and the final completion report. Downstream branches and limitations above remain.
