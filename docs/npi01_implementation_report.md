@@ -27,6 +27,8 @@ Published files:
   snapshot/detail and mode contracts; separate NEXT origin-set requirements;
   ATI UNKNOWN register and prerequisites.
 - `docs/architecture/current-state.md`: one navigation link to the contract.
+- `docs/clustering_product_v1_contract.md`: clarify the existing point-row slice
+  validation, avoiding an unsupported exact-membership guarantee.
 - `docs/npi01_implementation_report.md`: acceptance, checks and review evidence.
 
 Local tracker updates (existing untracked planning artifacts, not published wholesale):
@@ -69,7 +71,7 @@ Expected/actual below establish documentation correctness, not ATI runtime behav
 | R4-01 | Trace loader → repository → service → dataset/adapters | Actual ownership and Pulse assumptions; factory not a full source port | Readiness CURRENT ingestion/responsibilities/grain sections cite named code symbols and describe separate factory/dataset/token/detail paths | PASS; repository source only, no remote Pulse audit |
 | R4-02 | Compare spec/issue gap lists with register | Every mapping/access/owner/schema/unit/period/revision/paging gap UNKNOWN and blocked work named | ATI register explicitly covers all requested items, including availability, access/license/sample, quality/cadence/volume | PASS; no ATI facts or mappings verified |
 | R4-03 | Trace accumulator, coordinate resolver, tokens and paged detail | Grain/weights/revisions/identity/paging/capability prerequisites correct | CURRENT weights/modes/snapshots sections; separate NEXT origin-set section; independent metric weights, metadata limitations and row ordinal identity explicit | PASS; NEXT multi-origin/detail/export runtime not executed |
-| R4-04 | Inspect complete file scope and runtime labels | Documentation only; runtime still Pulse; no selector/interface/provider | Only three Markdown files published; referenced service/UI retain Pulse wording | PASS; no new browser walkthrough needed for unchanged UI |
+| R4-04 | Inspect complete file scope and runtime labels | Documentation only; runtime still Pulse; no selector/interface/provider | Only four Markdown files published; referenced service/UI retain Pulse wording | PASS; no new browser walkthrough needed for unchanged UI |
 | R4-05 | Review prerequisites, forecast language and published content | Required integration evidence; external forecast separate; safe content | Preconditions section, period/forecast treatment and UNKNOWN register; no customer rows/credentials/examples included | PASS; ATI access/licensing/capacity remain unknown |
 
 All five exact NPI-01 criteria covered. US-41 is addressed. Downstream runtime/UI/XLSX

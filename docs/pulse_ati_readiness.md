@@ -81,7 +81,8 @@ Pulse UI/error wording remain. No provider registry or source selector exists in
 this change. Evidence: service constructor, `_records`, `_locations`, `_source_token`,
 `point_rows`; [dataset](../ml/data/clustering_dataset.py) contract report;
 [frontend state](../frontend/js/clustering/state.js) and
-[controls](../frontend/js/clustering/controls.js).
+[controls](../frontend/js/clustering/controls.js),
+[inspector](../frontend/js/clustering/inspector.js) (source label and rows).
 
 ## CURRENT: grain, weights and mode requirements
 

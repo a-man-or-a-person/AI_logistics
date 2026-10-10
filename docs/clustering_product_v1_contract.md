@@ -92,8 +92,10 @@ backend-calculated строки фактических кластеров; дл�
 `POST /api/clustering/point-rows` принимает тот же frozen data slice, `data_snapshot`,
 `destination_fias`, `offset` и `limit`. Endpoint возвращает не более 50 исходных строк Pulse
 в детерминированном newest-first порядке. Несовпадение snapshot возвращает
-`STALE_DATA_SNAPSHOT` (HTTP 409), а точка вне frozen result —
-`UNKNOWN_DESTINATION_POINT` (HTTP 422).
+`STALE_DATA_SNAPSHOT` (HTTP 409), а отсутствие строк точки в frozen data slice —
+`UNKNOWN_DESTINATION_POINT` (HTTP 422). CURRENT проверяет наличие cached result с
+тем же срезом данных, а не точную membership активного режима. Snapshot сам по себе
+не идентифицирует результат; ограничения описаны в [Pulse contract and ATI readiness](pulse_ati_readiness.md).
 
 Нормальные result states: `success`, `no_bears`. Нарушение связности не выдаётся
 как успешный результат, а возвращает typed error `CONNECTIVITY_VIOLATION`.
