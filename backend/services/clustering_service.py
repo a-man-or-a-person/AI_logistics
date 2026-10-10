@@ -302,6 +302,7 @@ class ClusteringService:
                 {"all_origins": True, "destination_region": destination_region},
                 product_mode_catalog=self.product_mode_catalog,
             )
+            destination_region = selection.destination_region
             origins = self._resolve_selection(selection, token).origin_fiases
         repository_options: dict[str, Any] = {}
         if self.repository is not None:

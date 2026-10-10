@@ -295,6 +295,21 @@ def test_injected_all_options_are_destination_scoped_with_union_facets(union_cli
         {"value": "spot", "count": 6}, {"value": "tender", "count": 1}]
 
 
+@pytest.mark.parametrize("injected", [False, True])
+def test_all_options_use_normalized_region_for_catalog_and_facets(union_client, injected):
+    client, service = union_client
+    if injected:
+        from ml.data.loader import iter_records
+        set_clustering_service(ClusteringService(service.source_path,
+            coordinate_cache_path=service.coordinate_cache_path,
+            records_factory=lambda: iter_records(service.source_path)))
+    response = client.get("/api/clustering/options?all_origins=true&destination_region=%20Region%20A%20")
+    assert response.status_code == 200, response.get_json()
+    assert {origin["fias_id"] for origin in response.get_json()["origins"]} == {"a", "b", "c"}
+    assert response.get_json()["facets"]["price_types"] == [
+        {"value": "spot", "count": 6}, {"value": "tender", "count": 1}]
+
+
 def test_all_empty_source_catalog_has_typed_unknown_region(union_client):
     client, service = union_client
     with service.source_path.open("w", encoding="utf-8", newline="") as stream:
