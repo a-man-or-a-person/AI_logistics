@@ -58,10 +58,10 @@ surface. Evidence: schema/validation above and [project brief](project/project-b
 | Catalog and scope | `ClusteringRepository.options`, `has_origin`, `destination_regions`, `has_destination_region`; lazy index keyed by `(origin_fias, destination_region)`; excludes records without origin or destination region |
 | Catalog labels/facets | `_reload` selects modal non-null origin name and region independently; facets count rows, not machines; origin totals sum positive trips |
 | Filtering/aggregate | `aggregate` delegates to `aggregate_clustering_records` on the indexed slice, preserving row diagnostics and metric-valid denominators |
-| Detail | `source_rows` filters one origin/region/destination and the same four filter sets; returns the entire sorted normalized slice, not an HTTP page or raw CSV |
+| Detail | `source_rows` filters an explicit origin set/region/destination and the same four filter sets; returns the entire sorted normalized slice, not an HTTP page or raw CSV |
 | Revision/cache token | `fingerprint` reloads on resolved path/size/mtime_ns change; `FileFingerprint.cache_token` returns that tuple; `source_rows(expected_fingerprint=...)` rejects mismatches under an RLock |
 | Load observability | `load_count` increments on reload; service run logs use it for repository hit/miss, together with request ID, rows, points and timings; it is not a business revision or per-request read counter |
-| Request validation/orchestration | `ClusteringRequest` and `ClusteringService`: scalar scope, normalized filters/parameters, typed errors, location/graph/result caches and API projection |
+| Request validation/orchestration | `ClusteringRequest` and `ClusteringService`: canonical explicit origin set (scalar = singleton), normalized filters/parameters, typed errors, location/graph/result caches and API projection |
 | Coordinates / algorithms | `resolve_location_routes` owns coordinate resolution; Product adapters own eligibility, parameters and mode semantics; repository owns neither coordinates nor clustering |
 
 Evidence: [repository](../ml/data/clustering_repository.py) (named methods),
@@ -72,8 +72,8 @@ Evidence: [repository](../ml/data/clustering_repository.py) (named methods),
 The injected repository seam already separates catalog/aggregation/detail from
 service orchestration; it remains a concrete file-backed Pulse repository.
 `records_factory` alone is **not a full source integration port**: with no explicit
-repository it supplies catalog records, while `_locations` calls the separate
-`dataset_builder`; `_source_token` still stats source and coordinate files, and
+repository it supplies catalog records and union aggregation, while scalar
+`_locations` keeps the separate `dataset_builder`; `_source_token` still stats source and coordinate files, and
 `point_rows` rejects unavailable repository detail. Passing `source=` to the
 loader changes a record label, not its CSV mapping or runtime capabilities.
 Pulse-specific CSV fields, contract report labels, file tokens, row numbering and
@@ -96,7 +96,8 @@ typed errors such as `NO_DATA`, `INSUFFICIENT_POINTS`, `INSUFFICIENT_ECONOMICS`,
 Evidence: service `ClusteringRequest.from_payload`, `_validate_scope`,
 `_prepare_mode_dataset`, adapters and [Product contract](clustering_product_v1_contract.md).
 
-`aggregate_clustering_records` requires one origin FIAS and one destination region;
+`aggregate_clustering_records` accepts a nonempty explicit origin set (or scalar)
+and requires one destination region; RESEARCH builders still require scalar origin.
 matching segments pool into one `ClusteringRoute` per destination FIAS before
 coordinate resolution. No source-observation uniqueness key or revision deduplication
 is applied here: repeated input rows contribute again. `LogisticsRecord.fingerprint`
@@ -154,16 +155,23 @@ absolute paths and are not portable source revision IDs. `tech_load_ts` does not
 provide snapshot isolation or deduplication. Evidence: repository fingerprint and
 service `_source_token`, `_refresh_cache_generation`, `_data_snapshot`.
 
-`point_rows` requires snapshot, destination, scalar scope and explicit four filter
+`point_rows` requires snapshot, destination, origin selection and explicit four filter
 lists; pagination offset is a nonnegative integer, limit a positive integer
 (booleans rejected), default/max 50. It checks generation, a matching cached result
-**data slice**, repository expected source fingerprint and generation again after
-reading. Stale data yields `STALE_DATA_SNAPSHOT` (409); absent cached slice yields
+**data slice** for old scalar payloads without mode/parameters, repository expected
+source fingerprint and generation again after reading/serialization.
+New origin-set or mode/parameter payloads require both mode and normalized parameters
+and the exact saved request/cache entry. Use `analysis.frozen_request`, not diagnostic
+algorithm parameters. Rows carry the saved point's membership/status and source-row
+origin/name/region and destination/name/region. A point outside the saved result is
+rejected; an unassigned point retains null cluster. Eviction/restart yields
+`RESULT_UNAVAILABLE` (409) without rerun. Stale data yields `STALE_DATA_SNAPSHOT` (409); absent legacy cached slice yields
 `INVALID_REQUEST` (400); no matching destination rows yields
-`UNKNOWN_DESTINATION_POINT` (422). CURRENT does not bind rows to exact active
-mode/parameters/assigned membership: any cached result with matching location key
-suffices. Snapshot alone is also insufficient. Do not infer NEXT export guarantees
-from this implementation. Evidence: service `point_rows` and `_location_cache_key`.
+`UNKNOWN_DESTINATION_POINT` (422). Snapshot alone is insufficient: result identity
+includes generation, canonical origins/filters/region/mode/normalized parameters
+and the cached result's actual membership/exclusions. Preview/run/compare also reject
+generation races before success/cache publication. No export endpoint is implemented.
+Evidence: service `point_rows`, `_location_cache_key`, `_assert_generation` and `run`.
 
 Detail IDs are BLAKE2b (8-byte digest) of `snapshot:source_row_number`, with CSV
 record numbering starting at 1 after the header. IDs persist within the same
@@ -172,31 +180,34 @@ uses valid six-digit period descending, parsed timestamp descending (naive assum
 UTC), then row number descending; missing/invalid keys sort after available ones.
 Paging slices the full list; `total`, `offset`, capped `limit`, `has_more` accompany
 normalized period/timestamp/segment/price/distance/rate/trip/warning fields. It does
-not return all 25 source fields or origin-region attribution in each HTTP row.
+not return all 25 source fields. New rich-context rows add actual origin-region
+attribution; old scalar row fields remain unchanged.
 Evidence: repository `_newest_first`, `_reload`, `source_rows`; service `point_rows`;
 [repository regression](../tests/ml/test_clustering_repository.py),
 [API regression](../tests/test_clustering_product_api.py).
 
 Form edits preserve the displayed frozen result. PR #5 handles rejected-generation
 recovery/invalidation; PR #6 synchronizes cached-mode form controls. These repairs
-do not implement new origin-set, summary or export contracts. Evidence:
+remain intact alongside the backend origin-set contract. Summary/export are deferred. Evidence:
 [controller](../frontend/js/clustering/controller.js), [controls](../frontend/js/clustering/controls.js).
 
-## NEXT: approved origin-set contract, not deployed behavior
+## CURRENT explicit origins / NEXT regional All and consumers
 
-The approved next-iteration spec R1/R4 and Product API extension require exactly
-one selector: legacy scalar origin, nonempty `origin_fiases`, or explicit
-`all_origins=true` with one destination region. Canonical origins are sorted and
-deduplicated; empty/conflicting selection never means All. All resolves the complete
+NPI-02 implements exactly one selector: legacy scalar origin or nonempty
+`origin_fiases` with one destination region. Canonical origins are sorted and
+deduplicated; empty/conflicting selection never means All. Frozen analysis retains
+resolved origins, explicit selection intent, catalog labels and per-origin zero-match
+row/trip counts. Regional `all_origins` is rejected until its own ticket.
+NEXT All resolves the complete
 region-serving catalog before segment filters, not the search page, in the same
 source generation as the read. Keep intent, resolved origins and zero-match origins.
 
 Pool selected rows by destination FIAS before coordinates/graph, retaining row
 origin and actual origin region. Region is attribution, not graph grain. Future
-result identity must include generation, normalized frozen request, mode/parameters
-and saved membership; detail/export must not re-expand All or rerun clustering.
-NEXT `RESULT_UNAVAILABLE` and exact saved membership validation are not CURRENT
-point-rows guarantees. Preserve additive metric-valid weights/coverage, five modes,
+result identity includes generation, normalized frozen request, mode/parameters
+and saved membership; rich detail does not rerun clustering. NEXT summary/export
+must reuse that binding without re-expanding All or trusting client membership.
+Preserve additive metric-valid weights/coverage, five modes,
 missing-data diagnostics and Product/RESEARCH/LEGACY separation. Implementation and
 downstream UI/workbook evidence belong to NPI-02 onward and NPI-12, not NPI-01.
 Authority: approved local `.scratch/next-product-iteration/spec.md`, sections

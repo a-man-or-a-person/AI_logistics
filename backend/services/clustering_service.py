@@ -26,6 +26,7 @@ from backend.product_modes import (
 from backend.services.boundary_provider import BoundaryProvider
 from ml.clustering.base import ClusterPoint, ClusterResult
 from ml.clustering.economics import relative_rate_delta, weighted_mean
+from ml.data.clustering_dataset import aggregate_clustering_records
 from ml.data.clustering_repository import ClusteringRepository, SourceGenerationMismatch
 from ml.data.loader import default_csv_path, iter_records
 from ml.data.locations import LocationPoint, build_location_dataset, resolve_location_routes
@@ -51,7 +52,7 @@ def _string_list(payload: dict[str, Any], name: str, default: tuple[str, ...]) -
 
 @dataclass(frozen=True, slots=True)
 class ClusteringRequest:
-    origin_fias: str
+    origin_fiases: tuple[str, ...]
     destination_region: str
     period_types: tuple[str, ...]
     price_types: tuple[str, ...]
@@ -68,10 +69,8 @@ class ClusteringRequest:
     ) -> ClusteringRequest:
         if not isinstance(payload, dict):
             raise ProductClusteringError("INVALID_REQUEST", "Ожидается JSON-объект.", 400)
-        origin_fias = payload.get("origin_fias")
+        origins = cls.origin_selector(payload)
         destination_region = payload.get("destination_region")
-        if not isinstance(origin_fias, str) or not origin_fias.strip():
-            raise ProductClusteringError("INVALID_REQUEST", "Не указан origin_fias.", 400)
         if not isinstance(destination_region, str) or not destination_region.strip():
             raise ProductClusteringError("INVALID_REQUEST", "Не указан destination_region.", 400)
 
@@ -100,7 +99,7 @@ class ClusteringRequest:
                 "INVALID_REQUEST", "Выберите хотя бы один период и тип цены.", 400
             )
         return cls(
-            origin_fias=origin_fias.strip(),
+            origin_fiases=origins,
             destination_region=destination_region.strip(),
             period_types=periods,
             price_types=prices,
@@ -108,6 +107,27 @@ class ClusteringRequest:
             tonnage_ids=tonnages,
             selection=selection,
         )
+
+    @staticmethod
+    def origin_selector(payload: dict[str, Any]) -> tuple[str, ...]:
+        if sum(name in payload for name in ("origin_fias", "origin_fiases", "all_origins")) != 1:
+            raise ProductClusteringError("INVALID_REQUEST", "Select exactly one origin selector.", 400)
+        if "all_origins" in payload:
+            raise ProductClusteringError("INVALID_REQUEST", "Regional All is not supported yet.", 400)
+        if "origin_fiases" in payload:
+            origins = _string_list(payload, "origin_fiases", ())
+        else:
+            origin = payload["origin_fias"]
+            if not isinstance(origin, str) or not origin.strip():
+                raise ProductClusteringError("INVALID_REQUEST", "A nonempty origin is required.", 400)
+            origins = (origin.strip(),)
+        if not origins:
+            raise ProductClusteringError("INVALID_REQUEST", "A nonempty origin set is required.", 400)
+        return origins
+
+    @property
+    def origin_fias(self) -> str | None:
+        return self.origin_fiases[0] if len(self.origin_fiases) == 1 else None
 
     @property
     def mode(self) -> str:
@@ -204,6 +224,13 @@ class ClusteringService:
             self._cache_generation = token
         return token
 
+    def _assert_generation(self, token: tuple[Any, ...]) -> None:
+        if self._source_token() != token:
+            self._refresh_cache_generation()
+            raise ProductClusteringError(
+                "STALE_DATA_SNAPSHOT", "Data generation changed. Recalculate the result.", 409
+            )
+
     def _data_snapshot(self, token: tuple[Any, ...] | None = None) -> str:
         return hashlib.sha256(repr(token or self._refresh_cache_generation()).encode()).hexdigest()
 
@@ -243,30 +270,34 @@ class ClusteringService:
         return [item.as_dict() for item in matches[:limit]]
 
     def options(
-        self, origin_fias: str | None = None, destination_region: str | None = None
+        self, origin_fias: str | None = None, destination_region: str | None = None,
+        *, origin_fiases: tuple[str, ...] | None = None,
     ) -> dict[str, Any]:
+        origins = origin_fiases or ((origin_fias,) if origin_fias else ())
         repository_options: dict[str, Any] = {}
         if self.repository is not None:
-            if origin_fias and not self.repository.has_origin(origin_fias):
+            if any(not self.repository.has_origin(origin) for origin in origins):
                 raise ProductClusteringError(
                     "UNKNOWN_ORIGIN", "Указанная точка отправления отсутствует в Pulse.", 422
                 )
             if (
-                origin_fias
+                origins
                 and destination_region
-                and not self.repository.has_destination_region(origin_fias, destination_region)
+                and not any(self.repository.has_destination_region(origin, destination_region)
+                            for origin in origins)
             ):
                 raise ProductClusteringError(
                     "UNKNOWN_DESTINATION_REGION",
                     "Указанный регион назначения недоступен для точки отправления.",
                     422,
                 )
-            repository_options = self.repository.options(origin_fias, destination_region)
+            repository_options = self.repository.options(destination_region=destination_region, origin_fiases=origins)
         else:
             repository_options = {
                 "origins": [item.as_dict() for item in self._load_catalog()],
                 "destination_regions": sorted(
-                    self._destination_regions.get(origin_fias or "", set())
+                    {region for origin in origins
+                     for region in self._destination_regions.get(origin, set())}
                 ),
             }
         facets = repository_options.get("facets", {})
@@ -355,13 +386,12 @@ class ClusteringService:
     def _validate_scope(self, request: ClusteringRequest) -> None:
         if self.repository is None:
             return
-        if not self.repository.has_origin(request.origin_fias):
+        if any(not self.repository.has_origin(origin) for origin in request.origin_fiases):
             raise ProductClusteringError(
                 "UNKNOWN_ORIGIN", "Указанная точка отправления отсутствует в Pulse.", 422
             )
-        if not self.repository.has_destination_region(
-            request.origin_fias, request.destination_region
-        ):
+        if not any(self.repository.has_destination_region(origin, request.destination_region)
+                   for origin in request.origin_fiases):
             raise ProductClusteringError(
                 "UNKNOWN_DESTINATION_REGION",
                 "Указанный регион назначения недоступен для точки отправления.",
@@ -372,7 +402,7 @@ class ClusteringService:
     def _location_cache_key(token: tuple[Any, ...], request: ClusteringRequest) -> tuple[Any, ...]:
         return (
             token,
-            request.origin_fias,
+            request.origin_fiases,
             request.destination_region,
             request.period_types,
             request.price_types,
@@ -389,7 +419,7 @@ class ClusteringService:
             return cached
         if self.repository is not None:
             routes, route_report = self.repository.aggregate(
-                origin_fias=request.origin_fias,
+                origin_fiases=request.origin_fiases,
                 destination_region=request.destination_region,
                 period_types=set(request.period_types),
                 price_types=set(request.price_types),
@@ -401,6 +431,16 @@ class ClusteringService:
                 route_report,
                 coordinate_cache_path=self.coordinate_cache_path,
             )
+        elif request.origin_fias is None:
+            routes, route_report = aggregate_clustering_records(
+                self._records(), source_path=self.source_path,
+                origin_fiases=request.origin_fiases,
+                destination_region=request.destination_region,
+                period_types=set(request.period_types), price_types=set(request.price_types),
+                vehicle_types=set(request.vehicle_types), tonnage_ids=set(request.tonnage_ids),
+            )
+            value = resolve_location_routes(routes, route_report,
+                                            coordinate_cache_path=self.coordinate_cache_path)
         else:
             value = self._dataset_builder(
                 self.source_path,
@@ -412,6 +452,7 @@ class ClusteringService:
                 vehicle_types=set(request.vehicle_types),
                 tonnage_ids=set(request.tonnage_ids),
             )
+        self._assert_generation(token)
         self._location_cache[key] = value
         while len(self._location_cache) > LOCATION_CACHE_SIZE:
             self._location_cache.popitem(last=False)
@@ -459,8 +500,11 @@ class ClusteringService:
             )
         return points
 
-    def _spatial_graph(self, points: list[ClusterPoint]) -> tuple[SpatialGraph, bool]:
-        token = self._refresh_cache_generation()
+    def _spatial_graph(
+        self, points: list[ClusterPoint], token: tuple[Any, ...] | None = None
+    ) -> tuple[SpatialGraph, bool]:
+        token = token or self._refresh_cache_generation()
+        self._assert_generation(token)
         key = (
             token,
             tuple((point.id, round(point.x, 6), round(point.y, 6)) for point in points),
@@ -470,6 +514,7 @@ class ClusteringService:
             self._graph_cache.move_to_end(key)
             return cached, True
         graph = self.graph_builder.build(points)
+        self._assert_generation(token)
         self._graph_cache[key] = graph
         while len(self._graph_cache) > GRAPH_CACHE_SIZE:
             self._graph_cache.popitem(last=False)
@@ -620,9 +665,9 @@ class ClusteringService:
         return point
 
     def _origin(self, fias_id: str) -> dict[str, Any]:
-        matches = self.origins(fias_id, limit=1)
-        if matches and matches[0]["fias_id"] == fias_id:
-            return matches[0]
+        for origin in self._load_catalog():
+            if origin.fias_id == fias_id:
+                return origin.as_dict()
         return {"fias_id": fias_id, "name": fias_id, "region": "", "trip_count": 0}
 
     def _analysis(
@@ -641,7 +686,16 @@ class ClusteringService:
             raise ValueError("Product analysis requires a mode result or preview")
         return {
             "source": "pulse",
-            "origin": self._origin(request.origin_fias),
+            "origin": self._origin(request.origin_fias) if request.origin_fias else None,
+            "origin_fias": request.origin_fias,
+            "origin_fiases": list(request.origin_fiases),
+            "selection_intent": {"origin_fiases": list(request.origin_fiases)},
+            "frozen_request": {
+                "origin_fiases": list(request.origin_fiases),
+                "destination_region": request.destination_region,
+                **request.filters(), "mode": request.mode, "parameters": request.parameters(),
+            },
+            "origins": [self._origin(origin) for origin in request.origin_fiases],
             "destination_region": request.destination_region,
             "filters": request.filters(),
             "mode": request.mode,
@@ -651,8 +705,11 @@ class ClusteringService:
 
     def preview(self, request: ClusteringRequest, *, request_id: str = "-") -> dict[str, Any]:
         started = time.perf_counter()
+        token = self._refresh_cache_generation()
         self._validate_scope(request)
         locations, report = self._locations(request)
+        if not locations:
+            raise ProductClusteringError("NO_DATA", "No data matches the selected filters.", 422)
         quality = self._quality(locations, report)
         dataset = self._prepare_mode_dataset(locations, quality, None)
         evaluated = self.product_mode_catalog.evaluate(request.selection, dataset, "preview")
@@ -666,7 +723,7 @@ class ClusteringService:
             ),
             request_id,
             request.mode,
-            request.origin_fias,
+            request.origin_fiases,
             request.destination_region,
             request.filters(),
             quality["source_row_count"],
@@ -674,21 +731,24 @@ class ClusteringService:
             quality["resolved_points"],
             (time.perf_counter() - started) * 1000,
         )
-        return {
+        response = {
             "status": "preview",
-            "analysis": self._analysis(request, preview=evaluated),
+            "analysis": {**self._analysis(request, preview=evaluated),
+                "origin_coverage": report.get("origin_coverage", [])},
             "data_quality": quality,
             "warnings": [warning.as_dict() for warning in evaluated.warnings],
             "points": [
                 self._point_json(point, status=point_states.get(point.id)) for point in locations
             ],
         }
+        self._assert_generation(token)
+        return response
 
     def run(self, request: ClusteringRequest, *, request_id: str = "-") -> dict[str, Any]:
         started = time.perf_counter()
         repository_cache_hit = self.repository is None or self.repository.load_count > 0
-        self._validate_scope(request)
         token = self._refresh_cache_generation()
+        self._validate_scope(request)
         location_cache_hit = self._location_cache_key(token, request) in self._location_cache
         cache_key = (token, request)
         cached = self._result_cache.get(cache_key)
@@ -703,7 +763,7 @@ class ClusteringService:
                 ),
                 request_id,
                 request.mode,
-                request.origin_fias,
+                request.origin_fiases,
                 request.destination_region,
                 request.filters(),
                 quality["source_row_count"],
@@ -713,20 +773,24 @@ class ClusteringService:
                 "hit" if location_cache_hit else "miss",
                 (time.perf_counter() - started) * 1000,
             )
-            return copy.deepcopy(cached)
+            response = copy.deepcopy(cached)
+            self._assert_generation(token)
+            return response
         try:
-            result, graph_cache_hit = self._calculate(request, self._data_snapshot(token))
+            result, graph_cache_hit = self._calculate(request, token)
         except ProductClusteringError as error:
             logger.warning(
                 "clustering request_id=%s mode=%s origin=%s destination=%s error_code=%s",
                 request_id,
                 request.mode,
-                request.origin_fias,
+                request.origin_fiases,
                 request.destination_region,
                 error.code,
             )
             raise
-        self._result_cache[cache_key] = copy.deepcopy(result)
+        cached_result = copy.deepcopy(result)
+        self._assert_generation(token)
+        self._result_cache[cache_key] = cached_result
         while len(self._result_cache) > RESULT_CACHE_SIZE:
             self._result_cache.popitem(last=False)
         quality = result["data_quality"]
@@ -737,7 +801,7 @@ class ClusteringService:
                 "location_cache=%s result_cache=miss graph_cache=%s calculation_ms=%.2f"
             ),
             request.mode,
-            request.origin_fias,
+            request.origin_fiases,
             request.destination_region,
             quality["destination_points_total"],
             quality["resolved_points"],
@@ -790,18 +854,39 @@ class ClusteringService:
             )
         if self.repository is None:
             raise ProductClusteringError("INVALID_REQUEST", "Детализация Pulse недоступна.", 400)
-        frozen_key = self._location_cache_key(token, frozen)
-        if not any(
-            cached_token == token
-            and self._location_cache_key(cached_token, cached_request) == frozen_key
-            for cached_token, cached_request in self._result_cache
-        ):
-            raise ProductClusteringError(
-                "INVALID_REQUEST", "Срез данных не соответствует результату.", 400
-            )
+        rich_context = "origin_fiases" in payload or "mode" in payload or "parameters" in payload
+        saved = None
+        if rich_context:
+            if "mode" not in payload or "parameters" not in payload:
+                raise ProductClusteringError("INVALID_REQUEST", "Frozen mode and parameters are required.", 400)
+            saved = self._result_cache.get((token, frozen))
+            if saved is None:
+                raise ProductClusteringError(
+                    "RESULT_UNAVAILABLE", "Saved result unavailable. Recalculate the result.", 409
+                )
+        else:
+            frozen_key = self._location_cache_key(token, frozen)
+            if not any(
+                cached_token == token
+                and self._location_cache_key(cached_token, cached_request) == frozen_key
+                for cached_token, cached_request in self._result_cache
+            ):
+                raise ProductClusteringError(
+                    "INVALID_REQUEST", "Data slice does not match a saved result.", 400
+                )
         destination_fias = payload["destination_fias"].strip()
+        detail_origin = payload.get("detail_origin_fias")
+        if "detail_origin_fias" in payload and (
+            not isinstance(detail_origin, str) or detail_origin not in frozen.origin_fiases
+        ):
+            raise ProductClusteringError("UNKNOWN_ORIGIN", "Origin is outside the saved selection.", 422)
+        saved_point = None
+        if saved is not None:
+            saved_point = next((point for point in saved["points"] if point["id"] == destination_fias), None)
+            if saved_point is None:
+                raise ProductClusteringError("UNKNOWN_DESTINATION_POINT", "Point is outside the saved result.", 422)
         context = dict(
-            origin_fias=frozen.origin_fias,
+            origin_fiases=(detail_origin,) if detail_origin else frozen.origin_fiases,
             destination_region=frozen.destination_region,
             destination_fias=destination_fias,
         )
@@ -833,7 +918,7 @@ class ClusteringService:
             "clustering_point_rows request_id=%s destination=%s offset=%s rows=%s",
             request_id, destination_fias, offset, len(page),
         )
-        return {
+        response = {
             "data_snapshot": snapshot,
             "destination_fias": destination_fias,
             "total": len(rows),
@@ -845,6 +930,16 @@ class ClusteringService:
                     "source_row_id": hashlib.blake2b(
                         f"{snapshot}:{row.source_row_number}".encode(), digest_size=8
                     ).hexdigest(),
+                    **({
+                        "origin_fias": row.origin_fias,
+                        "origin_name": row.origin_name,
+                        "origin_region": row.origin_region,
+                        "destination_fias": row.destination_fias,
+                        "destination_name": row.destination_name,
+                        "destination_region": row.destination_region,
+                        "cluster_id": saved_point["cluster_id"],
+                        "status": saved_point["status"],
+                    } if saved_point is not None else {}),
                     "period_id": row.period_id,
                     "source_timestamp": row.tech_ts.isoformat() if row.tech_ts else None,
                     "period_type": row.period_type,
@@ -860,9 +955,11 @@ class ClusteringService:
                 for row in page
             ],
         }
+        self._assert_generation(token)
+        return response
 
     def _calculate(
-        self, request: ClusteringRequest, data_snapshot: str
+        self, request: ClusteringRequest, token: tuple[Any, ...]
     ) -> tuple[dict[str, Any], bool]:
         locations, report = self._locations(request)
         if not locations:
@@ -870,23 +967,26 @@ class ClusteringService:
         quality = self._quality(locations, report)
         projection = self._projection(locations)
         spatial_points = self._ml_input(locations, projection, include_economics=False)
-        full_graph, graph_cache_hit = self._spatial_graph(spatial_points)
+        full_graph, graph_cache_hit = self._spatial_graph(spatial_points, token)
         dataset = self._prepare_mode_dataset(locations, quality, full_graph, projection)
         evaluated = self.product_mode_catalog.evaluate(request.selection, dataset, "run")
         if not isinstance(evaluated, ModeOutcome):
             raise TypeError("Product mode adapter did not return an outcome")
         return (
-            self._result_json(request, locations, report, evaluated, data_snapshot),
+            self._result_json(request, locations, report, evaluated, self._data_snapshot(token)),
             graph_cache_hit,
         )
 
     def compare(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
         if not isinstance(payload, dict):
             raise ProductClusteringError("INVALID_REQUEST", "Ожидается JSON-объект.", 400)
+        token = self._refresh_cache_generation()
         dataset = {
             key: payload.get(key)
             for key in (
                 "origin_fias",
+                "origin_fiases",
+                "all_origins",
                 "destination_region",
                 "period_types",
                 "price_types",
@@ -910,10 +1010,17 @@ class ClusteringService:
             )
             for mode, parameters in requests.items()
         }
+        self._assert_generation(token)
+        analysis = next(iter(results.values()))["analysis"]
         return {
             "status": "success",
             "winner": None,
-            "dataset": dataset,
+            "dataset": {
+                "origin_fias": analysis["origin_fias"],
+                "origin_fiases": analysis["origin_fiases"],
+                "destination_region": analysis["destination_region"],
+                **analysis["filters"],
+            },
             "results": results,
         }
 
@@ -953,7 +1060,8 @@ class ClusteringService:
         return {
             "status": outcome.status,
             "data_snapshot": data_snapshot,
-            "analysis": self._analysis(request, result),
+            "analysis": {**self._analysis(request, result),
+                "origin_coverage": report.get("origin_coverage", [])},
             "contains_forecast": quality["contains_forecast"],
             "data_quality": quality,
             "warnings": [warning.as_dict() for warning in outcome.warnings],

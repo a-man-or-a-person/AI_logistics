@@ -14,6 +14,7 @@ from backend.product_modes import (
     ModePointState,
     ModePreview,
     ModeSelection,
+    ProductClusteringError,
     ProductModeCatalog,
     ProductWarning,
     default_product_mode_catalog,
@@ -639,13 +640,12 @@ def test_run_returns_ui_contract_and_reports_unresolved(product_client):
     assert "zones" not in result
 
 
-def test_run_keeps_captured_snapshot_when_source_changes_during_calculation(
+def test_run_rejects_generation_change_during_calculation(
     product_files, product_client_factory, monkeypatch
 ):
     source, cache = product_files
     client = product_client_factory(source, cache)
     service = get_clustering_service()
-    captured_snapshot = service._data_snapshot()
     original_result_json = service._result_json
 
     def change_source_before_serializing(*args, **kwargs):
@@ -656,26 +656,10 @@ def test_run_keeps_captured_snapshot_when_source_changes_during_calculation(
 
     monkeypatch.setattr(service, "_result_json", change_source_before_serializing)
 
-    result = client.post("/api/clustering/run", json=_payload()).get_json()
-    detail = client.post(
-        "/api/clustering/point-rows",
-        json={
-            "data_snapshot": result["data_snapshot"],
-            "origin_fias": "origin-1",
-            "destination_region": "Region A",
-            "period_types": ["current"],
-            "price_types": ["spot", "tender"],
-            "vehicle_types": [],
-            "tonnage_ids": [],
-            "destination_fias": "a",
-        },
-    )
-
-    assert result["data_snapshot"] == captured_snapshot
-    assert (detail.status_code, detail.get_json()["code"]) == (
-        409,
-        "STALE_DATA_SNAPSHOT",
-    )
+    response = client.post("/api/clustering/run", json=_payload())
+    assert response.status_code == 409
+    assert response.get_json()["code"] == "STALE_DATA_SNAPSHOT"
+    assert not service._result_cache
 
 
 def test_preview_does_not_expose_run_table_analytics(product_client):
@@ -1298,10 +1282,10 @@ def test_vehicle_and_tonnage_are_canonical_filters(product_service):
     request = ClusteringRequest.from_payload(
         _payload(vehicle_types=["missing"], tonnage_ids=["20"])
     )
-    result = product_service.preview(request)
-
-    assert result["points"] == []
-    assert result["analysis"]["filters"]["vehicle_types"] == ["missing"]
+    with pytest.raises(ProductClusteringError, match="No data matches") as error:
+        product_service.preview(request)
+    assert error.value.code == "NO_DATA"
+    assert error.value.status == 422
 
 
 @pytest.mark.parametrize(

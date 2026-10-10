@@ -31,6 +31,13 @@
 
 Все пять режимов, включая Bear Cost и Bear Volume, остаются работающими возможностями текущего Product.
 
+Product API поддерживает явно выбранный canonical набор origin FIAS с общими
+фильтрами в один регион назначения; строки объединяются по destination FIAS.
+Scalar API и текущий frontend с одним origin сохранены. Regional All, выбор
+нескольких origins в UI, origin summary/navigation и XLSX ещё не реализованы.
+Новый detail-контекст связан с точным saved result и его membership; eviction
+требует пересчёта. Контракт: [Product API](docs/clustering_product_v1_contract.md).
+
 Признак `forecast` обозначает прогнозные данные, уже поступившие из Pulse. Признак `tender` сейчас относится к типу цены в исходных данных, а не к реализованному процессу подготовки тендера.
 
 ### CURRENT — CLUSTER TABLE AND DESTINATION DETAIL
