@@ -71,7 +71,7 @@ work retained. Work is isolated in `.worktrees/npi06-weighted-verification`,
 branch `test/npi06-weighted-verification`.
 
 Authority: this exact approved card (dependency filename03, stable ID06), approved
-spec R3, coverage matrix (R3-05 belongs to NPI-04), implementation order, shared
+spec R3, coverage matrix (R3-05 belongs to NPI-07), implementation order, shared
 execution requirements, Product/data/workflow contracts, CONTEXT and current-state.
 No ADR directory exists. `/implement`, `/code-review`, Ponytail full/Ponytail review
 and `/pr` applied. No production defect verified in the tested cases, so no
