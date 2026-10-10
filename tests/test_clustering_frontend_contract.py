@@ -926,6 +926,7 @@ def test_cluster_table_controller_handlers_keep_map_inspector_and_panel_in_sync(
 
 
 def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_change():
+    state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
     controller = re.sub(
         r"^import[\s\S]*?;\n",
         "",
@@ -943,8 +944,9 @@ def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_chan
       }}
       function renderInspector() {{ renders += 1; }}
       function focusClusteringPoint() {{}}
-      function requestSignature(value) {{ return JSON.stringify(value); }}
+      {state_module}
       {controller}
+      renderAll = () => {{}};
       const result = {{
         data_snapshot: 'snapshot-1',
         cluster_table: {{supported: true}},
@@ -1222,6 +1224,109 @@ def test_cached_comparison_switches_the_active_product_result_without_recalculat
         "lastTable": ["geo_volume", True, 3],
         "lastInspector": "geo_volume",
     }
+
+
+@pytest.mark.parametrize("late_error", [False, True])
+@pytest.mark.parametrize("late_kind,replacement", [
+    (kind, replacement) for kind in ("run", "compare") for replacement in ("cached", "reset", "fresh")
+] + [("compare", "comparison_tab")])
+def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error, replacement):
+    state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    controller = re.sub(
+        r"^import[\s\S]*?;\n", "", _read("frontend/js/clustering/controller.js"),
+        flags=re.MULTILINE,
+    ).replace("export ", "")
+    script = f"""
+      import assert from 'node:assert/strict';
+      const elements = new Map();
+      globalThis.document = {{getElementById: id => {{
+        if (!elements.has(id)) elements.set(id, {{disabled: false, value: '', textContent: '',
+          classList: {{add() {{}}, remove() {{}}, toggle() {{}}}},
+          replaceChildren() {{}}, querySelector() {{return this;}}}});
+        return elements.get(id);
+      }}}};
+      globalThis.Option = class {{}};
+      const MODE_LABELS = {{}}, PERIOD_LABELS = {{}}, PRICE_LABELS = {{}};
+      const renderFormState = () => {{}}, renderOptionControls = () => {{}};
+      const renderErrorState = () => {{}}, renderComparison = () => {{}};
+      const renderClusteringPoints = () => {{}}, clearClusteringResult = () => {{}};
+      const renderClusterTable = () => {{}}, renderInspector = () => {{}};
+      const setMlResultStale = () => {{}};
+      const pending = [];
+      function request(payload, options) {{
+        return new Promise((resolve, reject) => pending.push({{resolve, reject, signal: options.signal}}));
+      }}
+      const runClustering = request, runClusteringComparison = request;
+      {state_module}
+      {controller}
+      const options = {{mode_capabilities: [{{id: 'geography', comparison: {{supported: true}},
+        parameters: [{{name: 'k_mode', default: 'auto'}}, {{name: 'n_clusters', manual_default: 2}}]}}]}};
+      state = createClusteringState(options);
+      Object.assign(state.form, {{origin: {{fias_id: 'o'}}, destinationRegion: 'R'}});
+      const result = snapshot => ({{status: 'success', data_snapshot: snapshot,
+        analysis: {{mode: 'geography', origin: {{fias_id: 'o'}}, destination_region: 'R',
+          filters: datasetSnapshot(state.form), parameters: {{k_mode: 'auto'}}}},
+        cluster_table: {{supported: true}}, points: [], clusters: []}});
+      const old = result('old'), fresh = result('fresh');
+      if ({json.dumps(replacement)} === 'comparison_tab') {{
+        state.comparison.context = datasetSnapshot(state.form);
+        state.comparison.results = {{geography: old}};
+        setResult(state, old, buildRequest(state.form));
+        state.form.destinationRegion = 'New Region';
+      }}
+      const first = {json.dumps(late_kind)} === 'run' ? executeRun() : runComparison();
+      if ({json.dumps(replacement)} === 'comparison_tab') {{
+        activateComparisonMode('geography');
+        assert.equal(pending[0].signal.aborted, false, 'old tab cannot cancel new comparison');
+        assert.equal(state.result.requestSnapshot.destination_region, 'R', 'old result keeps frozen context');
+        assert.equal(isResultStale(state), true);
+      }} else if ({json.dumps(replacement)} === 'reset') reset();
+      else {{
+        if ({json.dumps(replacement)} === 'cached') state.result.cache.set(requestSignature(buildRequest(state.form)), fresh);
+        const next = executeRun();
+        if ({json.dumps(replacement)} === 'fresh') {{
+          pending[1].resolve(fresh);
+        }}
+        await next;
+      }}
+      assert.equal(pending[0].signal.aborted, {json.dumps(replacement)} !== 'comparison_tab', 'request cancellation');
+      if ({json.dumps(late_error)}) pending[0].reject(new Error('late error'));
+      else pending[0].resolve({json.dumps(late_kind)} === 'run' ? old : {{results: {{geography: {json.dumps(replacement)} === 'comparison_tab' ? fresh : old}}}});
+      await first;
+      assert.equal(state.result.data, {json.dumps(replacement)} === 'reset' ? null
+        : {json.dumps(replacement)} === 'comparison_tab' && {json.dumps(late_error)} ? old : fresh);
+      assert.equal(state.result.error, null);
+      assert.equal(document.getElementById('btn-run-clustering').disabled, false);
+      console.log(JSON.stringify({{safe: true}}));
+    """
+    assert _run_node_script(script) == {"safe": True}
+
+
+def test_rejected_snapshot_invalidation_preserves_unrelated_cached_data():
+    state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    script = f"""
+      import assert from 'node:assert/strict';
+      {state_module}
+      const state = createClusteringState({{mode_capabilities: [{{id: 'geography'}}]}});
+      const rejected = {{data_snapshot: 'rejected'}}, valid = {{data_snapshot: 'valid'}};
+      state.result.cache.set('bad', rejected);
+      state.result.cache.set('good', valid);
+      state.comparison.cache.set('bad', {{results: {{geography: rejected}}}});
+      state.comparison.cache.set('good', {{results: {{geography: valid}}}});
+      state.comparison.results = {{geography: rejected, geo_cost: valid}};
+      const goodRows = {{status: 'success', rows: [{{source_row_id: 'good'}}]}};
+      state.ui.pointRows.set(requestSignature({{data_snapshot: 'valid'}}), goodRows);
+      rejectDataSnapshot(state, 'rejected');
+      assert.equal(state.result.cache.get('good'), valid);
+      assert.equal(state.comparison.cache.get('good').results.geography, valid);
+      assert.equal(state.comparison.results.geo_cost, valid);
+      assert.equal(state.ui.pointRows.get(requestSignature({{data_snapshot: 'valid'}})), goodRows);
+      assert.throws(() => setResult(state, rejected, {{}}), {{code: 'STALE_DATA_SNAPSHOT'}});
+      setResult(state, valid, {{}});
+      assert.equal(state.result.data, valid);
+      console.log(JSON.stringify({{isolated: true}}));
+    """
+    assert _run_node_script(script) == {"isolated": True}
 
 
 def test_point_rows_render_all_inspector_states_and_leave_bear_unchanged():
