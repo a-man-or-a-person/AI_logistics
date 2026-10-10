@@ -279,6 +279,22 @@ def test_injected_catalog_all_refreshes_after_source_generation_change(union_cli
     assert second["analysis"]["origin_fiases"] == ["a", "b", "c", "d"]
 
 
+def test_injected_all_options_are_destination_scoped_with_union_facets(union_client):
+    client, service = union_client
+    from ml.data.loader import iter_records
+    with service.source_path.open("a", encoding="utf-8", newline="") as stream:
+        csv.DictWriter(stream, fieldnames=PULSE_COLUMNS).writerow(
+            _row("x", "X", origin="outside", region="Other Region"))
+    set_clustering_service(ClusteringService(service.source_path,
+        coordinate_cache_path=service.coordinate_cache_path,
+        records_factory=lambda: iter_records(service.source_path)))
+    response = client.get("/api/clustering/options?all_origins=true&destination_region=Region+A")
+    assert response.status_code == 200, response.get_json()
+    assert {origin["fias_id"] for origin in response.get_json()["origins"]} == {"a", "b", "c"}
+    assert response.get_json()["facets"]["price_types"] == [
+        {"value": "spot", "count": 6}, {"value": "tender", "count": 1}]
+
+
 def test_all_empty_source_catalog_has_typed_unknown_region(union_client):
     client, service = union_client
     with service.source_path.open("w", encoding="utf-8", newline="") as stream:

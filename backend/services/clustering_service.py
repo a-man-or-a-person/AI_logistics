@@ -323,12 +323,21 @@ class ClusteringService:
             repository_options = self.repository.options(destination_region=destination_region, origin_fiases=origins)
         else:
             repository_options = {
-                "origins": [item.as_dict() for item in self._load_catalog()],
+                "origins": [item.as_dict() for item in self._load_catalog(destination_region)],
                 "destination_regions": sorted(
                     {region for origin in origins
                      for region in self._destination_regions.get(origin, set())}
                 ),
             }
+            if all_origins:
+                rows = [record for record in self._records()
+                        if record.origin_fias in origins and record.destination_region == destination_region]
+                facets = {}
+                for name, field in (("period_types", "period_type"), ("price_types", "price_type"),
+                                    ("vehicle_types", "vehicle_type"), ("tonnage_ids", "tonnage_id")):
+                    counts = Counter(getattr(row, field) for row in rows if getattr(row, field))
+                    facets[name] = [{"value": value, "count": counts[value]} for value in sorted(counts)]
+                repository_options["facets"] = facets
         facets = repository_options.get("facets", {})
         mode_capabilities = self.product_mode_catalog.manifest()
         capability_by_id = {capability.mode_id: capability for capability in mode_capabilities}
