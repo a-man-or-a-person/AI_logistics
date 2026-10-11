@@ -284,6 +284,8 @@ def _product_workspace_script(actions: str) -> str:
       function hoverCluster() {{}}
       function setClusteringLayers() {{}}
       function focusClusteringPoint() {{}}
+      function highlightCluster() {{}}
+      function renderClusterTable() {{}}
       {''.join(modules)}
       (async () => {{
         const workspace = await initClustering();
@@ -313,7 +315,7 @@ def test_calculation_validates_frontend_cache_before_acceptance(operation, chang
       perform(); await pause();
       const saved = workspace.getState().result.data;
       window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
-      document.querySelector('.pulse-details').open = true; await pause();
+      document.querySelector('.pulse-details summary').click(); await pause();
       if ({json.dumps(change)} === 'source') revision = 's2';
       if ({json.dumps(change)} === 'restart') available = false;
       if ({json.dumps(change)} === 'network') failRevision = true;
@@ -392,7 +394,7 @@ def test_source_change_after_revision_during_calculation_rejects_frozen_details(
       document.getElementById('btn-run-clustering').click(); await pause();
       const saved = workspace.getState().result.data;
       window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
-      document.querySelector('.pulse-details').open = true; await pause();
+      document.querySelector('.pulse-details summary').click(); await pause();
       const transport = globalThis.fetch;
       globalThis.fetch = async (url, init) => String(url).endsWith('/' + {json.dumps(operation)})
         ? {{ok: false, status: 409, json: async () => ({{ok: false, code: 'STALE_DATA_SNAPSHOT', error: 'Source changed during calculation'}})}}
@@ -543,7 +545,7 @@ def test_union_point_rows_use_exact_saved_request_after_form_edits():
       const saved = requests.find(request => request.path === 'run').payload;
       document.querySelector('#cluster-periods input[value="retro"]').click();
       window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
-      document.querySelector('.pulse-details').open = true;
+      document.querySelector('.pulse-details summary').click();
       await pause();
       const payload = requests.find(request => request.path === 'point-rows')?.payload;
       document.body.dataset.result = JSON.stringify({origins: payload?.origin_fiases,
@@ -597,13 +599,13 @@ def test_evicted_union_result_requires_fresh_calculation_without_rejecting_valid
       document.getElementById('btn-run-clustering').click(); await pause();
       failRows = true;
       window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
-      document.querySelector('.pulse-details').open = true; await pause();
+      document.querySelector('.pulse-details summary').click(); await pause();
       const recovery = document.querySelector('.pulse-state')?.textContent.includes('Пересчитайте');
       const retry = Boolean(document.querySelector('[data-pulse-retry]'));
       failRows = false;
       document.getElementById('btn-run-clustering').click(); await pause();
       window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
-      document.querySelector('.pulse-details').open = true; await pause();
+      document.querySelector('.pulse-details summary').click(); await pause();
       document.body.dataset.result = JSON.stringify({recovery, retry,
         runs: requests.filter(request => request.path === 'run').length,
         rows: requests.filter(request => request.path === 'point-rows').length,
@@ -1492,6 +1494,8 @@ def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_chan
       }}
       function renderInspector() {{ renders += 1; }}
       function focusClusteringPoint() {{}}
+      function highlightCluster() {{}}
+      function renderClusterTable() {{}}
       {state_module}
       {controller}
       renderAll = () => {{}};
@@ -1585,6 +1589,8 @@ def test_stale_form_keeps_open_pulse_request_on_the_frozen_result():
       }}
       function renderInspector() {{}}
       function focusClusteringPoint() {{}}
+      function highlightCluster() {{}}
+      function renderClusterTable() {{}}
       function requestSignature(value) {{ return JSON.stringify(value); }}
       function readChecks() {{ return []; }}
       function modeParameter() {{ return null; }}
@@ -1746,6 +1752,8 @@ def test_cached_comparison_switches_the_active_product_result_without_recalculat
       function setMlResultStale() {{}}
       function clearClusteringResult() {{}}
       function focusClusteringPoint() {{}}
+      function highlightCluster() {{}}
+      function renderClusterTable() {{}}
       function highlightCluster() {{}}
       function hoverCluster() {{}}
       function setClusteringLayers() {{}}
@@ -2079,6 +2087,8 @@ def test_origin_summary_and_detail_cancel_late_responses_and_reject_all_related_
       function fetchClusteringPointOrigins(payload, options) {{return pendingRequest(summaries,payload,options)}}
       function fetchClusteringPointRows(payload, options) {{return pendingRequest(pages,payload,options)}}
       function renderInspector() {{}} function focusClusteringPoint() {{}}
+      function highlightCluster() {{}}
+      function renderClusterTable() {{}}
       {state_module}
       {controller}
       renderAll = () => {{}};
@@ -2130,3 +2140,90 @@ def test_cached_origin_selection_renders_the_selected_origin_without_refetch():
     """)
     script = script.replace("origins: [{origin_fias: 'b'", "origins: [{origin_fias:'a',origin_name:'Alpha',trip_count:10,warnings:[]},{origin_fias: 'b'")
     assert _run_browser_script(script) == {'selected':'true','context':True,'requestFree':True,'focus':'b'}
+
+def test_drill_up_origin_returns_to_point_without_requests_or_context_changes():
+    assert _run_browser_script(_product_workspace_script("""
+      await choose('b'); await choose('a');
+      const region = document.getElementById('cluster-region'); region.value='R';
+      region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}})); await pause();
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      const saved=workspace.getState().result.data;
+      workspace.getState().ui.tableSort={key:'point_count',direction:'asc'};
+      workspace.getState().ui.tableOpen=false;
+      const before=requests.length;
+      const up=document.querySelector('[data-point-summary]');
+      if(!up) {document.body.dataset.result=JSON.stringify({error:'Missing return to point summary'}); return;}
+      up.focus(); up.click(); await pause();
+      const ui=workspace.getState().ui;
+      document.body.dataset.result=JSON.stringify({point:ui.selectedPoint,origin:ui.selectedOrigin,
+        same:saved===workspace.getState().result.data,sort:ui.tableSort,open:ui.tableOpen,
+        requestFree:before===requests.length,focus:document.activeElement.dataset.originFias,
+        rowsClosed:!document.querySelector('.pulse-details').open});
+    """)) == {'point':'x','origin':None,'same':True,'sort':{'key':'point_count','direction':'asc'},
+                'open':False,'requestFree':True,'focus':'b','rowsClosed':True}
+
+def _drill_workspace_script(actions):
+    script = _product_workspace_script(actions)
+    return script.replace("let failRun = false", "let holdRows=false; const heldRows=[]; let failRun=false").replace("if (path === 'point-rows') {", "if (path === 'point-rows') { if(holdRows) await new Promise(resolve=>heldRows.push(resolve));").replace("points: [{id: 'x', fias_id: 'x', name: 'X', trip_count: 40}]",
+        "points: [{id:'x',fias_id:'x',name:'X',trip_count:40,cluster_id:0},"
+        "{id:'y',fias_id:'y',name:'Y',trip_count:10,cluster_id:1},"
+        "{id:'outside',fias_id:'outside',name:'Outside',trip_count:1,cluster_id:null}]") .replace(
+        "clusters: [], cluster_table:",
+        "clusters: [{cluster_id:0,point_ids:['x'],point_count:1,trip_count:40},{cluster_id:1,point_ids:['y'],point_count:1,trip_count:10}], cluster_table:")
+
+
+@pytest.mark.parametrize('parent', ['different', 'overview', 'unassigned'])
+def test_parent_navigation_clears_descendants_and_ignores_late_rows(parent):
+    actions = """
+      await choose('b'); const region=document.getElementById('cluster-region'); region.value='R';
+      region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x',clusterId:0}})); await pause();
+      const old=workspace.getState().result.data;
+      holdRows=true;
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      const before=requests.filter(r=>r.path==='run'||r.path==='compare').length;
+      PARENT_ACTION
+      holdRows=false; heldRows.forEach(resolve=>resolve());
+      await pause();
+      const ui=workspace.getState().ui;
+      document.body.dataset.result=JSON.stringify({cluster:ui.selectedCluster,point:ui.selectedPoint,
+        origin:ui.selectedOrigin,same:old===workspace.getState().result.data,
+        requestFree:before===requests.filter(r=>r.path==='run'||r.path==='compare').length});
+    """.replace('PARENT_ACTION', {
+        'different': "document.querySelector('#cluster-points'); document.querySelector('#cluster-list [data-cluster-id=\"1\"]').click();",
+        'overview': "document.getElementById('cluster-details-close').click();",
+        'unassigned': "window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'outside'}}));",
+    }[parent])
+    assert _run_browser_script(_drill_workspace_script(actions)) == {
+        'cluster': 1 if parent == 'different' else None,
+        'point': 'outside' if parent == 'unassigned' else None, 'origin': None,
+        'same': True, 'requestFree': True}
+
+
+def test_drill_up_point_restores_parent_focus_and_reuses_frozen_origin_pages():
+    assert _run_browser_script(_drill_workspace_script("""
+      await choose('a'); await choose('b');
+      const region=document.getElementById('cluster-region'); region.value='R';
+      region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      document.querySelector('#cluster-list [data-cluster-id="0"]').click();
+      document.querySelector('[data-point-id="x"]').click(); await pause();
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      document.querySelector('#cluster-periods input[value="retro"]').click();
+      const before=requests.length;
+      document.querySelector('[data-point-summary]').click();
+      document.getElementById('point-details-close').click();
+      const parentFocus=document.activeElement.dataset.pointId;
+      const ui=workspace.getState().ui;
+      const atParent=[ui.selectedCluster,ui.selectedPoint,ui.selectedOrigin];
+      document.querySelector('[data-point-id="x"]').click(); await pause();
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      document.body.dataset.result=JSON.stringify({parentFocus,atParent,
+        requestFree:before===requests.length,origin:ui.selectedOrigin,
+        stale:!document.getElementById('analysis-stale').classList.contains('hidden'),
+        frozen:workspace.getState().result.data.analysis.frozen_request.period_types});
+    """)) == {'parentFocus':'x','atParent':[0,None,None],'requestFree':True,
+               'origin':'b','stale':True,'frozen':['current']}
