@@ -209,9 +209,8 @@ class ClusteringRepository:
             "period_types": sorted(CLUSTERING_ALLOWED_PERIOD_TYPES),
             "dataset_fingerprint": fingerprint.as_dict(),
         }
-        if origins:
-            result["destination_regions"] = sorted({region for origin, region in self._index
-                                                    if origin in origins})
+        result["destination_regions"] = sorted({region for origin, region in self._index
+                                                if not origins or origin in origins})
         if origins and destination_region:
             facets = {}
             for name in ("period_types", "price_types", "vehicle_types", "tonnage_ids"):

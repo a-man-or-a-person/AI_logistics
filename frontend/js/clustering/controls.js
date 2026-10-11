@@ -76,6 +76,9 @@ export function readChecks(id) {
 
 export function renderFormState(state) {
   const { form } = state;
+  $('all-origins').checked = form.allOrigins;
+  $('cluster-origin').disabled = form.allOrigins;
+  $('selected-origins').classList.toggle('hidden', form.allOrigins);
   for (const [name, value] of [
     ['analysis-mode', form.mode], ['k-mode', form.kMode],
     ['cost-weight', form.costWeight], ['volume-weight', form.volumeWeight],
@@ -102,7 +105,7 @@ export function renderFormState(state) {
   $('run-caption').textContent = isZoneMode
     ? `${MODE_LABELS[form.mode]} · +${Math.round(threshold * 100)}%`
     : `${MODE_LABELS[form.mode]} · ${form.kMode === 'auto' ? 'Auto K' : `K=${form.k}`}${weightedCaption}`;
-  const route = `${form.origins?.map(origin => origin.name || origin.fias_id).join(', ') || form.origin?.name || 'Точка не выбрана'} → ${form.destinationRegion || 'Регион не выбран'}`;
+  const route = `${form.allOrigins ? 'Все отправления' : form.origins?.map(origin => origin.name || origin.fias_id).join(', ') || form.origin?.name || 'Точка не выбрана'} → ${form.destinationRegion || 'Регион не выбран'}`;
   $('filter-route').textContent = route;
   const labels = [
     ...form.periodTypes.map(value => PERIOD_LABELS[value] || value),

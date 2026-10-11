@@ -78,7 +78,9 @@ function contextFor(analysis) {
   const tonnages = (filters.tonnage_ids || []).map(value => `${value} т`).join(', ') || 'Все';
   const origins = analysis.origins || (analysis.origin ? [analysis.origin] : []);
   const zeroMatch = (analysis.origin_coverage || []).filter(origin => origin.zero_match);
-  return `<strong>${escapeHtml(origins.map(origin => origin.name || origin.fias_id).join(', '))} → ${escapeHtml(analysis.destination_region)}</strong>
+  const all = analysis.selection_intent?.all_origins === true;
+  return `<strong>${all ? 'Все отправления' : escapeHtml(origins.map(origin => origin.name || origin.fias_id).join(', '))} → ${escapeHtml(analysis.destination_region)}</strong>
+    ${all ? `<details><summary>Сохранённые отправления: ${origins.length}</summary>${origins.map(origin => `<small>${escapeHtml(origin.name || origin.fias_id)} · ${escapeHtml(origin.fias_id)}</small>`).join('')}</details>` : ''}
     <span>Источник: Pulse</span>
     ${zeroMatch.length ? `<small>Без строк по выбранным фильтрам: ${escapeHtml(zeroMatch.map(item => origins.find(origin => origin.fias_id === item.fias_id)?.name || item.fias_id).join(', '))}</small>` : ''}
     <small>${escapeHtml(periods)} · ${escapeHtml(prices)} · ${escapeHtml(vehicles)} · ${escapeHtml(tonnages)}</small>`;

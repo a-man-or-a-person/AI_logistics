@@ -70,6 +70,7 @@ export function createClusteringState(options = {}) {
     form: {
       origin: null,
       origins: [],
+      allOrigins: false,
       destinationRegion: '',
       periodTypes: [...(options.defaults?.period_types || ['current'])],
       priceTypes: [...(options.defaults?.price_types || ['spot'])],
@@ -103,7 +104,7 @@ export function createClusteringState(options = {}) {
 
 export function datasetSnapshot(form) {
   return {
-    ...(form.origins?.length || !form.origin
+    ...(form.allOrigins ? { all_origins: true } : form.origins?.length || !form.origin
       ? { origin_fiases: [...new Set((form.origins || []).map(origin => origin.fias_id.trim()))].sort() }
       : { origin_fias: form.origin.fias_id }),
     destination_region: form.destinationRegion,

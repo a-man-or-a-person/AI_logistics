@@ -50,6 +50,8 @@ source-row IDs сохраняются. Preview не строит graph/клас�
 preview/run/compare возвращает `NO_DATA` (422).
 
 `GET /origins?q=&limit=&destination_region=` ограничивает suggestions регионом;
+`GET /options` без селектора возвращает полный список регионов доставки для выбора All;
+с явными origins список регионов ограничен их перевозками.
 q/limit сохраняют прежнюю семантику. `GET /options?all_origins=true&destination_region=…`
 возвращает полный региональный каталог и union facets. Без destination region All
 возвращает `INVALID_REQUEST` (400); отсутствующий регион/пустой каталог —
@@ -178,7 +180,9 @@ Frontend поддерживает explicit multi-select по FIAS, один ре
 редактирование формы меняет только editable state и stale indication. Ошибка нового run
 сохраняет прежний результат. `STALE_DATA_SNAPSHOT` инвалидирует rejected generation,
 а `RESULT_UNAVAILABLE` — только соответствующий saved result, включая comparison copies;
-оба состояния требуют явного успешного пересчёта. Региональная кнопка All пока отсутствует.
+оба состояния требуют явного успешного пересчёта. UI имеет explicit «Все отправления»
+для одного выбранного региона доставки. Request/cache intent остаётся All, saved context
+раскрывает полный resolved набор с FIAS и zero-match origins; detail использует explicit frozen set.
 
 Data Map и `/api/ml-cluster` сохранены для legacy-клиентов. Product v1 вызывает
 только `/api/clustering/*`.

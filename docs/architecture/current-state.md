@@ -112,7 +112,8 @@ slice compatibility. Generation проверяется до публикации
 preview/run/compare/detail. Backend regional All разрешает полный набор origins
 выбранного региона до segment filters, один раз для compare. Selection intent
 сохраняется отдельно от resolved set; detail использует только frozen explicit
-set и saved membership, без повторного All resolution. All UI/summary/export
+set и saved membership, без повторного All resolution. UI включает explicit All
+с выбором региона доставки и раскрываемым полным saved набором. Summary/export
 остаются будущими возможностями.
 
 ## Границы контуров
