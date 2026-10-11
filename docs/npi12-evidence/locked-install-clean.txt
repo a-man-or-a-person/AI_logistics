@@ -83,5 +83,5 @@ python.exe :
     + FullyQualifiedErrorId : NativeCommandError
 
 [notice] A new release of pip is available: 25.0.1 -> 26.2.1
-[notice] To update, run: C:\folder\Python\������ �� ���������\.worktrees\npi12\.scratch\npi12-env\Scripts\python.exe -m
+[notice] To update, run: [LOCAL_WORKSPACE]\.scratch\npi12-env\Scripts\python.exe -m
  pip install --upgrade pip

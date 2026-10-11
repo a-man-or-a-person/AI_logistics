@@ -157,8 +157,8 @@
     },
     {
       "path": "docs/npi12-evidence/export-live.txt",
-      "bytes": 1896,
-      "sha256": "85be04c6bd747897eb859e2b2bbc189e2944994eb1f0b468998f17dfe84d7002"
+      "bytes": 1406,
+      "sha256": "a6a6703ff56a3b0246c48afef3bc500b480afc094cc368c38c24e474cfcc0aeb"
     },
     {
       "path": "docs/npi12-evidence/export_edge.mjs",
@@ -217,8 +217,8 @@
     },
     {
       "path": "docs/npi12-evidence/locked-install-clean.txt",
-      "bytes": 6043,
-      "sha256": "d649f11db8cac6ccbec2ad3e1045de086b7e16f3428d04329914c0811ca2ee5f"
+      "bytes": 5973,
+      "sha256": "ae8adf65b3c5ad2dc3a8e54590cc34cadc17038aba54baa4cb98b51507e2ae08"
     },
     {
       "path": "docs/npi12-evidence/locked-install.txt",
@@ -362,8 +362,8 @@
     },
     {
       "path": "docs/npi12-evidence/pytest.txt",
-      "bytes": 12573,
-      "sha256": "c459358eff8a3f10be5832fa1907ae3db5a63a0b5936879f5888cc9352a393be"
+      "bytes": 11803,
+      "sha256": "bbf86528f4ff92aaf5e1a8e208e69353bdabe788e1207bc3ad082c35cdf92d07"
     },
     {
       "path": "docs/npi12-evidence/quality-gates.json",

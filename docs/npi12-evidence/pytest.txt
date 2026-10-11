@@ -1,7 +1,7 @@
 
 =================================== ERRORS ====================================
 ________________ ERROR collecting tests/test_api_validation.py ________________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_api_validation.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_api_validation.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -20,7 +20,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 ____________ ERROR collecting tests/test_clustering_product_api.py ____________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_clustering_product_api.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_clustering_product_api.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -39,7 +39,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 ____________ ERROR collecting tests/test_geography_product_mode.py ____________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_geography_product_mode.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_geography_product_mode.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -54,7 +54,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 __________ ERROR collecting tests/test_medoid_representative_api.py ___________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_medoid_representative_api.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_medoid_representative_api.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -75,7 +75,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 _______________ ERROR collecting tests/test_origin_union_api.py _______________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_origin_union_api.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_origin_union_api.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -96,7 +96,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 ______________ ERROR collecting tests/test_point_origins_api.py _______________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_point_origins_api.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_point_origins_api.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -119,7 +119,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 ____________ ERROR collecting tests/test_product_cluster_table.py _____________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_product_cluster_table.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_product_cluster_table.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -138,7 +138,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 _____________ ERROR collecting tests/test_product_mode_catalog.py _____________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_product_mode_catalog.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_product_mode_catalog.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -153,7 +153,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 _______________ ERROR collecting tests/test_regional_all_api.py _______________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_regional_all_api.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_regional_all_api.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -176,7 +176,7 @@ backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
 _______________ ERROR collecting tests/test_xlsx_export_api.py ________________
-ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_xlsx_export_api.py'.
+ImportError while importing test module '[LOCAL_WORKSPACE]\tests\test_xlsx_export_api.py'.
 Hint: make sure your test modules/packages have valid Python names.
 Traceback:
 [USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
@@ -198,7 +198,7 @@ backend\services\clustering_service.py:27: in <module>
 backend\services\xlsx_export.py:11: in <module>
     import xlsxwriter
 E   ModuleNotFoundError: No module named 'xlsxwriter'
-- generated xml file: C:\folder\Python\������ �� ���������\.worktrees\npi12\docs\npi12-evidence\pytest-results.xml -
+- generated xml file: [LOCAL_WORKSPACE]\docs\npi12-evidence\pytest-results.xml -
 =========================== short test summary info ===========================
 ERROR tests/test_api_validation.py
 ERROR tests/test_clustering_product_api.py
