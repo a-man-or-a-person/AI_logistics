@@ -1,4 +1,4 @@
-﻿# PF-01 — Pulse source freshness and frontend cache safety
+# PF-01 — Pulse source freshness and frontend cache safety
 
 Base: protected main `e4ec54951d37f10b1c607788bee263fda200911c`, PR #13/NPI-07 merged; its exact HEAD required verification passed. Worktree/branch: `.worktrees/pulse-freshness`, `fix/pulse-source-freshness`. Existing worktrees, untracked material, hooks/skills and approved NPI-07 history preserved. Isolated ticket/spec: `.scratch/pulse-source-freshness/`.
 
@@ -35,6 +35,7 @@ Source mismatch rejects old generation across all affected frontend caches; same
 | Revision request503 | No /run; visible error; unverified cached data not reinstalled |08|
 | Retry with valid same-generation saved result | Revision succeeds; no new /run |09|
 | CSV replacement with cached comparison | Revision rejects all old variants, sends new /compare; no detail409 required |10|
+| Real source update during calculation | Revision succeeds; held real Flask calculation then atomic CSV replacement; real409; old frozen display retained/stale |12|
 | P2 cached switching/form edit | Bear Volume→Geography; Archive form edit keeps checked Geography; no run/compare from switching |11|
 
 ![Frozen stale display after replacement and failed refresh](pulse-freshness-evidence/03-weekly-replacement-failed-refresh.png)
@@ -46,11 +47,11 @@ Public seams agreed by the request: synthetic CSV + Flask HTTP + Product user ac
 
 New API tests cover no parse on first/check/changed source, presence, restart, eviction, malformed/oversized contexts, private read errors, repeated generation check and no-store errors. Edge covers unchanged/source/restart/network/race for both run/compare, detail invalidation/frozen preservation, retry and cancelled/rapidly repeated revision requests. Existing transport fixtures were updated for the new public endpoint and asynchronous validation boundary; P1 real HTTP fixture uses the real revision API. Initial fixture failures and a restricted-sandbox Edge startup failure were corrected/rerun, never counted as PASS.
 
-Initial full suite:481 passed, zero skipped in105.06s. Final full suite after conflict recovery: see [full](pulse-freshness-evidence/full.txt) and [JUnit](pulse-freshness-evidence/pytest-results.xml). Required Node/Edge startup, zero-skips assertion, Ruff, locked dependency dry-run (all pins already installed)/pip check, frontend/driver JS syntax, diff whitespace gates recorded in [quality gates](pulse-freshness-evidence/quality-gates.txt). No dependency changed.
+Initial full suite:481 passed, zero skipped in105.06s. Final full suite after conflict recovery: **485 passed, zero skipped in113.04s**, including73 mandatory frontend cases. See [full](pulse-freshness-evidence/full.txt) and [JUnit](pulse-freshness-evidence/pytest-results.xml). Required Node/Edge startup, zero-skips assertion, Ruff, locked dependency dry-run (all pins already installed)/pip check, frontend/driver JS syntax, diff whitespace gates recorded in [quality gates](pulse-freshness-evidence/quality-gates.txt). No dependency changed.
 
 ## Independent reviews and publication
 
-Independent Standards and Spec reviews, followed by Ponytail review, are recorded in the evidence directory before publication. Review fixes, if any, require focused regression and final gates. PR targets protected main, exact final HEAD required verification must succeed; no automatic merge. Final PR/CI links and readiness are recorded in the completion report after publication.
+Independent [Standards](pulse-freshness-evidence/standards-review.md):0 hard breaches/0 actionable smells. Independent [Spec](pulse-freshness-evidence/spec-review.md): one P2 source-change-after-revision finding, fixed and re-reviewed at dcfa3b2;0 remaining. [Ponytail](pulse-freshness-evidence/ponytail-review.md): Ship conditional on exact-HEAD CI. Reviews did not independently rerun the full suite. Genuine [RED](pulse-freshness-evidence/red-calculation-race.txt)?[GREEN28](pulse-freshness-evidence/green-calculation-race.txt) verifies both /run and /compare conflicts after successful revision. Final live checkpoint12 confirms real Flask409 after source replacement inside a held calculation, with native manual-K input and old frozen display retained/stale. Review fixes, if any, require focused regression and final gates. PR targets protected main, exact final HEAD required verification must succeed; no automatic merge. Final PR/CI links and readiness are recorded in the completion report after publication.
 
 ## Limits and rollback
 

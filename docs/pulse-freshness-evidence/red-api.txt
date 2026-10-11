@@ -1,0 +1,19 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+______ test_revision_is_read_only_uncached_and_validates_saved_lifetime _______
+
+product_files = (WindowsPath('C:/folder/Python/������ �� ���������/.worktrees/pulse-freshness/.scratch/pf-red-api/test_revision_is_rea...ython/������ �� ���������/.worktrees/pulse-freshness/.scratch/pf-red-api/test_revision_is_read_only_unc0/coords.json'))
+product_client_factory = <function product_client_factory.<locals>.factory at 0x0000022A45AE4720>
+
+    def test_revision_is_read_only_uncached_and_validates_saved_lifetime(product_files, product_client_factory):
+        source, coords = product_files
+        client = product_client_factory(source, coords)
+        service = get_clustering_service()
+        initial = client.get('/api/clustering/revision')
+>       assert initial.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests\test_clustering_product_api.py:241: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_product_api.py::test_revision_is_read_only_uncached_and_validates_saved_lifetime

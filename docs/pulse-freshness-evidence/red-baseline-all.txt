@@ -1,0 +1,8 @@
+RED baseline unchanged/run: frontend bypasses revision validation
+RED baseline unchanged/compare: frontend bypasses revision validation
+RED baseline source/run: frontend bypasses revision validation
+RED baseline source/compare: frontend bypasses revision validation
+RED baseline restart/run: frontend bypasses revision validation
+RED baseline restart/compare: frontend bypasses revision validation
+RED baseline network/run: frontend bypasses revision validation
+RED baseline network/compare: frontend bypasses revision validation
