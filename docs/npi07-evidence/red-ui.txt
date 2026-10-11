@@ -27,14 +27,14 @@ _______ test_origin_summary_selects_frozen_origin_rows_and_keeps_table ________
 >       assert actual == {'origin': 'b', 'origins': ['a', 'b'], 'periods': ['current'],
                           'summary': 1, 'selected': 'true', 'table': True, 'stale': True}
 E       AssertionError: assert {'error': 'Er...mary missing'} == {'origin': 'b...: 'true', ...}
-E         
+E
 E         Left contains 1 more item:
 E         {'error': 'Error: Origin summary missing'}
 E         Right contains 7 more items:
 E         {'origin': 'b',
 E          'origins': ['a', 'b'],
 E          'periods': ['current'],...
-E         
+E
 E         ...Full output truncated (5 lines hidden), use '-vv' to show
 
 tests\test_clustering_frontend_contract.py:1948: AssertionError
