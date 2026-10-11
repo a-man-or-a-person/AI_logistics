@@ -195,3 +195,14 @@ def clustering_point_rows():
         return _error(error)
     except Exception:
         return _internal_error("/api/clustering/point-rows")
+
+
+@clustering_blueprint.post("/point-origins")
+def clustering_point_origins():
+    try:
+        return jsonify({"ok": True, **get_clustering_service().point_origins(
+            _json_payload(), request_id=g.clustering_request_id)})
+    except ProductClusteringError as error:
+        return _error(error)
+    except Exception:
+        return _internal_error("/api/clustering/point-origins")

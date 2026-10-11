@@ -113,8 +113,10 @@ preview/run/compare/detail. Backend regional All разрешает полный
 выбранного региона до segment filters, один раз для compare. Selection intent
 сохраняется отдельно от resolved set; detail использует только frozen explicit
 set и saved membership, без повторного All resolution. UI включает explicit All
-с выбором региона доставки и раскрываемым полным saved набором. Summary/export
-остаются будущими возможностями.
+с выбором региона доставки и раскрываемым полным saved набором. Point origin summary
+использует тот же frozen-row доступ и существующую valid-weight агрегацию; cluster
+attribution берётся из saved point. Inspector выбирает origin и загружает только его
+строки, с отдельными result/point/origin cache keys. Export остаётся будущей возможностью.
 
 ## Границы контуров
 

@@ -186,6 +186,8 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
       ${point.regional_mean_trip_count == null ? '' : `<div><dt>Средний объём региона</dt><dd>${decimal(point.regional_mean_trip_count, 1)} перевозки/точку</dd></div>`}
       ${point.relative_volume_delta == null ? '' : `<div><dt>Отклонение объёма</dt><dd>${percent(point.relative_volume_delta)}</dd></div>`}`;
   const pulseRows = (pulse.rows || []).map(row => `<tr>
+    <td>${escapeHtml(row.origin_name || row.origin_fias || '—')}<small>${escapeHtml(row.origin_fias || '')}</small></td>
+    <td>${escapeHtml(row.origin_region || 'Регион погрузки не определён')}</td>
     <td>${escapeHtml(row.period_id || '—')}</td><td>${escapeHtml(row.period_type || '—')}</td>
     <td>${escapeHtml(row.price_type || '—')}</td><td>${escapeHtml(row.vehicle_type || '—')}</td>
     <td>${escapeHtml(row.tonnage_id || '—')}</td><td>${decimal(row.price, 0)}</td>
@@ -203,10 +205,11 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
         : pulse.status === 'success' && !pulseRows
           ? '<p class="pulse-state">Для точки нет строк Pulse в выбранном срезе.</p>'
           : '';
-  const pulseDetails = tableMode ? `<details class="pulse-details" ${pulse.open ? 'open' : ''}>
+  const pulseDetails = tableMode || handlers.selectedOrigin ? `<details class="pulse-details" ${pulse.open ? 'open' : ''}>
     <summary>Исходные строки Pulse${pulse.total == null ? '' : ` (${fmt(pulse.total)})`}</summary>
     ${pulseState}
-    ${pulseRows ? `<div class="pulse-table"><table><thead><tr><th>Период</th><th>Тип периода</th><th>Тип цены</th><th>Транспорт</th><th>Тоннаж</th><th>Цена</th><th>Маршрут</th><th>₽/км</th><th>Машины</th><th>Предупреждения</th></tr></thead><tbody>${pulseRows}</tbody></table></div>` : ''}
+    ${handlers.selectedOrigin ? `<p>Отправление: ${escapeHtml(handlers.selectedOrigin)} → ${escapeHtml(point.fias_id || point.id)} · Источник: Pulse</p>` : ''}
+    ${pulseRows ? `<div class="pulse-table"><table><thead><tr><th>Отправление / FIAS</th><th>Регион погрузки из строки</th><th>Период</th><th>Тип периода</th><th>Тип цены</th><th>Транспорт</th><th>Тоннаж</th><th>Цена</th><th>Маршрут</th><th>₽/км</th><th>Машины</th><th>Предупреждения</th></tr></thead><tbody>${pulseRows}</tbody></table></div>` : ''}
     ${pulse.hasMore && pulse.status !== 'loading' ? '<button type="button" data-pulse-more>Показать ещё</button>' : ''}
   </details>` : '';
   $('point-details').innerHTML = `
@@ -223,11 +226,40 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
       ${economics}
       ${volume}
     </dl>
+    ${originSummary(handlers)}
     ${pulseDetails}`;
   document.getElementById('point-details-close').addEventListener('click', () => handlers.onPointClear?.());
   document.querySelector('.pulse-details')?.addEventListener('toggle', event => handlers.onPulseToggle?.(event.target.open));
   document.querySelector('[data-pulse-more]')?.addEventListener('click', () => handlers.onPulseMore?.());
   document.querySelector('[data-pulse-retry]')?.addEventListener('click', () => handlers.onPulseRetry?.());
+  document.querySelectorAll('[data-origin-fias]').forEach(button => {
+    button.addEventListener('click', () => handlers.onOriginSelect?.(button.dataset.originFias));
+  });
+  document.querySelector('[data-origins-retry]')?.addEventListener('click', () => handlers.onOriginsRetry?.());
+}
+
+function originSummary(handlers) {
+  const summary = handlers.pointOrigins;
+  if (!summary) return '';
+  const states = {
+    loading: 'Загружаем вклад отправлений…',
+    stale: 'Данные Pulse изменились. Пересчитайте результат.',
+    unavailable: 'Сохранённый результат недоступен. Пересчитайте результат.',
+  };
+  const coverage = (valid, total) => `${fmt(valid)} / ${fmt(total)} (${total ? `${decimal(valid / total * 100, 1)}%` : '—'})`;
+  return `<section class="origin-summary" aria-label="Вклад отправлений"><h4>Вклад отправлений в точку</h4>
+    <p>Источник: Pulse. Средние взвешены по машинам с валидным показателем. Покрытие: валидные машины / все машины отправления. Пропуски не равны нулю.</p>
+    ${summary.status === 'success' ? (summary.origins || []).map(origin => `
+      <button type="button" data-origin-fias="${escapeHtml(origin.origin_fias)}" aria-pressed="${handlers.selectedOrigin === origin.origin_fias}">
+        <strong>${escapeHtml(origin.origin_name || 'Название недоступно')}</strong> · ${escapeHtml(origin.origin_fias)}
+        <span>${fmt(origin.trip_count)} машин · ${fmt(origin.source_row_count)} строк</span>
+        <span>Маршрут: ${km(origin.weighted_route_length)} · покрытие ${coverage(origin.valid_route_length_trip_count, origin.trip_count)}</span>
+        <span>Цена: ${origin.weighted_price == null ? '—' : `${decimal(origin.weighted_price, 0)} ₽`} · покрытие ${coverage(origin.valid_price_trip_count, origin.trip_count)}</span>
+        <small>Регионы погрузки из строк: ${(origin.origin_regions || []).map(region => escapeHtml(region || 'Регион погрузки не определён')).join(', ')}</small>
+        ${origin.warnings?.length ? `<small>${origin.warnings.map(escapeHtml).join(', ')}</small>` : ''}
+      </button>`).join('') : `<p role="${summary.status === 'loading' ? 'status' : 'alert'}">${escapeHtml(states[summary.status] || summary.error || 'Не удалось загрузить вклад отправлений.')}</p>`}
+    ${summary.status === 'error' || summary.status === 'idle' ? '<button type="button" data-origins-retry>Повторить</button>' : ''}
+  </section>`;
 }
 
 export function renderErrorState(error) {

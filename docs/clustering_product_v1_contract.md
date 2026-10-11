@@ -146,7 +146,20 @@ Location cache связан с generation/origins/region/filters, result cache �
 и exclusions. Source/coordinate generation проверяется также перед завершением
 preview/run/compare/detail и публикацией cache entries: гонка даёт
 `STALE_DATA_SNAPSHOT` (409). Snapshot сам по себе не идентифицирует результат.
-XLSX и origin-summary endpoints пока отсутствуют.
+`POST /api/clustering/point-origins` принимает frozen resolved request, snapshot и
+destination_fias, обязательно mode/parameters (в том числе для scalar caller).
+Возвращает data_snapshot, destination_fias, saved cluster_id/status и origins:
+одна строка на contributing origin FIAS внутри этой точки, sorted по FIAS.
+Поля: origin_fias/name, origin_regions (фактические distinct row regions, null
+сохранён), source_row_count, trip_count, weighted_route_length/price/rub_per_km,
+valid_route_length/price/rub_per_km_trip_count и warnings.
+Покрытие каждого показателя — соответствующий valid count / trip_count.
+Метрики используют существующий accumulator; null не заменяется нулём.
+Zero-match origins остаются в analysis.origin_coverage, не создают summary rows.
+Summary и detail используют общий frozen-row доступ, точную saved membership и
+typed errors; нет All expansion или rerun. Inspector показывает summary отдельно,
+origin buttons доступны клавиатурой и открывают lazy50 rows с source attribution.
+XLSX пока отсутствует.
 
 Нормальные result states: `success`, `no_bears`. Нарушение связности не выдаётся
 как успешный результат, а возвращает typed error `CONNECTIVITY_VIOLATION`.

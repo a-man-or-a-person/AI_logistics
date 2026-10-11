@@ -1,5 +1,5 @@
 import {
-  fetchClusteringOptions, fetchClusteringOrigins, fetchClusteringPointRows, runClustering,
+  fetchClusteringOptions, fetchClusteringOrigins, fetchClusteringPointRows, fetchClusteringPointOrigins, runClustering,
   runClusteringComparison,
 } from '../api.js';
 import {
@@ -24,6 +24,7 @@ let originSearchVersion = 0;
 let optionsVersion = 0;
 let runController;
 let pointRowsController;
+let pointOriginsController;
 let comparisonFocusReturn;
 
 export async function initClustering() {
@@ -565,6 +566,14 @@ function renderEmptyState() {
 function renderInspectorState() {
   renderInspector(state, {
     pointRowsKey,
+    pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
+    selectedOrigin: state.ui.selectedOrigin,
+    onOriginSelect: origin => {
+      cancelPointRows();
+      state.ui.selectedOrigin = origin;
+      loadPointRows();
+    },
+    onOriginsRetry: () => loadPointOrigins(),
     onClusterHover: clusterId => highlightCluster(clusterId),
     onClusterSelect: selectCluster,
     onPointSelect: pointId => {
@@ -584,7 +593,7 @@ function renderInspectorState() {
   });
 }
 
-function pointRowsKey() {
+function pointOriginsKey() {
   const result = state.result.data;
   if (!result || !state.ui.selectedPoint) return null;
   return requestSignature({
@@ -592,6 +601,12 @@ function pointRowsKey() {
     ...frozenPointContext(result),
     destination_fias: state.ui.selectedPoint,
   });
+}
+
+function pointRowsKey() {
+  const key = pointOriginsKey();
+  return key && state.ui.selectedOrigin
+    ? requestSignature({...JSON.parse(key), detail_origin_fias: state.ui.selectedOrigin}) : key;
 }
 
 function frozenPointContext(result) {
@@ -614,6 +629,10 @@ function pointRowsForSelection() {
 }
 
 function cancelPointRows() {
+  pointOriginsController?.abort();
+  pointOriginsController = null;
+  const summary = state.ui.pointOrigins?.get(pointOriginsKey());
+  if (summary?.status === 'loading') summary.status = 'idle';
   pointRowsController?.abort();
   pointRowsController = null;
   const detail = pointRowsForSelection();
@@ -623,14 +642,47 @@ function cancelPointRows() {
 function selectPoint(pointId, focus = false) {
   cancelPointRows();
   state.ui.selectedPoint = pointId;
+  state.ui.selectedOrigin = null;
   if (pointId && focus) focusClusteringPoint(pointId);
   renderInspectorState();
+  if (pointId && state.result.data.analysis.frozen_request) loadPointOrigins();
+}
+
+async function loadPointOrigins() {
+  const result = state.result.data;
+  const key = pointOriginsKey();
+  if (!key || state.unavailableResults?.has(result) || state.rejectedSnapshots?.has(result.data_snapshot)) return;
+  const cache = state.ui.pointOrigins ||= new Map();
+  const summary = cache.get(key) || {status: 'idle', origins: []};
+  cache.set(key, summary);
+  if (summary.status === 'success' || summary.status === 'loading') return;
+  const controller = new AbortController();
+  pointOriginsController?.abort();
+  pointOriginsController = controller;
+  summary.status = 'loading';
+  renderInspectorState();
+  try {
+    const response = await fetchClusteringPointOrigins(JSON.parse(key), {signal: controller.signal});
+    if (controller.signal.aborted || key !== pointOriginsKey()) return;
+    Object.assign(summary, response, {status: 'success'});
+  } catch (error) {
+    if (controller.signal.aborted || key !== pointOriginsKey()) return;
+    if (error.code === 'STALE_DATA_SNAPSHOT') rejectDataSnapshot(state, result.data_snapshot);
+    if (error.code === 'RESULT_UNAVAILABLE') rejectUnavailableResult(state, result);
+    summary.status = error.code === 'STALE_DATA_SNAPSHOT' ? 'stale'
+      : error.code === 'RESULT_UNAVAILABLE' ? 'unavailable' : 'error';
+    summary.error = error.message;
+    renderAll();
+  } finally {
+    if (pointOriginsController === controller) pointOriginsController = null;
+    if (key === pointOriginsKey()) renderInspectorState();
+  }
 }
 
 async function loadPointRows({restart = false} = {}) {
   const result = state.result.data;
   const point = result?.points.find(item => item.id === state.ui.selectedPoint);
-  if (!point || result.cluster_table?.supported !== true) return;
+  if (!point || (result.cluster_table?.supported !== true && !state.ui.selectedOrigin)) return;
   if (state.unavailableResults?.has(result) || state.rejectedSnapshots?.has(result.data_snapshot)) return;
   const key = pointRowsKey();
   const detail = pointRowsForSelection();
@@ -648,6 +700,7 @@ async function loadPointRows({restart = false} = {}) {
       ...frozenPointContext(result),
       data_snapshot: result.data_snapshot,
       destination_fias: point.fias_id || point.id,
+      ...(state.ui.selectedOrigin ? {detail_origin_fias: state.ui.selectedOrigin} : {}),
       offset: detail.rows.length,
       limit: 50,
     }, {signal: controller.signal});
