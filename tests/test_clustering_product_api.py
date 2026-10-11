@@ -233,6 +233,35 @@ def _write_csv(path, rows) -> None:
         writer.writerows(rows)
 
 
+def test_revision_is_read_only_uncached_and_validates_saved_lifetime(product_files, product_client_factory):
+    source, coords = product_files
+    client = product_client_factory(source, coords)
+    service = get_clustering_service()
+    initial = client.get('/api/clustering/revision')
+    assert initial.status_code == 200
+    assert service.repository.load_count == 0
+    assert initial.headers['Cache-Control'] == 'no-store'
+    assert len(initial.get_json()['data_snapshot']) == 64
+    run = client.post('/api/clustering/run', json=_payload()).get_json()
+    context = {'data_snapshot': run['data_snapshot'], **run['analysis']['frozen_request']}
+    before = service.repository.load_count
+    check = client.post('/api/clustering/revision', json={'results': [context]})
+    assert check.get_json() == {'ok': True, 'data_snapshot': run['data_snapshot'], 'available': [True]}
+    assert check.headers['Cache-Control'] == 'no-store'
+    service._result_cache.clear()
+    assert client.post('/api/clustering/revision', json={'results': [context]}).get_json()['available'] == [False]
+    set_clustering_service(ClusteringService(source, coordinate_cache_path=coords))
+    restarted = client.post('/api/clustering/revision', json={'results': [context]}).get_json()
+    assert restarted == {'ok': True, 'data_snapshot': run['data_snapshot'], 'available': [False]}
+    with source.open('a', encoding='utf-8') as stream:
+        stream.write('\n')
+    changed = client.post('/api/clustering/revision', json={'results': [context]}).get_json()
+    assert changed['data_snapshot'] != run['data_snapshot']
+    assert changed['available'] == [False]
+    assert service.repository.load_count == before
+    assert get_clustering_service().repository.load_count == 0
+
+
 @pytest.fixture()
 def product_files(tmp_path):
     source = tmp_path / "pulse.csv"
@@ -263,6 +292,43 @@ def product_files(tmp_path):
         encoding="utf-8",
     )
     return source, cache
+
+
+@pytest.mark.parametrize('payload', [{'results': None}, {'results': [{}]}, {'results': [{}] * 7},
+                                    {'results': [{'all_origins': True}]}])
+def test_revision_rejects_invalid_context_without_caching_errors(product_client, payload):
+    response = product_client.post('/api/clustering/revision', json=payload)
+    assert response.status_code == 400
+    assert response.get_json()['code'] == 'INVALID_REQUEST'
+    assert response.headers['Cache-Control'] == 'no-store'
+
+
+def test_revision_checks_generation_again_before_publication(product_client, product_service, monkeypatch):
+    original = product_service._source_token
+    calls = 0
+
+    def changing_source():
+        nonlocal calls
+        calls += 1
+        token = original()
+        return token if calls == 1 else (*token[:-1], token[-1] + 1)
+
+    monkeypatch.setattr(product_service, '_source_token', changing_source)
+    response = product_client.get('/api/clustering/revision')
+    assert response.status_code == 409
+    assert response.get_json()['code'] == 'STALE_DATA_SNAPSHOT'
+    assert response.headers['Cache-Control'] == 'no-store'
+    assert product_service.repository.load_count == 0
+
+
+def test_revision_read_failure_is_typed_and_private(product_files, product_client_factory):
+    source, cache = product_files
+    client = product_client_factory(source.with_name('missing.csv'), cache)
+    response = client.get('/api/clustering/revision')
+    assert response.status_code == 500
+    assert response.get_json()['code'] == 'INTERNAL_ERROR'
+    assert str(source.parent) not in response.get_data(as_text=True)
+    assert response.headers['Cache-Control'] == 'no-store'
 
 
 @pytest.fixture()

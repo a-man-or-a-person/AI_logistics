@@ -90,12 +90,13 @@ export function fetchClusteringOrigins(query = '', limit = 20) {
   return requestJson(`${API_BASE}/api/clustering/origins?${params}`);
 }
 
-function postClustering(path, payload, { signal } = {}) {
+function postClustering(path, payload, { signal, cache } = {}) {
   return requestJson(`${API_BASE}/api/clustering/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
     signal,
+    cache,
   });
 }
 
@@ -105,6 +106,10 @@ export function previewClustering(payload, options) {
 
 export function runClustering(payload, options) {
   return postClustering('run', payload, options);
+}
+
+export function fetchClusteringRevision(results, options = {}) {
+  return postClustering('revision', {results}, {...options, cache: 'no-store'});
 }
 
 export function fetchClusteringPointRows(payload, options) {

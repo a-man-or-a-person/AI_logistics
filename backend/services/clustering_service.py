@@ -27,7 +27,11 @@ from backend.services.boundary_provider import BoundaryProvider
 from ml.clustering.base import ClusterPoint, ClusterResult
 from ml.clustering.economics import relative_rate_delta, weighted_mean
 from ml.data.clustering_dataset import aggregate_clustering_records
-from ml.data.clustering_repository import ClusteringRepository, SourceGenerationMismatch
+from ml.data.clustering_repository import (
+    ClusteringRepository,
+    FileFingerprint,
+    SourceGenerationMismatch,
+)
 from ml.data.loader import default_csv_path, iter_records
 from ml.data.locations import LocationPoint, build_location_dataset, resolve_location_routes
 from ml.data.schema import LogisticsRecord
@@ -210,7 +214,7 @@ class ClusteringService:
 
     def _source_token(self) -> tuple[Any, ...]:
         if self.repository is not None:
-            source = self.repository.fingerprint().cache_token()
+            source = FileFingerprint.from_path(self.repository.source_path).cache_token()
         else:
             resolved = self.source_path.resolve()
             stat = resolved.stat()
@@ -238,7 +242,28 @@ class ClusteringService:
             )
 
     def _data_snapshot(self, token: tuple[Any, ...] | None = None) -> str:
+        # shortcut: metadata identity misses same-size/mtime rewrites; use content identity if required.
         return hashlib.sha256(repr(token or self._refresh_cache_generation()).encode()).hexdigest()
+
+    def revision(self, payload: dict[str, Any]) -> dict[str, Any]:
+        contexts = payload.get("results", [])
+        if not isinstance(contexts, list) or len(contexts) > 6:
+            raise ProductClusteringError("INVALID_REQUEST", "results must be a list of at most 6 contexts.", 400)
+        token = self._refresh_cache_generation()
+        snapshot = self._data_snapshot(token)
+        available = []
+        for context in contexts:
+            if not isinstance(context, dict) or any(name not in context for name in (
+                "data_snapshot", "mode", "parameters", "period_types", "price_types",
+                "vehicle_types", "tonnage_ids",
+            )) or not isinstance(context["data_snapshot"], str):
+                raise ProductClusteringError("INVALID_REQUEST", "Frozen result context required.", 400)
+            frozen = ClusteringRequest.from_payload(context, product_mode_catalog=self.product_mode_catalog)
+            if frozen.all_origins:
+                raise ProductClusteringError("INVALID_REQUEST", "Revision requires resolved origins.", 400)
+            available.append(context["data_snapshot"] == snapshot and (token, frozen) in self._result_cache)
+        self._assert_generation(token)
+        return {"data_snapshot": snapshot, "available": available}
 
     def _load_catalog(self, destination_region: str | None = None) -> list[OriginOption]:
         if self.repository is not None:

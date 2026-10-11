@@ -225,6 +225,7 @@ def _product_workspace_script(actions: str) -> str:
         destination_regions: ['R'], period_types: ['current', 'retro'],
         price_types: ['spot', 'tender'], vehicle_types: [], tonnage_ids: []}};
       let failRun = false, failSearch = false, failRows = false, holdOptions = false, holdSearch = false;
+      let revision = 's1', failRevision = false, available = true, revisionErrorCode = 'INTERNAL_ERROR';
       const heldOptions = [];
       const heldSearch = [];
       let originRegions = null;
@@ -235,6 +236,10 @@ def _product_workspace_script(actions: str) -> str:
         if (holdOptions && path.startsWith('options')) await new Promise(resolve => heldOptions.push(resolve));
         if (holdSearch && path.startsWith('origins')) await new Promise(resolve => heldSearch.push(resolve));
         let data = options, status = 200;
+        if (path === 'revision') {{
+          data = {{ok: true, data_snapshot: revision, available: payload.results.map(() => available)}};
+          if (failRevision) {{status = 503; data = {{code: revisionErrorCode, error: 'Revision offline'}};}}
+        }}
         if (originRegions && path.startsWith('options?')) {{
           const params = new URLSearchParams(path.split('?')[1]);
           const selected = params.getAll('origin_fiases');
@@ -249,7 +254,7 @@ def _product_workspace_script(actions: str) -> str:
           if (failSearch) {{status = 500; data = {{error: 'Catalog offline'}};}}
         }}
         if (path === 'run' || path === 'compare') {{
-          data = {{ok: true, status: 'success', data_snapshot: 's1',
+          data = {{ok: true, status: 'success', data_snapshot: revision,
             analysis: {{mode: payload.mode, parameters: {{k_mode: 'auto', n_clusters: 2}},
               origins, origin_fiases: ['a', 'b'], origin: null, destination_region: 'R',
               filters: {{period_types: ['current'], price_types: ['spot']}},
@@ -295,6 +300,114 @@ def _product_workspace_script(actions: str) -> str:
       }})().catch(error => {{document.body.dataset.result = JSON.stringify({{error: String(error)}});}});
     """
 
+
+
+@pytest.mark.parametrize('operation', ['run', 'compare'])
+@pytest.mark.parametrize('change', ['unchanged', 'source', 'restart', 'network', 'race'])
+def test_calculation_validates_frontend_cache_before_acceptance(operation, change):
+    actual = _run_browser_script(_product_workspace_script(f"""
+      await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
+      const perform = () => document.getElementById({json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes')}).click();
+      perform(); await pause();
+      const saved = workspace.getState().result.data;
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
+      document.querySelector('.pulse-details').open = true; await pause();
+      if ({json.dumps(change)} === 'source') revision = 's2';
+      if ({json.dumps(change)} === 'restart') available = false;
+      if ({json.dumps(change)} === 'network') failRevision = true;
+      if ({json.dumps(change)} === 'race') {{failRevision = true; revisionErrorCode = 'STALE_DATA_SNAPSHOT'; revision = 's2';}}
+      if ({json.dumps(change)} === 'source' || {json.dumps(change)} === 'restart') failRun = true;
+      perform(); await pause();
+      const s = workspace.getState();
+      const snapshot = s.result.data.data_snapshot;
+      const kept = s.result.data === saved;
+      const stale = isResultStale(s);
+      const detailsSafe = [...s.ui.pointRows.values(), ...s.ui.pointOrigins.values()]
+        .every(d => !['success', 'loading'].includes(d.status));
+      const counts = () => requests.filter(r => r.path === {json.dumps(operation)}).length;
+      const failedCount = counts();
+      const checks = requests.filter(r => r.path === 'revision').length;
+      const errorVisible = {json.dumps(operation)} === 'run'
+        ? !document.getElementById('analysis-form-error').classList.contains('hidden')
+        : s.comparison.status === 'error';
+      failRun = false; failRevision = false; available = true;
+      if ({json.dumps(change)} !== 'unchanged') {{perform(); await pause();}}
+      document.body.dataset.result = JSON.stringify({{checks, failedCount, kept, snapshot, stale,
+        detailsSafe, errorVisible, finalCount: counts(), finalSnapshot: s.result.data.data_snapshot}});
+    """))
+    assert 'error' not in actual, actual
+    assert actual['checks'] == 1
+    assert actual['kept'] and actual['snapshot'] == 's1'
+    assert actual['failedCount'] == (2 if change in ('source', 'restart') else 1)
+    assert actual['stale'] == (change in ('source', 'restart', 'race'))
+    assert actual['detailsSafe'] == (change in ('source', 'restart', 'race'))
+    assert actual['errorVisible'] == (change != 'unchanged')
+    assert actual['finalCount'] == (1 if change in ('unchanged', 'network') else 2 if change == 'race' else 3)
+    assert actual['finalSnapshot'] == ('s2' if change in ('source', 'race') else 's1')
+
+
+@pytest.mark.parametrize('replacement', ['reset', 'repeat'])
+def test_cancelled_revision_cannot_publish_or_invalidate_a_new_workspace(replacement):
+    actual = _run_browser_script(_product_workspace_script(f"""
+      await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const transport = globalThis.fetch;
+      let release, signal;
+      globalThis.fetch = async (url, init) => {{
+        if (String(url).endsWith('/revision') && !release) {{
+          signal = init.signal;
+          return new Promise(resolve => {{release = () => resolve({{ok: true,
+            json: async () => ({{ok: true, data_snapshot: 'obsolete', available: [false]}})}});}});
+        }}
+        return transport(url, init);
+      }};
+      document.getElementById('btn-run-clustering').click(); await pause();
+      if ({json.dumps(replacement)} === 'reset') document.getElementById('btn-reset-clustering').click();
+      else {{
+        revision = 's2';
+        document.getElementById('clustering-controls').dispatchEvent(new Event('submit', {{bubbles: true, cancelable: true}}));
+        await pause();
+      }}
+      release(); await pause();
+      const s = workspace.getState();
+      document.body.dataset.result = JSON.stringify({{aborted: signal.aborted,
+        snapshot: s.result.data?.data_snapshot ?? null,
+        obsoleteRejected: s.rejectedSnapshots.has('obsolete'), enabled: !document.getElementById('btn-run-clustering').disabled,
+        error: s.result.error}});
+    """))
+    assert actual == {'aborted': True, 'snapshot': None if replacement == 'reset' else 's2',
+                      'obsoleteRejected': False, 'enabled': True, 'error': None}
+
+
+@pytest.mark.parametrize('operation', ['run', 'compare'])
+def test_source_change_after_revision_during_calculation_rejects_frozen_details(operation):
+    actual = _run_browser_script(_product_workspace_script(f"""
+      await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const saved = workspace.getState().result.data;
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
+      document.querySelector('.pulse-details').open = true; await pause();
+      const transport = globalThis.fetch;
+      globalThis.fetch = async (url, init) => String(url).endsWith('/' + {json.dumps(operation)})
+        ? {{ok: false, status: 409, json: async () => ({{ok: false, code: 'STALE_DATA_SNAPSHOT', error: 'Source changed during calculation'}})}}
+        : transport(url, init);
+      if ({json.dumps(operation)} === 'run') document.querySelector('#cluster-periods input[value="retro"]').click();
+      document.getElementById({json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes')}).click(); await pause();
+      const s = workspace.getState();
+      document.body.dataset.result = JSON.stringify({{kept: s.result.data === saved,
+        rejected: s.rejectedSnapshots.has('s1'),
+        cachesEmpty: !s.result.cache.size && !s.comparison.cache.size,
+        summariesAndRowsBlocked: [...s.ui.pointOrigins.values(), ...s.ui.pointRows.values()].every(d => d.status === 'stale'),
+        revisionSucceeded: requests.some(r => r.path === 'revision'), stale: isResultStale(s)}});
+    """))
+    assert actual == {'kept': True, 'rejected': True, 'cachesEmpty': True,
+                      'summariesAndRowsBlocked': True, 'revisionSucceeded': True, 'stale': True}
 
 
 def test_all_control_requires_region_and_uses_explicit_all_options_run_and_frozen_detail():
@@ -1530,12 +1643,13 @@ def test_cached_comparison_keeps_form_mode_and_presets_after_filter_edit():
       const saved = {{results: {{}}}};
       for (const mode of ['geography', 'geo_cost', 'geo_volume', 'bear_zones', 'bear_volume_zones']) {{
         saved.results[mode] = {{status: 'success', data_snapshot: 'saved', points: [], clusters: [],
-          analysis: {{mode, parameters: {{k_mode: 'auto', n_clusters: 3, economics_weight: 0.3,
+          analysis: {{mode, origin: {{fias_id: 'origin'}}, parameters: {{k_mode: 'auto', n_clusters: 3, economics_weight: 0.3,
             volume_weight: 0.3, bear_threshold: 0.35, volume_threshold: 0.35}}}},
           cluster_table: {{supported: !mode.startsWith('bear')}}, data_quality: {{}}}};
       }}
       const runClustering = async request => {{runs.push(request); return saved.results[request.mode];}};
       const runClusteringComparison = async () => {{compares++; return saved;}};
+      const fetchClusteringRevision = async results => ({{data_snapshot: 'saved', available: results.map(() => true)}});
       (async () => {{
         await initClustering();
         const q = selector => document.querySelector(selector);
@@ -1784,6 +1898,8 @@ def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error,
         return new Promise((resolve, reject) => pending.push({{resolve, reject, signal: options.signal}}));
       }}
       const runClustering = request, runClusteringComparison = request;
+      const fetchClusteringRevision = async results => ({{data_snapshot: results[0].data_snapshot,
+        available: results.map(() => true)}});
       {state_module}
       {controller}
       const options = {{mode_capabilities: [{{id: 'geography', comparison: {{supported: true}},
@@ -1802,6 +1918,7 @@ def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error,
         state.form.destinationRegion = 'New Region';
       }}
       const first = {json.dumps(late_kind)} === 'run' ? executeRun() : runComparison();
+      for (let i = 0; i < 5; i++) await Promise.resolve();
       if ({json.dumps(replacement)} === 'comparison_tab') {{
         activateComparisonMode('geography');
         assert.equal(pending[0].signal.aborted, false, 'old tab cannot cancel new comparison');
@@ -1811,6 +1928,7 @@ def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error,
       else {{
         if ({json.dumps(replacement)} === 'cached') state.result.cache.set(requestSignature(buildRequest(state.form)), fresh);
         const next = executeRun();
+        for (let i = 0; i < 5; i++) await Promise.resolve();
         if ({json.dumps(replacement)} === 'fresh') {{
           pending[1].resolve(fresh);
         }}

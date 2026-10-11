@@ -1,6 +1,6 @@
 import {
   fetchClusteringOptions, fetchClusteringOrigins, fetchClusteringPointRows, fetchClusteringPointOrigins, runClustering,
-  runClusteringComparison,
+  runClusteringComparison, fetchClusteringRevision,
 } from '../api.js';
 import {
   buildRequest, createClusteringState, datasetSnapshot, isComparisonStale,
@@ -343,14 +343,6 @@ async function executeRun() {
   cancelCalculation();
   $('analysis-form-error').classList.add('hidden');
   const cached = state.result.cache.get(requestSignature(request));
-  if (cached) {
-    setResult(state, cached, request);
-    showSingleRunTable(cached);
-    renderClusteringPoints(cached);
-    $('empty-state').classList.add('hidden');
-    renderAll();
-    return;
-  }
   const controller = new AbortController();
   runController = controller;
   const repeated = Boolean(state.result.data);
@@ -362,7 +354,9 @@ async function executeRun() {
   $('loading-sub').textContent = MODE_LABELS[state.form.mode] || state.form.mode;
   $('btn-run-clustering').disabled = true;
   try {
-    const result = await runClustering(request, { signal: controller.signal });
+    const valid = (!cached && !state.result.data) || await validateCachedResults(cached ? [cached] : [], controller);
+    if (controller.signal.aborted) return;
+    const result = cached && valid ? cached : await runClustering(request, { signal: controller.signal });
     if (controller.signal.aborted) return;
     setResult(state, result, request);
     showSingleRunTable(result);
@@ -371,6 +365,10 @@ async function executeRun() {
     renderAll();
   } catch (runError) {
     if (controller.signal.aborted) return;
+    if (runError.code === 'STALE_DATA_SNAPSHOT' && state.result.data) {
+      rejectDataSnapshot(state, state.result.data.data_snapshot);
+      renderAll();
+    }
     state.result.status = 'error';
     state.result.error = { code: runError.code, message: runError.message };
     showFormError(`${runError.code || 'Ошибка'}: ${runError.message}`);
@@ -385,6 +383,36 @@ async function executeRun() {
   } finally {
     if (runController === controller) cancelCalculation();
   }
+}
+
+async function validateCachedResults(candidates, controller) {
+  const results = [...new Set([...candidates, state.result.data].filter(Boolean))];
+  if (!results.length) return true;
+  const contexts = results.map(result => ({
+    ...frozenPointContext(result), data_snapshot: result.data_snapshot,
+  }));
+  let revision;
+  try {
+    revision = await fetchClusteringRevision(contexts, {signal: controller.signal});
+  } catch (error) {
+    if (!controller.signal.aborted && error.code === 'STALE_DATA_SNAPSHOT') {
+      results.forEach(result => rejectDataSnapshot(state, result.data_snapshot));
+      renderAll();
+    }
+    throw error;
+  }
+  if (controller.signal.aborted) return false;
+  if (typeof revision.data_snapshot !== 'string' || !Array.isArray(revision.available)
+      || revision.available.length !== results.length || revision.available.some(value => typeof value !== 'boolean')) {
+    throw new Error('Некорректный ответ проверки актуальности данных');
+  }
+  results.forEach((result, index) => {
+    if (result.data_snapshot !== revision.data_snapshot) rejectDataSnapshot(state, result.data_snapshot);
+    else if (!revision.available[index]) rejectUnavailableResult(state, result);
+  });
+  renderAll();
+  return candidates.every(result => !state.rejectedSnapshots.has(result.data_snapshot)
+    && !state.unavailableResults.has(result));
 }
 
 function reset() {
@@ -442,6 +470,7 @@ function trapComparisonFocus(event) {
 }
 
 async function runComparison() {
+  cancelPointDetailRequests();
   const dataset = datasetSnapshot(state.form);
   const error = validate(buildRequest(state.form));
   if (error) return showFormError(error);
@@ -464,7 +493,10 @@ async function runComparison() {
   };
   renderComparisonState();
   try {
-    const response = cached || await runClusteringComparison(dataset, {signal: controller.signal});
+    const valid = (!cached && !state.result.data)
+      || await validateCachedResults(Object.values(cached?.results || {}), controller);
+    if (controller.signal.aborted) return;
+    const response = cached && valid ? cached : await runClusteringComparison(dataset, {signal: controller.signal});
     if (controller.signal.aborted) return;
     if (Object.values(response.results || {}).some(result => state.rejectedSnapshots?.has(result.data_snapshot))) {
       throw Object.assign(new Error('Данные Pulse изменились. Пересчитайте результат.'), {code: 'STALE_DATA_SNAPSHOT'});
@@ -478,6 +510,10 @@ async function runComparison() {
     if (state.comparison.activeMode) activateComparisonMode(state.comparison.activeMode);
   } catch (error) {
     if (controller.signal.aborted) return;
+    if (error.code === 'STALE_DATA_SNAPSHOT' && state.result.data) {
+      rejectDataSnapshot(state, state.result.data.data_snapshot);
+      renderAll();
+    }
     state.comparison.status = 'error';
     state.comparison.error = { code: error.code, message: error.message };
   }

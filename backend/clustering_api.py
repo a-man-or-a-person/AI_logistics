@@ -31,6 +31,8 @@ def _attach_request_id() -> None:
 @clustering_blueprint.after_request
 def _return_request_id(response):
     response.headers["X-Request-ID"] = g.clustering_request_id
+    if request.path == "/api/clustering/revision":
+        response.headers["Cache-Control"] = "no-store"
     return response
 
 
@@ -76,6 +78,17 @@ def _json_payload() -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ProductClusteringError("INVALID_REQUEST", "Ожидается JSON-объект.", 400)
     return payload
+
+
+@clustering_blueprint.route("/revision", methods=["GET", "POST"])
+def clustering_revision():
+    try:
+        payload = _json_payload() if request.method == "POST" else {}
+        return jsonify({"ok": True, **get_clustering_service().revision(payload)})
+    except ProductClusteringError as error:
+        return _error(error)
+    except Exception:
+        return _internal_error("/api/clustering/revision")
 
 
 @clustering_blueprint.get("/options")
