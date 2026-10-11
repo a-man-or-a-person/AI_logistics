@@ -5,6 +5,7 @@ import json
 import math
 import re
 from datetime import UTC, datetime
+from decimal import ROUND_HALF_UP, Decimal
 from tempfile import TemporaryDirectory, TemporaryFile
 
 import xlsxwriter
@@ -90,7 +91,10 @@ def write_workbook(saved, source_rows, table_sort):
                     values[0] = visible_cluster(row['cluster_id'])
                     coverage = row['economic_coverage']
                     def percent(valid, total):
-                        return f'{valid / total * 100:.1f}%' if total else '—'
+                        if not total:
+                            return '—'
+                        value = Decimal(str(valid / total * 100)).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)
+                        return f'{value}%'.replace('.', ',')
                     values[-1] = (f"{percent(coverage['valid_points'], coverage['total_points'])} точек · "
                                   f"{percent(coverage['valid_trip_count'], coverage['total_trip_count'])} машин")
                     write(table, index, values, [c[2] for c in TABLE_COLUMNS])
@@ -105,19 +109,22 @@ def write_workbook(saved, source_rows, table_sort):
                         label = f'{region if region is not None else UNKNOWN_REGION} → {visible_cluster(cluster)}'
                         # A unique numeric prefix also distinguishes null from a literal unknown-region label.
                         prefix = f'{len(directions) + 1} '
-                        name = prefix + re.sub(r"[\[\]:*?/\\\x00-\x1f]", '_', label).strip("'")[:31-len(prefix)]
+                        name = (prefix + re.sub(r"[\[\]:*?/\\\x00-\x1f]", '_', label)[:31-len(prefix)]).rstrip("'")
                         sheet = workbook.add_worksheet(name)
                         sheet.freeze_panes(1, 0)
                         sheet.write_row(0, 0, DETAIL_COLUMNS, header)
                         directions[identity] = [sheet, 0, label]
                     direction = directions[identity]
                     direction[1] += 1
-                    values = [record[field] for field in DETAIL_COLUMNS]
-                    values[11] = '; '.join(record['warnings'])
-                    values[14] = region if region is not None else UNKNOWN_REGION
-                    values[-1] = visible_cluster(cluster)
-                    patterns = [None] * len(values)
-                    patterns[7:11] = ['0" ₽"', '0.0" км"', '0.0" ₽/км"', '0']
+                    values = [
+                        '; '.join(record[field]) if field == 'warnings'
+                        else (region if region is not None else UNKNOWN_REGION) if field == 'origin_region'
+                        else visible_cluster(cluster) if field == 'cluster_id'
+                        else record[field] for field in DETAIL_COLUMNS
+                    ]
+                    numeric_formats = {'price': '0" ₽"', 'route_length': '0.0" км"',
+                                       'rub_per_km': '0.0" ₽/км"', 'trip_count': '0'}
+                    patterns = [numeric_formats.get(field) for field in DETAIL_COLUMNS]
                     write(direction[0], direction[1], values, patterns)
 
                 context = workbook.add_worksheet('Контекст')

@@ -63,6 +63,7 @@ def test_export_opens_and_explains_exact_saved_source_rows(union_client):
     assert sum(r['trip_count'] for r in records) == 75
     assert {r['origin_fias'] for r in records} == {'a', 'b'}
     assert any(r['price'] is None for r in records)
+    assert all(',0%' in row[-1] for row in sheets[0][1:])
     x = [r for r in records if r['destination_fias'] == 'x']
     assert sum(r['trip_count'] for r in x) == 60
     assert {r['origin_region'] for r in x} == {'Origin Region', 'B Region', 'Регион погрузки не определён'}
@@ -82,12 +83,17 @@ def test_invalid_sort_is_safe_typed_validation(union_client, sort):
     assert response.status_code == 400 and response.get_json()['code'] == 'INVALID_REQUEST'
 
 
-def test_all_and_manual_cache_reuse_preserves_both_saved_intents(union_client):
+@pytest.mark.parametrize('first_all', [True, False])
+def test_all_and_manual_cache_reuse_preserves_both_saved_intents(union_client, first_all):
     client, _ = union_client
     all_request = payload()
     all_request.pop('origin_fiases')
+    if not first_all:
+        client.post('/api/clustering/run', json=payload(origin_fiases=['a', 'b', 'c']))
     all_run = client.post('/api/clustering/run', json={**all_request, 'all_origins': True}).get_json()
     manual = client.post('/api/clustering/run', json=all_run['analysis']['frozen_request']).get_json()
+    ambiguous = client.post('/api/clustering/export', json=export_request(all_run))
+    assert ambiguous.status_code == 400 and ambiguous.get_json()['code'] == 'INVALID_REQUEST'
     for run in (all_run, manual):
         response = client.post('/api/clustering/export', json=export_request(run, selection_intent=run['analysis']['selection_intent']))
         assert response.status_code == 200
@@ -109,7 +115,7 @@ def exported_records(response):
 def test_full_pages_literal_cells_precision_types_and_collision_mapping(union_client):
     client, service = union_client
     labels = ['=1+1', '+SUM(A1)', '-2+3', '@SUM(A1)', 'https://example.test', 'Регион погрузки не определён',
-              "bad[]:*?/\\" + 'Я' * 60, "bad[]:*?/\\" + 'Я' * 59 + 'Ь']
+              "bad[]:*?/\\" + 'Я' * 60, "bad[]:*?/\\" + 'Я' * 59 + 'Ь', 'A' * 28 + "'B"]
     extra = []
     for i in range(60):
         row = _row('x', 'X', origin='a', origin_name=labels[i % len(labels)], trips='1',
@@ -332,3 +338,14 @@ def test_missing_frozen_fields_are_rejected(union_client):
         request.pop(key)
         response = client.post('/api/clustering/export', json=request)
         assert response.status_code == 400 and response.get_json()['code'] == 'INVALID_REQUEST'
+
+
+def test_truncated_region_apostrophe_is_a_legal_sheet_name(union_client):
+    client, service = union_client
+    row = _row('x', 'X', origin='a', trips='1', period_id='202612')
+    row['shipment_point_region'] = 'A' * 28 + "'B"
+    append_rows(service, [row])
+    run = client.post('/api/clustering/run', json=payload()).get_json()
+    names, _, records = exported_records(client.post('/api/clustering/export', json=export_request(run)))
+    assert all(not name.endswith("'") for name in names)
+    assert any(r['origin_region'] == row['shipment_point_region'] for r in records)

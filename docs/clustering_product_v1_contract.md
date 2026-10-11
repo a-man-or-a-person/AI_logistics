@@ -253,7 +253,8 @@ All нужно передавать как уже разрешённый frozen 
 Необязательный `selection_intent` копируется из saved `analysis.selection_intent`:
 backend принимает только provenance, уже наблюдавшийся для этого exact результата.
 Это сохраняет оба намерения после shared cache reuse All/explicit. Без него
-используется provenance первого сохранения; NPI-11 должен передавать intent явно.
+допускается только единственное наблюдавшееся намерение. Когда cache видел оба,
+отсутствие intent возвращает INVALID_REQUEST400; NPI-11 должен передавать intent явно.
 
 Sort key — любой существующий столбец таблицы: `cluster_id`, `point_count`,
 `trip_count`, `trip_share`, `weighted_route_length`, `price.min/median/weighted/max`,

@@ -1001,6 +1001,8 @@ class ClusteringService:
             saved = self._result_cache.get((token, frozen))
             if saved is None:
                 raise ProductClusteringError("RESULT_UNAVAILABLE", "Saved result unavailable. Recalculate.", 409)
+            if "selection_intent" not in payload and len(saved["_selection_intents"]) > 1:
+                raise ProductClusteringError("INVALID_REQUEST", "Provide saved selection_intent for an ambiguous All/manual result.", 400)
             intent = payload.get("selection_intent", saved["analysis"]["selection_intent"])
             if intent not in saved["_selection_intents"]:
                 raise ProductClusteringError("INVALID_REQUEST", "Selection intent does not match a saved calculation.", 400)
