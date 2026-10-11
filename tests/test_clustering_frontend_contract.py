@@ -144,7 +144,7 @@ def test_saved_medoid_name_and_id_are_visible_in_cluster_inspector(mode, name, e
       document.body.innerHTML = {json.dumps(html)};
       {formatters}
       {inspector}
-      const cluster = {{cluster_id:0, point_ids:['member-a','member-b'], point_count:2,
+      const cluster = {{cluster_id:0, point_ids:['member-a',{json.dumps(representative_id)}], point_count:2,
         medoid_point_id:{json.dumps(representative_id)}, representative:{{type:'medoid', point_id:{json.dumps(representative_id)}, name:{json.dumps(name)}}}}};
       const result = {{status:'success', analysis:{{mode:{json.dumps(mode)}, parameters:{{}}, filters:{{}}}},
         clusters:[cluster], points:[], data_quality:{{}}, metrics:{{}}, graph_metrics:{{}}}};

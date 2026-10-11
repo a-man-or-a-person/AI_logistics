@@ -1,0 +1,42 @@
+F
+================================== FAILURES ===================================
+_ test_saved_medoid_name_and_id_are_visible_in_cluster_inspector[\u0434\u0435\u0440\u0435\u0432\u043d\u044f \u041e\u0440\u0438\u0435\u043d\u0442\u0438\u0440 <&>-\u0434\u0435\u0440\u0435\u0432\u043d\u044f \u041e\u0440\u0438\u0435\u043d\u0442\u0438\u0440 <&> \xb7 FIAS: member-b-geography] _
+
+mode = 'geography', name = '������� �������� <&>'
+expected = '������� �������� <&> � FIAS: member-b'
+
+    @pytest.mark.parametrize("mode", ["geography", "geo_cost", "geo_volume", "bear_zones", "bear_volume_zones"])
+    @pytest.mark.parametrize("name,expected", [
+        ("������� �������� <&>", "������� �������� <&> � FIAS: member-b"),
+        ("<missing>", "�������� ���������� � FIAS: member-b"),
+        ("", "�������� ���������� � FIAS: member-b"),
+    ])
+    def test_saved_medoid_name_and_id_are_visible_in_cluster_inspector(mode, name, expected):
+        formatters = _read("frontend/js/clustering/formatters.js").replace("export ", "")
+        inspector = re.sub(r"^import .*?;\n", "", _read("frontend/js/clustering/inspector.js"), flags=re.MULTILINE).replace("export ", "")
+        html = re.search(r"<body[^>]*>([\s\S]*?)</body>", _read("frontend/index.html"))[1]
+        html = re.sub(r"<script[\s\S]*?</script>", "", html)
+        actual = _run_browser_script(f"""
+          document.body.innerHTML = {json.dumps(html)};
+          {formatters}
+          {inspector}
+          const cluster = {{cluster_id:0, point_ids:['member-a','member-b'], point_count:2,
+            medoid_point_id:'member-b', representative:{{type:'medoid', point_id:'member-b', name:{json.dumps(name)}}}}};
+          const result = {{status:'success', analysis:{{mode:{json.dumps(mode)}, parameters:{{}}, filters:{{}}}},
+            clusters:[cluster], points:[], data_quality:{{}}, metrics:{{}}, graph_metrics:{{}}}};
+          const state = {{result:{{data:result}}, form:{{mode:'unrelated', destinationRegion:'Changed'}}, ui:{{selectedCluster:0}}}};
+          renderInspector(state);
+          const row = document.querySelector('#cluster-detail-metrics .metric-row');
+          document.body.dataset.result = JSON.stringify({{label:row.querySelector('span').textContent,
+            value:row.querySelector('strong').textContent, injected:!!row.querySelector('strong > *')}});
+        """)
+>       assert actual["value"] == expected
+E       AssertionError: assert '������� �������� <&>' == '������� ����...IAS: member-b'
+E
+E         - ������� �������� <&> � FIAS: member-b
+E         + ������� �������� <&>
+
+tests\test_clustering_frontend_contract.py:153: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_saved_medoid_name_and_id_are_visible_in_cluster_inspector[\u0434\u0435\u0440\u0435\u0432\u043d\u044f \u041e\u0440\u0438\u0435\u043d\u0442\u0438\u0440 <&>-\u0434\u0435\u0440\u0435\u0432\u043d\u044f \u041e\u0440\u0438\u0435\u043d\u0442\u0438\u0440 <&> \xb7 FIAS: member-b-geography]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
