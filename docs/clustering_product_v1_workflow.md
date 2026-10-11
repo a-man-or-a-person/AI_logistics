@@ -6,7 +6,7 @@
 
 ```text
 Pulse + coordinate cache
-  → explicit origin set or regional All + single destination region (frontend remains scalar)
+  → frontend explicit origin set + single destination region (regional All is API-only)
   → period / price / vehicle / tonnage filters
   → Geography | Geography + Cost | Geography + Volume | Bear Cost | Bear Volume
   → points + representatives + outliers + cluster table
@@ -34,7 +34,7 @@ Backend принимает scalar или canonical `origin_fiases`; options ис
 совместимым. Backend All разрешает полный региональный каталог до segment filters;
 intent хранится отдельно от frozen resolved set. Compare разрешает All один раз,
 detail использует только saved explicit set и membership, без расширения или rerun.
-Multi-origin/All UI, summary и export пока отсутствуют.
+All UI, summary и export пока отсутствуют.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
 Backend переиспользует location/spatial context и result LRU; UI переключает
@@ -59,6 +59,15 @@ Backend переиспользует location/spatial context и result LRU; UI 
 - `controller.js` — orchestration, cached mode activation и map ↔ table ↔ inspector selection.
 
 Изменение формы не удаляет предыдущий результат, а переводит его в stale-state.
+Отправления добавляются по FIAS из поиска и удаляются отдельными токенами.
+Поиск не меняет выбранный набор; токены доступны кнопками и клавишами Delete/Backspace.
+Options используют repeated `origin_fiases`; run/compare — sorted/deduplicated список.
+Общие фильтры и один регион назначения применяются ко всему набору. Inspector
+показывает frozen origins, включая origins без строк после фильтров.
+Detail использует `analysis.frozen_request`, а cache key включает режим и параметры.
+`RESULT_UNAVAILABLE` удаляет соответствующие run/detail/comparison entries и требует
+явного fresh Calculate; source generation при этом не считается rejected.
+Ошибка нового расчёта сохраняет предыдущую карту, таблицу и frozen inspector.
 Повторный расчёт оставляет карту видимой. `no_bears` — успешный пустой результат,
 а connectedness violation — отдельный invalid state.
 
