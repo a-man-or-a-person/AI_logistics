@@ -1,4 +1,4 @@
-import { clusterLabel, decimal, escapeHtml, fmt, km, MODE_LABELS, PERIOD_LABELS, percent, rubKm } from './formatters.js';
+import { clusterLabel, decimal, escapeHtml, fmt, km, MODE_LABELS, PERIOD_LABELS, percent, representativeLabel, rubKm } from './formatters.js';
 
 const $ = id => document.getElementById(id);
 
@@ -153,7 +153,7 @@ function renderClusterDetails(result, cluster, mode) {
     <div><strong>${fmt(cluster.trip_count)}</strong><span>перевозок</span></div>
     ${(cluster.relative_volume_delta ?? cluster.relative_rate_delta) == null ? '' : `<div><strong>${percent(cluster.relative_volume_delta ?? cluster.relative_rate_delta)}</strong><span>к базовому уровню</span></div>`}`;
   $('cluster-detail-metrics').innerHTML = [
-    metric('Представитель', escapeHtml(cluster.representative?.name || cluster.medoid_point_id)),
+    metric('Временный ориентир (medoid)', escapeHtml(representativeLabel(cluster)), 'Реальная точка кластера с минимальной суммой невзвешенных расстояний в проекции. Временный географический ориентир; выбор может измениться при изменении данных.'),
     mode === 'geography' ? metric('Описательный ₽/км', rubKm(cluster.weighted_rub_per_km), 'Показатель не использовался при построении зоны.') : metric('Среднее ₽/км', rubKm(cluster.weighted_rub_per_km)),
     mode === 'geo_cost' ? metric('Средневзвешенная цена', `${decimal(cluster.weighted_price, 0)} ₽`) : '',
     mode === 'geo_cost' ? metric('Региональный ₽/км', rubKm(cluster.regional_weighted_rub_per_km)) : '',

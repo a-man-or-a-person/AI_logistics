@@ -1,0 +1,46 @@
+...............F
+================================== FAILURES ===================================
+_ test_saved_medoid_name_and_id_are_visible_in_cluster_inspector[SyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic-SyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic \xb7 FIAS: member-b-geography] _
+
+mode = 'geography'
+name = 'SyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic...cSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic'
+expected = 'SyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic...icSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic � FIAS: member-b'
+
+    @pytest.mark.parametrize("mode", ["geography", "geo_cost", "geo_volume", "bear_zones", "bear_volume_zones"])
+    @pytest.mark.parametrize("name,expected", [
+        ("������� �������� <&>", "������� �������� <&> � FIAS: member-b"),
+        ("<missing>", "�������� ���������� � FIAS: member-b"),
+        ("", "�������� ���������� � FIAS: member-b"),
+        ("Synthetic" * 30, "Synthetic" * 30 + " � FIAS: member-b"),
+    ])
+    def test_saved_medoid_name_and_id_are_visible_in_cluster_inspector(mode, name, expected):
+        formatters = _read("frontend/js/clustering/formatters.js").replace("export ", "")
+        inspector = re.sub(r"^import .*?;\n", "", _read("frontend/js/clustering/inspector.js"), flags=re.MULTILINE).replace("export ", "")
+        html = re.search(r"<body[^>]*>([\s\S]*?)</body>", _read("frontend/index.html"))[1]
+        html = re.sub(r"<script[\s\S]*?</script>", "", html)
+        actual = _run_browser_script(f"""
+          document.head.innerHTML += '<style>' + {json.dumps(_read('frontend/css/style.css'))} + '</style>';
+          document.body.innerHTML = {json.dumps(html)};
+          {formatters}
+          {inspector}
+          const cluster = {{cluster_id:0, point_ids:['member-a','member-b'], point_count:2,
+            medoid_point_id:'member-b', representative:{{type:'medoid', point_id:'member-b', name:{json.dumps(name)}}}}};
+          const result = {{status:'success', analysis:{{mode:{json.dumps(mode)}, parameters:{{}}, filters:{{}}}},
+            clusters:[cluster], points:[], data_quality:{{}}, metrics:{{}}, graph_metrics:{{}}}};
+          const state = {{result:{{data:result}}, form:{{mode:'unrelated', destinationRegion:'Changed'}}, ui:{{selectedCluster:0}}}};
+          renderInspector(state);
+          const row = document.querySelector('#cluster-detail-metrics .metric-row');
+          document.body.dataset.result = JSON.stringify({{label:row.querySelector('span').textContent,
+            value:row.querySelector('strong').textContent, injected:!!row.querySelector('strong > *'),
+            fits:row.scrollWidth <= row.clientWidth}});
+        """)
+        assert actual["value"] == expected
+        assert "��������� �������� (medoid)" in actual["label"]
+        assert actual["injected"] is False
+>       assert actual["fits"] is True
+E       assert False is True
+
+tests\test_clustering_frontend_contract.py:159: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_saved_medoid_name_and_id_are_visible_in_cluster_inspector[SyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic-SyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSyntheticSynthetic \xb7 FIAS: member-b-geography]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!

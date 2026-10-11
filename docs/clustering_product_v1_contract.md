@@ -109,6 +109,20 @@ Bear eligibility требует положительный `trip_count` и ва�
 Кластеры содержат medoid representative и признак
 `connected`. Product API не возвращает и frontend не строит полигоны.
 
+NPI-09: `representative.type = medoid`, `point_id` совпадает с `medoid_point_id`
+и принадлежит saved `point_ids`; name/lat/lon принадлежат этой реальной resolved
+точке назначения. Medoid минимизирует сумму невзвешенных евклидовых расстояний
+в локальной проекции; ties сохраняют первый member существующего порядка
+(Product: машины по убыванию, затем ID). Singleton использует тот же алгоритм,
+unassigned/unresolved точки не получают представителя. Данные/объёмы могут изменить
+membership или порядок, поэтому неизменность представителя не гарантируется.
+Map labels и cluster inspector используют одно имя/FIAS активного saved result;
+`<missing>`/пустое имя показывается как «Название недоступно» с FIAS. Любой тип
+населённого пункта допустим. **НАВЕРНО / ВРЕМЕННО**: географический ориентир,
+не рекомендация склада/хаба; изменение смысла требует нового business decision.
+Повторное подтверждение записано в [NPI-09 report](npi09_implementation_report.md).
+Нижняя таблица сохраняет существующие колонки.
+
 Для `geography`, `geo_cost` и `geo_volume` поле `cluster_table` содержит компактные
 backend-calculated строки фактических кластеров; для Bear-режимов оно равно
 `{"supported": false}`. `data_snapshot` фиксирует поколения Pulse и coordinate cache.

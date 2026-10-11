@@ -2,6 +2,8 @@
  * map.js — OpenLayers карта, маркеры, попапы
  */
 
+import { representativeLabel } from './clustering/formatters.js';
+
 const SHIP_COLOR    = '#3dd68c';
 const DEL_COLOR     = '#f97316';
 const PERIOD_COLORS = { retro: '#a78bfa', current: '#38bdf8', forecast: '#fbbf24' };
@@ -463,11 +465,11 @@ export function renderClusteringPoints(result) {
       geometry: new ol.geom.Point(coordinates),
       isProductLabel: true,
       clusterId: cluster.cluster_id,
-      zoneLabel: result.analysis?.mode === 'bear_zones'
+      zoneLabel: (result.analysis?.mode === 'bear_zones'
         ? (cluster.cluster_type === 'expensive_singleton' ? 'B•' : `B${Number(cluster.cluster_id) + 1}`)
         : result.analysis?.mode === 'bear_volume_zones'
           ? (cluster.cluster_type === 'high_volume_singleton' ? 'V•' : `V${Number(cluster.cluster_id) + 1}`)
-          : `C${Number(cluster.cluster_id) + 1}`,
+          : `C${Number(cluster.cluster_id) + 1}`) + ` · medoid\n${representativeLabel(cluster)}`,
       strokeColor: cluster.color,
     }));
     features.push(new ol.Feature({

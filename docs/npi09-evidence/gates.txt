@@ -1,0 +1,58 @@
+Python 3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]
+
+v22.23.3
+
+Node and Edge startup: PASS
+
+{"passed": 528, "mandatory_frontend": 110, "skipped": 0}
+
+C:\folder\Python\Проект ИИ Логистика\.worktrees\npi09\.venv-npi09\Scripts\python.exe -m pip check
+No broken requirements found.
+exit=0
+
+C:\folder\Python\Проект ИИ Логистика\.worktrees\npi09\.venv-npi09\Scripts\python.exe -m ruff check . --extend-exclude .venv-npi09,.scratch
+All checks passed!
+exit=0
+
+git diff --check
+warning: in the working copy of 'docs/npi09_implementation_report.md', LF will be replaced by CRLF the next time Git touches it
+exit=0
+
+node --check frontend\js\api.js
+exit=0
+
+node --check frontend\js\app.js
+exit=0
+
+node --check frontend\js\clustering\comparison.js
+exit=0
+
+node --check frontend\js\clustering\controller.js
+exit=0
+
+node --check frontend\js\clustering\controls.js
+exit=0
+
+node --check frontend\js\clustering\formatters.js
+exit=0
+
+node --check frontend\js\clustering\inspector.js
+exit=0
+
+node --check frontend\js\clustering\state.js
+exit=0
+
+node --check frontend\js\clustering\table.js
+exit=0
+
+node --check frontend\js\filters.js
+exit=0
+
+node --check frontend\js\map.js
+exit=0
+
+node --check frontend\js\ol.js
+exit=0
+
+node --check docs/npi09-evidence/live_edge.mjs
+exit=0

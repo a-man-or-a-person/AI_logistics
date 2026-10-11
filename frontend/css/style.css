@@ -31,3 +31,5 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .origin-summary button[data-origin-fias] { display: block; width: 100%; text-align: left; margin-bottom: 8px; padding: 10px; border: 1px solid var(--border2); border-radius: 7px; background: var(--surface); }
 .origin-summary button span, .origin-summary button small { display: block; }
 .origin-summary button[aria-pressed="true"] { border-color: var(--accent); }
+#cluster-detail-metrics .metric-row:first-child{gap:10px}
+#cluster-detail-metrics .metric-row:first-child strong{min-width:0;overflow-wrap:anywhere}
