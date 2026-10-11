@@ -9,7 +9,7 @@ import statistics
 import time
 from collections import Counter, OrderedDict
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -59,6 +59,7 @@ class ClusteringRequest:
     vehicle_types: tuple[str, ...]
     tonnage_ids: tuple[str, ...]
     selection: ModeSelection
+    all_origins: bool = False
 
     @classmethod
     def from_payload(
@@ -106,6 +107,7 @@ class ClusteringRequest:
             vehicle_types=vehicles,
             tonnage_ids=tonnages,
             selection=selection,
+            all_origins=payload.get("all_origins") is True,
         )
 
     @staticmethod
@@ -113,7 +115,9 @@ class ClusteringRequest:
         if sum(name in payload for name in ("origin_fias", "origin_fiases", "all_origins")) != 1:
             raise ProductClusteringError("INVALID_REQUEST", "Select exactly one origin selector.", 400)
         if "all_origins" in payload:
-            raise ProductClusteringError("INVALID_REQUEST", "Regional All is not supported yet.", 400)
+            if payload["all_origins"] is not True:
+                raise ProductClusteringError("INVALID_REQUEST", "all_origins must be true.", 400)
+            return ()
         if "origin_fiases" in payload:
             origins = _string_list(payload, "origin_fiases", ())
         else:
@@ -218,6 +222,8 @@ class ClusteringService:
     def _refresh_cache_generation(self) -> tuple[Any, ...]:
         token = self._source_token()
         if token != self._cache_generation:
+            self._origin_catalog = None
+            self._destination_regions.clear()
             self._location_cache.clear()
             self._graph_cache.clear()
             self._result_cache.clear()
@@ -234,9 +240,13 @@ class ClusteringService:
     def _data_snapshot(self, token: tuple[Any, ...] | None = None) -> str:
         return hashlib.sha256(repr(token or self._refresh_cache_generation()).encode()).hexdigest()
 
-    def _load_catalog(self) -> list[OriginOption]:
+    def _load_catalog(self, destination_region: str | None = None) -> list[OriginOption]:
         if self.repository is not None:
-            return [OriginOption(**item) for item in self.repository.options()["origins"]]
+            return [OriginOption(**item) for item in self.repository.options(
+                destination_region=destination_region)["origins"]]
+        if destination_region is not None:
+            return [item for item in self._load_catalog()
+                    if destination_region in self._destination_regions.get(item.fias_id, set())]
         if self._origin_catalog is not None:
             return self._origin_catalog
         trips: Counter[str] = Counter()
@@ -259,21 +269,41 @@ class ClusteringService:
         self._origin_catalog = catalog
         return catalog
 
-    def origins(self, query: str = "", limit: int = 20) -> list[dict[str, Any]]:
+    def _resolve_selection(self, request: ClusteringRequest, token: tuple[Any, ...]) -> ClusteringRequest:
+        if request.all_origins and not request.origin_fiases:
+            origins = tuple(sorted(item.fias_id for item in self._load_catalog(request.destination_region)))
+            self._assert_generation(token)
+            if not origins:
+                raise ProductClusteringError("UNKNOWN_DESTINATION_REGION", "Unknown destination region.", 422)
+            return replace(request, origin_fiases=origins)
+        return request
+
+    def origins(self, query: str = "", limit: int = 20,
+                destination_region: str | None = None) -> list[dict[str, Any]]:
+        token = self._refresh_cache_generation()
         normalized = " ".join(query.casefold().split())
         matches = [
             item
-            for item in self._load_catalog()
+            for item in self._load_catalog(destination_region)
             if not normalized
             or normalized in f"{item.name} {item.region} {item.fias_id}".casefold()
         ]
+        self._assert_generation(token)
         return [item.as_dict() for item in matches[:limit]]
 
     def options(
         self, origin_fias: str | None = None, destination_region: str | None = None,
-        *, origin_fiases: tuple[str, ...] | None = None,
+        *, origin_fiases: tuple[str, ...] | None = None, all_origins: bool = False,
     ) -> dict[str, Any]:
+        token = self._refresh_cache_generation() if self.repository is not None or all_origins else None
         origins = origin_fiases or ((origin_fias,) if origin_fias else ())
+        if all_origins:
+            selection = ClusteringRequest.from_payload(
+                {"all_origins": True, "destination_region": destination_region},
+                product_mode_catalog=self.product_mode_catalog,
+            )
+            destination_region = selection.destination_region
+            origins = self._resolve_selection(selection, token).origin_fiases
         repository_options: dict[str, Any] = {}
         if self.repository is not None:
             if any(not self.repository.has_origin(origin) for origin in origins):
@@ -294,12 +324,21 @@ class ClusteringService:
             repository_options = self.repository.options(destination_region=destination_region, origin_fiases=origins)
         else:
             repository_options = {
-                "origins": [item.as_dict() for item in self._load_catalog()],
+                "origins": [item.as_dict() for item in self._load_catalog(destination_region)],
                 "destination_regions": sorted(
                     {region for origin in origins
                      for region in self._destination_regions.get(origin, set())}
                 ),
             }
+            if all_origins:
+                rows = [record for record in self._records()
+                        if record.origin_fias in origins and record.destination_region == destination_region]
+                facets = {}
+                for name, field in (("period_types", "period_type"), ("price_types", "price_type"),
+                                    ("vehicle_types", "vehicle_type"), ("tonnage_ids", "tonnage_id")):
+                    counts = Counter(getattr(row, field) for row in rows if getattr(row, field))
+                    facets[name] = [{"value": value, "count": counts[value]} for value in sorted(counts)]
+                repository_options["facets"] = facets
         facets = repository_options.get("facets", {})
         mode_capabilities = self.product_mode_catalog.manifest()
         capability_by_id = {capability.mode_id: capability for capability in mode_capabilities}
@@ -319,6 +358,8 @@ class ClusteringService:
         bear_singleton = mode_parameter("bear_zones", "singleton_threshold")
         volume_threshold = mode_parameter("bear_volume_zones", "volume_threshold")
         volume_singleton = mode_parameter("bear_volume_zones", "singleton_threshold")
+        if token is not None:
+            self._assert_generation(token)
         return {
             "source": "pulse",
             "modes": [capability.mode_id for capability in mode_capabilities],
@@ -689,7 +730,8 @@ class ClusteringService:
             "origin": self._origin(request.origin_fias) if request.origin_fias else None,
             "origin_fias": request.origin_fias,
             "origin_fiases": list(request.origin_fiases),
-            "selection_intent": {"origin_fiases": list(request.origin_fiases)},
+            "selection_intent": ({"all_origins": True} if request.all_origins
+                                 else {"origin_fiases": list(request.origin_fiases)}),
             "frozen_request": {
                 "origin_fiases": list(request.origin_fiases),
                 "destination_region": request.destination_region,
@@ -706,6 +748,7 @@ class ClusteringService:
     def preview(self, request: ClusteringRequest, *, request_id: str = "-") -> dict[str, Any]:
         started = time.perf_counter()
         token = self._refresh_cache_generation()
+        request = self._resolve_selection(request, token)
         self._validate_scope(request)
         locations, report = self._locations(request)
         if not locations:
@@ -748,9 +791,10 @@ class ClusteringService:
         started = time.perf_counter()
         repository_cache_hit = self.repository is None or self.repository.load_count > 0
         token = self._refresh_cache_generation()
+        request = self._resolve_selection(request, token)
         self._validate_scope(request)
         location_cache_hit = self._location_cache_key(token, request) in self._location_cache
-        cache_key = (token, request)
+        cache_key = (token, replace(request, all_origins=False))
         cached = self._result_cache.get(cache_key)
         if cached is not None:
             self._result_cache.move_to_end(cache_key)
@@ -774,6 +818,10 @@ class ClusteringService:
                 (time.perf_counter() - started) * 1000,
             )
             response = copy.deepcopy(cached)
+            response["analysis"]["selection_intent"] = (
+                {"all_origins": True} if request.all_origins
+                else {"origin_fiases": list(request.origin_fiases)}
+            )
             self._assert_generation(token)
             return response
         try:
@@ -831,6 +879,8 @@ class ClusteringService:
         frozen = ClusteringRequest.from_payload(
             payload, product_mode_catalog=self.product_mode_catalog
         )
+        if frozen.all_origins:
+            raise ProductClusteringError("INVALID_REQUEST", "Detail requires frozen resolved origins.", 400)
         offset = payload.get("offset", 0)
         limit = payload.get("limit", 50)
         if (
@@ -1000,12 +1050,14 @@ class ClusteringService:
             for capability in self.product_mode_catalog.manifest()
             if capability.comparison_supported
         }
+        first_mode = next(iter(requests))
+        resolved = self._resolve_selection(ClusteringRequest.from_payload(
+            {**dataset, "mode": first_mode, "parameters": requests[first_mode]},
+            product_mode_catalog=self.product_mode_catalog,
+        ), token)
         results = {
             mode: self.run(
-                ClusteringRequest.from_payload(
-                    {**dataset, "mode": mode, "parameters": parameters},
-                    product_mode_catalog=self.product_mode_catalog,
-                ),
+                replace(resolved, selection=self.product_mode_catalog.select(mode, parameters)),
                 request_id=request_id,
             )
             for mode, parameters in requests.items()

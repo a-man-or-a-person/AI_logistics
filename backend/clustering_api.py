@@ -85,12 +85,15 @@ def clustering_options():
                      if name in request.args}
         if "origin_fiases" in request.args:
             selectors["origin_fiases"] = request.args.getlist("origin_fiases")
+        if selectors.get("all_origins") == "true":
+            selectors["all_origins"] = True
         origins = ClusteringRequest.origin_selector(selectors) if selectors else None
         destination_region = request.args.get("destination_region") or None
         return jsonify(
             {
                 "ok": True,
-                **get_clustering_service().options(destination_region=destination_region, origin_fiases=origins),
+                **get_clustering_service().options(destination_region=destination_region,
+                    origin_fiases=origins, all_origins=selectors.get("all_origins") is True),
             }
         )
     except ProductClusteringError as error:
@@ -114,7 +117,8 @@ def clustering_origins():
             raise ProductClusteringError(
                 "INVALID_REQUEST", "limit должен быть от 1 до 100.", 400
             )
-        return jsonify(get_clustering_service().origins(query, limit))
+        return jsonify(get_clustering_service().origins(query, limit,
+            destination_region=request.args.get("destination_region") or None))
     except ProductClusteringError as error:
         return _error(error)
     except Exception:

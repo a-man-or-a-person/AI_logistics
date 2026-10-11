@@ -202,8 +202,10 @@ class ClusteringRepository:
     ) -> dict[str, Any]:
         fingerprint = self.fingerprint()
         origins = tuple(sorted(set(origin_fiases or ((origin_fias,) if origin_fias else ()))))
+        regional_origins = {origin for origin, region in self._index if region == destination_region}
         result: dict[str, Any] = {
-            "origins": list(self._origin_metadata.values()),
+            "origins": [item for origin, item in self._origin_metadata.items()
+                        if destination_region is None or origin in regional_origins],
             "period_types": sorted(CLUSTERING_ALLOWED_PERIOD_TYPES),
             "dataset_fingerprint": fingerprint.as_dict(),
         }

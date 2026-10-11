@@ -6,7 +6,7 @@
 
 ```text
 Pulse + coordinate cache
-  → explicit origin set + single destination region (frontend remains scalar)
+  → explicit origin set or regional All + single destination region (frontend remains scalar)
   → period / price / vehicle / tonnage filters
   → Geography | Geography + Cost | Geography + Volume | Bear Cost | Bear Volume
   → points + representatives + outliers + cluster table
@@ -31,7 +31,10 @@ Backend принимает scalar или canonical `origin_fiases`; options ис
 повторяемый query parameter. Новые detail-клиенты передают
 `analysis.frozen_request` + snapshot/destination для точного saved result,
 получая row attribution и сохранённую membership. Старый scalar detail остаётся
-совместимым. All, multi-origin UI, summary и export пока отсутствуют.
+совместимым. Backend All разрешает полный региональный каталог до segment filters;
+intent хранится отдельно от frozen resolved set. Compare разрешает All один раз,
+detail использует только saved explicit set и membership, без расширения или rerun.
+Multi-origin/All UI, summary и export пока отсутствуют.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
 Backend переиспользует location/spatial context и result LRU; UI переключает
