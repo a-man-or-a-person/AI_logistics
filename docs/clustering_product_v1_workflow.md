@@ -6,7 +6,7 @@
 
 ```text
 Pulse + coordinate cache
-  → frontend explicit origin set + single destination region (regional All is API-only)
+  → frontend explicit origin set or explicit All + single destination region
   → period / price / vehicle / tonnage filters
   → Geography | Geography + Cost | Geography + Volume | Bear Cost | Bear Volume
   → points + representatives + outliers + cluster table
