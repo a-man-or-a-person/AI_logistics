@@ -1,0 +1,283 @@
+python.exe : 01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET / HTTP/1.1" 200 -
+строка:2 знак:22
++ ... ONUTF8='1'; & '.scratch/npi12-env/Scripts/python.exe' docs/npi12-evid ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (01:40:33 [INFO]...HTTP/1.1" 200 -:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /css/ol.css HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /css/style.css HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/ol.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/app.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/api.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/clustering/controller.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/filters.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/map.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/clustering/state.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/clustering/controls.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/clustering/inspector.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/clustering/comparison.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/clustering/formatters.js HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /js/clustering/table.js HTTP/1.1" 200 -
+01:40:33 [INFO] backend.data_processor: Загружаем данные из [LOCAL_WORKSPACE]\.scra
+tch\npi12-downloads\tmp605lv88g\pulse.csv...
+01:40:33 [INFO] backend.data_processor: Загружено строк: 68, городов отгрузки: 5, городов доставки: 4
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /api/regions HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /api/clustering/options HTTP/1.1" 200 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+01:40:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:33] "GET /api/clustering/origins?q=&limit=30 HTTP/1.1" 200 -
+click #all-origins {"x":30.5,"y":214.3000030517578} hit <input id="all-origins" type="checkbox" aria-describedby="all-origins-hint">
+01:40:34 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:34] "GET /api/clustering/options HTTP/1.1" 200 -
+01:40:34 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:34] "GET /api/clustering/options HTTP/1.1" 200 -
+01:40:34 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:34] "GET /api/clustering/options?all_origins=true&destinatio
+n_region=Region+A HTTP/1.1" 200 -
+click #btn-run-clustering {"x":154.40000915527344,"y":945.4500122070312} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:40:35 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b', 'c') destination=Regio
+n A routes=4 resolved=4 request_id=3f509be66d6f48f28a0df6928962d471 filters={'period_types': ['current'], 'price_types'
+: ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=hit location_cache=miss result_cach
+e=miss graph_cache=miss calculation_ms=260.70
+01:40:35 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:35] "POST /api/clustering/run HTTP/1.1" 200 -
+click [data-sort-key="weighted_route_length"] {"x":628.3374881744385,"y":853.7999877929688} hit <button type="button" data-sort-key="weighted_route_length" aria-label="Сортировать: Маршрут">Маршрут</button>
+click [data-table-toggle] {"x":1175.8562774658203,"y":814.8000001907349} hit <button type="button" data-table-toggle="" aria-expanded="true">Свернуть таблицу</button>
+01:40:36 [INFO] backend.services.clustering_service: clustering_export request_id=ce975814307c4afb8c25528795fcb230 mode
+=geography clusters=2
+01:40:36 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:36] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"01-keyboard-sorted-collapsed-all","facts":{"status":"Файл product-geography-44b993285668.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":true}}
+click input[name="analysis-mode"][value="bear_zones"] {"x":45.900001525878906,"y":579.9500122070312} hit <input type="radio" name="analysis-mode" value="bear_zones">
+click #btn-export-clustering {"x":1326.168800354004,"y":390.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:37 [INFO] backend.services.clustering_service: clustering_export request_id=87ee2edfbb884edb8956a1175d6d5a20 mode
+=geography clusters=2
+01:40:37 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:37] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"02-form-edited-frozen-geography","facts":{"status":"Файл product-geography-44b993285668.xlsx передан браузеру для сохранения. Форма изменена: XLSX использует исходные параметры сохранённого результата.","focus":"btn-export-clustering","tableHidden":false,"collapsed":true}}
+click #compare-modes {"x":1523.012523651123,"y":889} hit <button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button>
+01:40:38 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:38] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:40:38 [INFO] backend.services.clustering_service: clustering request_id=339464cf6bc74c40b42c864dc552822b mode=geogra
+phy origin=('a', 'b', 'c') destination=Region A filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle
+_types': [], 'tonnage_ids': []} source_rows=67 points=4 resolved=4 repository_cache=hit location_cache=hit graph_cache=
+not_used result_cache=hit calculation_ms=5.15
+01:40:38 [INFO] backend.services.clustering_service: clustering mode=geo_cost origin=('a', 'b', 'c') destination=Region
+ A routes=4 resolved=4 request_id=339464cf6bc74c40b42c864dc552822b filters={'period_types': ['current'], 'price_types':
+ ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=hit location_cache=hit result_cache=
+miss graph_cache=hit calculation_ms=23.39
+01:40:38 [INFO] backend.services.clustering_service: clustering mode=geo_volume origin=('a', 'b', 'c') destination=Regi
+on A routes=4 resolved=4 request_id=339464cf6bc74c40b42c864dc552822b filters={'period_types': ['current'], 'price_types
+': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=hit location_cache=hit result_cach
+e=miss graph_cache=hit calculation_ms=21.10
+01:40:38 [INFO] backend.services.clustering_service: clustering mode=bear_zones origin=('a', 'b', 'c') destination=Regi
+on A routes=4 resolved=4 request_id=339464cf6bc74c40b42c864dc552822b filters={'period_types': ['current'], 'price_types
+': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=hit location_cache=hit result_cach
+e=miss graph_cache=hit calculation_ms=11.12
+01:40:38 [INFO] backend.services.clustering_service: clustering mode=bear_volume_zones origin=('a', 'b', 'c') destinati
+on=Region A routes=4 resolved=4 request_id=339464cf6bc74c40b42c864dc552822b filters={'period_types': ['current'], 'pric
+e_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=hit location_cache=hit resu
+lt_cache=miss graph_cache=hit calculation_ms=12.65
+01:40:38 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:38] "POST /api/clustering/compare HTTP/1.1" 200 -
+01:40:38 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:38] "GET /api/geocode-status HTTP/1.1" 200 -
+click [data-show-on-map="geo_cost"] {"x":782.4000244140625,"y":624.8000011444092} hit <button type="button" data-show-on-map="geo_cost">Показать на карте</button>
+click #btn-export-clustering {"x":1326.168800354004,"y":414.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:39 [INFO] backend.services.clustering_service: clustering_export request_id=51291502fbf4454a87ac19210783683b mode
+=geo_cost clusters=2
+01:40:39 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:39] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"mode-geo_cost-download","facts":{"status":"Файл product-geo_cost-44b993285668.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #compare-modes {"x":1512.6124992370605,"y":977.7000122070312} hit <button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button>
+01:40:40 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:40] "POST /api/clustering/revision HTTP/1.1" 200 -
+click [data-show-on-map="geo_volume"] {"x":1080,"y":592.4000377655029} hit <button type="button" data-show-on-map="geo_volume">Показать на карте</button>
+click #btn-export-clustering {"x":1326.168800354004,"y":414.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:40 [INFO] backend.services.clustering_service: clustering_export request_id=2d6490f6c0644f5299eebd6dd1d553d9 mode
+=geo_volume clusters=2
+01:40:40 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:40] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"mode-geo_volume-download","facts":{"status":"Файл product-geo_volume-44b993285668.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #compare-modes {"x":1512.6124992370605,"y":977.7999877929688} hit <button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button>
+01:40:41 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:41] "POST /api/clustering/revision HTTP/1.1" 200 -
+click [data-show-on-map="geography"] {"x":484.8000183105469,"y":578.4000377655029} hit <button type="button" data-show-on-map="geography">Показать на карте</button>
+click #btn-export-clustering {"x":1326.168800354004,"y":390.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:42 [INFO] backend.services.clustering_service: clustering_export request_id=7368757cad8a402aa4af4a44d64951d3 mode
+=geography clusters=2
+01:40:42 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:42] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"mode-geography-download","facts":{"status":"Файл product-geography-44b993285668.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #compare-modes {"x":1523.012523651123,"y":865} hit <button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button>
+01:40:43 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:43] "POST /api/clustering/revision HTTP/1.1" 200 -
+click [data-show-on-map="bear_zones"] {"x":484.8000183105469,"y":1044.6000499725342} hit <button type="button" data-show-on-map="bear_zones">Показать на карте</button>
+{"name":"mode-bear_zones-unsupported","facts":{"status":"XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).","focus":"compare-modes","tableHidden":true,"collapsed":false}}
+01:40:43 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:43] "GET /api/geocode-status HTTP/1.1" 200 -
+click #compare-modes {"x":1523.012523651123,"y":1019.4000244140625} hit <button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button>
+01:40:43 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:43] "POST /api/clustering/revision HTTP/1.1" 200 -
+click [data-show-on-map="bear_volume_zones"] {"x":782.4000244140625,"y":1044.6000499725342} hit <button type="button" data-show-on-map="bear_volume_zones">Показать на карте</button>
+{"name":"mode-bear_volume_zones-unsupported","facts":{"status":"XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).","focus":"compare-modes","tableHidden":true,"collapsed":false}}
+click #compare-modes {"x":1523.012523651123,"y":945.7999877929688} hit <button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button>
+01:40:44 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:44] "POST /api/clustering/revision HTTP/1.1" 200 -
+click [data-show-on-map="geo_cost"] {"x":782.4000244140625,"y":624.8000011444092} hit <button type="button" data-show-on-map="geo_cost">Показать на карте</button>
+click input[name="analysis-mode"][value="bear_volume_zones"] {"x":45.900001525878906,"y":580.3500366210938} hit <input type="radio" name="analysis-mode" value="bear_volume_zones">
+click #btn-export-clustering {"x":1326.168800354004,"y":414.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:45 [INFO] backend.services.clustering_service: clustering_export request_id=5e5e0f0e014c4efa8c31acc6e2dc5bca mode
+=geo_cost clusters=2
+01:40:45 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:45] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"03-cached-cost-after-bear-edit","facts":{"status":"Файл product-geo_cost-44b993285668.xlsx передан браузеру для сохранения. Форма изменена: XLSX использует исходные параметры сохранённого результата.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #all-origins {"x":30.5,"y":214.3000030517578} hit <input id="all-origins" type="checkbox" aria-describedby="all-origins-hint">
+01:40:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:46] "GET /api/clustering/options HTTP/1.1" 200 -
+click #cluster-origin {"x":154.40000915527344,"y":289.70001220703125} hit <input id="cluster-origin" type="search" role="combobox" aria-autocomplete="list" aria-controls="cluster-origin-options" aria-expanded="false" placeholder="Поиск точки отправления…" autocomplete="off"
+01:40:47 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:47] "GET /api/clustering/origins?q=&limit=30 HTTP/1.1" 200 -
+click .combo-option[data-origin-index="0"] {"x":154.4000072479248,"y":340.3000011444092} hit <strong>=1+1</strong>
+01:40:47 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:47] "GET /api/clustering/options?origin_fiases=a HTTP/1.1" 2
+00 -
+click #cluster-origin {"x":154.40000915527344,"y":289.70001220703125} hit <input id="cluster-origin" type="search" role="combobox" aria-autocomplete="list" aria-controls="cluster-origin-options" aria-expanded="false" placeholder="Поиск точки отправления…" autocomplete="off"
+01:40:48 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:48] "GET /api/clustering/origins?q=&limit=30 HTTP/1.1" 200 -
+click .combo-option[data-origin-index="1"] {"x":154.4000072479248,"y":391.9000072479248} hit <strong>Origin Town</strong>
+01:40:48 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:48] "GET /api/clustering/options?origin_fiases=a&origin_fias
+es=b HTTP/1.1" 200 -
+01:40:48 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:48] "GET /api/geocode-status HTTP/1.1" 200 -
+click #cluster-origin {"x":154.40000915527344,"y":289.70001220703125} hit <input id="cluster-origin" type="search" role="combobox" aria-autocomplete="list" aria-controls="cluster-origin-options" aria-expanded="false" placeholder="Поиск точки отправления…" autocomplete="off"
+01:40:49 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:49] "GET /api/clustering/origins?q=&limit=30 HTTP/1.1" 200 -
+click .combo-option[data-origin-index="2"] {"x":154.4000072479248,"y":443.50001335144043} hit <strong>a Warehouse</strong>
+01:40:50 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:50] "GET /api/clustering/options?origin_fiases=a&origin_fias
+es=b&origin_fiases=c HTTP/1.1" 200 -
+01:40:50 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:50] "GET /api/clustering/options?origin_fiases=a&origin_fias
+es=b&origin_fiases=c&destination_region=Region+A HTTP/1.1" 200 -
+click input[name="analysis-mode"][value="geography"] {"x":44.29999923706055,"y":579.9500122070312} hit <input type="radio" name="analysis-mode" value="geography">
+click #btn-run-clustering {"x":154.40000915527344,"y":903.6500244140625} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:40:51 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:51] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:40:51 [INFO] backend.services.clustering_service: clustering request_id=d04ba6f20f184f3d8ee39d3873fff68b mode=geogra
+phy origin=('a', 'b', 'c') destination=Region A filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle
+_types': [], 'tonnage_ids': []} source_rows=67 points=4 resolved=4 repository_cache=hit location_cache=hit graph_cache=
+not_used result_cache=hit calculation_ms=3.70
+01:40:51 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:51] "POST /api/clustering/run HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":370.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:52 [INFO] backend.services.clustering_service: clustering_export request_id=c18061078dfb428488f65566ac187836 mode
+=geography clusters=2
+01:40:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:52] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"04-equivalent-manual-intent","facts":{"status":"Файл product-geography-44b993285668.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+01:40:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:52] "POST /fixture/fail/writer HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":370.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:53 [ERROR] backend.services.clustering_service: clustering_export_failed request_id=e3115188b7d14d5c88cfb364b1158
+585
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]\backend\services\clustering_service.py", line 1038, in ex
+port
+    output = write_workbook(saved, records(), payload["table_sort"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]\docs\npi12-evidence\export_live.py", line 43, in controll
+ed_writer
+    raise OSError('Synthetic resource failure')
+OSError: Synthetic resource failure
+01:40:53 [WARNING] backend.clustering_api: product_clustering_error request_id=e3115188b7d14d5c88cfb364b1158585 endpoin
+t=/api/clustering/export code=EXPORT_FAILED status=500
+01:40:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:53] "[35m[1mPOST /api/clustering/export HTTP/1.1[0m" 500
+-
+{"name":"05-writer-error-retry","facts":{"status":"EXPORT_FAILED: Unable to create a complete XLSX workbook. · Запрос: e3115188b7d14d5c88cfb364b1158585","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #btn-export-clustering {"x":1355.712547302246,"y":370.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Повторить загрузку XLSX</button>
+01:40:53 [INFO] backend.services.clustering_service: clustering_export request_id=1f3c09255b404ce8b5d2480c069dec9d mode
+=geography clusters=2
+01:40:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:53] "POST /api/clustering/export HTTP/1.1" 200 -
+01:40:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:53] "GET /api/geocode-status HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":370.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+{"name":"06-connection-error","facts":{"status":"EXPORT_CONNECTION_ERROR: Нет соединения с сервером. Повторите загрузку XLSX.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #btn-export-clustering {"x":1355.712547302246,"y":370.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Повторить загрузку XLSX</button>
+{"name":"pending-cancel","facts":{"status":"Подготавливаем XLSX…","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #btn-cancel-export {"x":1444.5875778198242,"y":370.20001220703125} hit <button id="btn-cancel-export" class="text-button" type="button">Отменить загрузку</button>
+{"name":"cancelled-cancel","facts":{"status":"Загрузка отменена.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #btn-export-clustering {"x":1326.168800354004,"y":370.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+{"name":"pending-hide","facts":{"status":"Подготавливаем XLSX…","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click [data-view="data"] {"x":226.42499923706055,"y":29.600000381469727} hit <button class="mode-tab" data-view="data" type="button">Карта данных</button>
+click [data-view="clustering"] {"x":357.7437438964844,"y":29.600000381469727} hit <button class="mode-tab" data-view="clustering" type="button">Кластеризация</button>
+{"name":"cancelled-hide","facts":{"status":"Загрузка отменена.","focus":"","tableHidden":false,"collapsed":false}}
+click #btn-export-clustering {"x":1326.168800354004,"y":370.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:40:58 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:58] "GET /api/geocode-status HTTP/1.1" 200 -
+{"name":"pending-run","facts":{"status":"Подготавливаем XLSX…","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click input[name="analysis-mode"][value="geo_volume"] {"x":44.29999923706055,"y":580.3500366210938} hit <input type="radio" name="analysis-mode" value="geo_volume">
+click #btn-run-clustering {"x":154.40000915527344,"y":904.1500244140625} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:40:59 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:59] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:40:59 [INFO] backend.services.clustering_service: clustering request_id=90585451efab40a3861a05090b1d7584 mode=geo_vo
+lume origin=('a', 'b', 'c') destination=Region A filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicl
+e_types': [], 'tonnage_ids': []} source_rows=67 points=4 resolved=4 repository_cache=hit location_cache=hit graph_cache
+=not_used result_cache=hit calculation_ms=4.38
+01:40:59 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:40:59] "POST /api/clustering/run HTTP/1.1" 200 -
+{"name":"cancelled-run","facts":{"status":"Полная таблица и строки Pulse сохранённого результата.","focus":"","tableHidden":false,"collapsed":false}}
+01:41:00 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:00] "POST /fixture/fail/during HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":410.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:41:00 [WARNING] backend.clustering_api: product_clustering_error request_id=b330fc41f62b480685e29294e1ca1d33 endpoin
+t=/api/clustering/export code=STALE_DATA_SNAPSHOT status=409
+01:41:00 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:00] "[31m[1mPOST /api/clustering/export HTTP/1.1[0m" 409
+-
+{"name":"07-source-changed-during-generation","facts":{"status":"STALE_DATA_SNAPSHOT: Data generation changed. Recalculate the result. · Запрос: b330fc41f62b480685e29294e1ca1d33 Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #btn-run-clustering {"x":154.40000915527344,"y":904.1500244140625} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:41:01 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:01] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:41:01 [INFO] backend.services.clustering_service: clustering mode=geo_volume origin=('a', 'b', 'c') destination=Regi
+on A routes=4 resolved=4 request_id=45ab5038ec8443438d7e793180988e7b filters={'period_types': ['current'], 'price_types
+': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=hit location_cache=miss result_cac
+he=miss graph_cache=miss calculation_ms=55.47
+01:41:01 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:01] "POST /api/clustering/run HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":410.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:41:02 [INFO] backend.services.clustering_service: clustering_export request_id=20575e35337f40bc952d0d379be7dda8 mode
+=geo_volume clusters=2
+01:41:02 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:02] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"08-fresh-recovery","facts":{"status":"Файл product-geo_volume-62bc7ff8b4fe.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+01:41:02 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:02] "POST /fixture/change HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":410.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:41:02 [WARNING] backend.clustering_api: product_clustering_error request_id=397c8c2d780b4bacadc6631b08cb14ee endpoin
+t=/api/clustering/export code=STALE_DATA_SNAPSHOT status=409
+01:41:02 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:02] "[31m[1mPOST /api/clustering/export HTTP/1.1[0m" 409
+-
+{"name":"09-source-changed-before-export","facts":{"status":"STALE_DATA_SNAPSHOT: Данные изменились. Пересчитайте результат. · Запрос: 397c8c2d780b4bacadc6631b08cb14ee Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #btn-run-clustering {"x":154.40000915527344,"y":904.1500244140625} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:41:03 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:03] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:41:03 [INFO] backend.services.clustering_service: clustering mode=geo_volume origin=('a', 'b', 'c') destination=Regi
+on A routes=4 resolved=4 request_id=205c9461895e4a7b8f38ae525e6fcb2e filters={'period_types': ['current'], 'price_types
+': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=hit location_cache=miss result_cac
+he=miss graph_cache=miss calculation_ms=52.95
+01:41:03 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:03] "POST /api/clustering/run HTTP/1.1" 200 -
+01:41:03 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:03] "GET /api/geocode-status HTTP/1.1" 200 -
+01:41:03 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:03] "POST /fixture/restart HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":410.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:41:04 [WARNING] backend.clustering_api: product_clustering_error request_id=b94b298654eb46b68897caa8317f8aa2 endpoin
+t=/api/clustering/export code=RESULT_UNAVAILABLE status=409
+01:41:04 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:04] "[31m[1mPOST /api/clustering/export HTTP/1.1[0m" 409
+-
+{"name":"10-restart-unavailable","facts":{"status":"RESULT_UNAVAILABLE: Saved result unavailable. Recalculate. · Запрос: b94b298654eb46b68897caa8317f8aa2 Сохранённый результат недоступен. Пересчитайте результат.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #btn-run-clustering {"x":154.40000915527344,"y":904.1500244140625} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:41:04 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:04] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:41:04 [INFO] backend.services.clustering_service: clustering mode=geo_volume origin=('a', 'b', 'c') destination=Regi
+on A routes=4 resolved=4 request_id=5628b96c13e74289bbb7cb33d5171527 filters={'period_types': ['current'], 'price_types
+': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=67 repository_cache=miss location_cache=miss result_ca
+che=miss graph_cache=miss calculation_ms=40.60
+01:41:04 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:04] "POST /api/clustering/run HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":410.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:41:05 [INFO] backend.services.clustering_service: clustering_export request_id=376c57fd633845009471212dacf6177a mode
+=geo_volume clusters=2
+01:41:05 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:05] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"11-restart-recovery","facts":{"status":"Файл product-geo_volume-804d0508ba98.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+01:41:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:06] "POST /fixture/quality HTTP/1.1" 200 -
+click #all-origins {"x":30.5,"y":214.3000030517578} hit <input id="all-origins" type="checkbox" aria-describedby="all-origins-hint">
+01:41:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:06] "GET /api/clustering/options HTTP/1.1" 200 -
+01:41:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:06] "GET /api/clustering/options?all_origins=true&destinatio
+n_region=Region+A HTTP/1.1" 200 -
+01:41:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:06] "GET /api/clustering/options HTTP/1.1" 200 -
+01:41:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:06] "GET /api/clustering/options?all_origins=true&destinatio
+n_region=Region+A HTTP/1.1" 200 -
+click input[name="analysis-mode"][value="geography"] {"x":44.29999923706055,"y":579.9500122070312} hit <input type="radio" name="analysis-mode" value="geography">
+click #btn-run-clustering {"x":154.40000915527344,"y":903.6500244140625} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:41:07 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:07] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:41:07 [INFO] backend.services.clustering_service: clustering mode=geography origin=('000123', 'a', 'b', 'c', 'new')
+destination=Region A routes=4 resolved=4 request_id=ea4bf2d45ca34d439236a4ab4f2dea6e filters={'period_types': ['current
+'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=70 repository_cache=hit location_cache
+=miss result_cache=miss graph_cache=miss calculation_ms=40.69
+01:41:07 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:07] "POST /api/clustering/run HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":390.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:41:08 [INFO] backend.services.clustering_service: clustering_export request_id=572fff82a7284a3daad80b902a5d7fea mode
+=geography clusters=2
+01:41:08 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:08] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"12-null-route-zero-precision-literal-colliding-names","facts":{"status":"Файл product-geography-e4a9b7619912.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+click #cluster-periods input[value="forecast"] {"x":157.43750381469727,"y":505.2500123977661} hit <input type="checkbox" value="forecast">
+01:41:08 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:08] "GET /api/geocode-status HTTP/1.1" 200 -
+click #btn-run-clustering {"x":154.40000915527344,"y":1095.0250244140625} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:41:09 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:09] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:41:09 [INFO] backend.services.clustering_service: clustering mode=geography origin=('000123', 'a', 'b', 'c', 'new')
+destination=Region A routes=4 resolved=4 request_id=bd7515b451e648cb991cf51fdafa9225 filters={'period_types': ['current
+', 'forecast'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=71 repository_cache=hit lo
+cation_cache=miss result_cache=miss graph_cache=hit calculation_ms=37.56
+01:41:09 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:09] "POST /api/clustering/run HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":390.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:41:09 [INFO] backend.services.clustering_service: clustering_export request_id=acc05dac573941dc96decaa13d1a5c22 mode
+=geography clusters=2
+01:41:09 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:41:09] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"13-supplied-pulse-forecast-combined-periods","facts":{"status":"Файл product-geography-e4a9b7619912.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}
+{"inspected_downloads": 12, "status": "PASS"}

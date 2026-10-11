@@ -1,0 +1,820 @@
+[
+  {
+    "environment": {
+      "protocolVersion": "1.3",
+      "product": "Edg/155.0.4283.45",
+      "revision": "@50f24ef2aa5369a074b8888b7db82d9c0652d642",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "jsVersion": "15.5.9.4"
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-0",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37.04,
+        "name": "село Synthetic 1",
+        "point_id": "p1",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 0,
+        "text": "C1 · medoid\nсело Synthetic 1 · FIAS: p1",
+        "coordinates": [
+          37.04,
+          55
+        ]
+      },
+      "expected": "село Synthetic 1 · FIAS: p1",
+      "memberIds": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-1",
+    "facts": {
+      "representative": {
+        "lat": 55.08,
+        "lon": 37.08,
+        "name": "село Synthetic 10",
+        "point_id": "p10",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 1,
+        "text": "C2 · medoid\nсело Synthetic 10 · FIAS: p10",
+        "coordinates": [
+          37.08,
+          55.079999999999984
+        ]
+      },
+      "expected": "село Synthetic 10 · FIAS: p10",
+      "memberIds": [
+        "p10",
+        "p11",
+        "p8",
+        "p9"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-2",
+    "facts": {
+      "representative": {
+        "lat": 55.04,
+        "lon": 37.04,
+        "name": "село Synthetic 5",
+        "point_id": "p5",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 2,
+        "text": "C3 · medoid\nсело Synthetic 5 · FIAS: p5",
+        "coordinates": [
+          37.04,
+          55.03999999999999
+        ]
+      },
+      "expected": "село Synthetic 5 · FIAS: p5",
+      "memberIds": [
+        "p4",
+        "p5",
+        "p6",
+        "p7"
+      ]
+    }
+  },
+  {
+    "scenario": "01-real-geography",
+    "facts": {
+      "sourceRows": 25,
+      "points": 13,
+      "unresolved": {
+        "active_period_count": 1,
+        "cluster_id": null,
+        "coordinate_source": "unresolved",
+        "coordinate_status": "unresolved",
+        "data_quality_flags": [
+          "unresolved_coordinates"
+        ],
+        "economic_status": "available",
+        "fias_id": "p12",
+        "id": "p12",
+        "lat": null,
+        "lon": null,
+        "name": "деревня без координат",
+        "period_types": [
+          "current"
+        ],
+        "region": "Region A",
+        "regional_mean_trip_count": null,
+        "regional_weighted_rub_per_km": null,
+        "relative_rate_delta": null,
+        "relative_volume_delta": null,
+        "source_row_count": 1,
+        "status": "unresolved",
+        "trip_count": 9999,
+        "valid_price_trip_count": 9999,
+        "valid_route_length_trip_count": 9999,
+        "valid_rub_per_km_trip_count": 9999,
+        "weighted_price": 1000,
+        "weighted_route_length": 100,
+        "weighted_rub_per_km": 10
+      },
+      "table": {
+        "methodology": {
+          "distributions": "unweighted_destination_points",
+          "version": "product_cluster_table_v1",
+          "weighted_values": "metric_valid_trip_count"
+        },
+        "period_types": [
+          "current"
+        ],
+        "rows": [
+          {
+            "cluster_id": 0,
+            "coverage": {
+              "price": {
+                "total_points": 4,
+                "total_trip_count": 534,
+                "valid_points": 4,
+                "valid_trip_count": 534
+              },
+              "route_length": {
+                "total_points": 4,
+                "total_trip_count": 534,
+                "valid_points": 4,
+                "valid_trip_count": 534
+              },
+              "rub_per_km": {
+                "total_points": 4,
+                "total_trip_count": 534,
+                "valid_points": 4,
+                "valid_trip_count": 534
+              }
+            },
+            "economic_coverage": {
+              "total_points": 4,
+              "total_trip_count": 534,
+              "valid_points": 4,
+              "valid_trip_count": 534
+            },
+            "point_count": 4,
+            "point_ids": [
+              "p0",
+              "p1",
+              "p2",
+              "p3"
+            ],
+            "price": {
+              "max": 91000,
+              "median": 1000,
+              "min": 1000,
+              "weighted": 2853.932584269663
+            },
+            "rub_per_km": {
+              "max": 910,
+              "median": 10,
+              "min": 10,
+              "weighted": 28.53932584269663
+            },
+            "trip_count": 534,
+            "trip_share": 0.8585209003215434,
+            "weighted_route_length": 100
+          },
+          {
+            "cluster_id": 1,
+            "coverage": {
+              "price": {
+                "total_points": 4,
+                "total_trip_count": 44,
+                "valid_points": 4,
+                "valid_trip_count": 44
+              },
+              "route_length": {
+                "total_points": 4,
+                "total_trip_count": 44,
+                "valid_points": 4,
+                "valid_trip_count": 44
+              },
+              "rub_per_km": {
+                "total_points": 4,
+                "total_trip_count": 44,
+                "valid_points": 4,
+                "valid_trip_count": 44
+              }
+            },
+            "economic_coverage": {
+              "total_points": 4,
+              "total_trip_count": 44,
+              "valid_points": 4,
+              "valid_trip_count": 44
+            },
+            "point_count": 4,
+            "point_ids": [
+              "p10",
+              "p11",
+              "p8",
+              "p9"
+            ],
+            "price": {
+              "max": 1000,
+              "median": 1000,
+              "min": 1000,
+              "weighted": 1000
+            },
+            "rub_per_km": {
+              "max": 10,
+              "median": 10,
+              "min": 10,
+              "weighted": 10
+            },
+            "trip_count": 44,
+            "trip_share": 0.0707395498392283,
+            "weighted_route_length": 100
+          },
+          {
+            "cluster_id": 2,
+            "coverage": {
+              "price": {
+                "total_points": 4,
+                "total_trip_count": 44,
+                "valid_points": 4,
+                "valid_trip_count": 44
+              },
+              "route_length": {
+                "total_points": 4,
+                "total_trip_count": 44,
+                "valid_points": 4,
+                "valid_trip_count": 44
+              },
+              "rub_per_km": {
+                "total_points": 4,
+                "total_trip_count": 44,
+                "valid_points": 4,
+                "valid_trip_count": 44
+              }
+            },
+            "economic_coverage": {
+              "total_points": 4,
+              "total_trip_count": 44,
+              "valid_points": 4,
+              "valid_trip_count": 44
+            },
+            "point_count": 4,
+            "point_ids": [
+              "p4",
+              "p5",
+              "p6",
+              "p7"
+            ],
+            "price": {
+              "max": 1000,
+              "median": 1000,
+              "min": 1000,
+              "weighted": 1000
+            },
+            "rub_per_km": {
+              "max": 10,
+              "median": 10,
+              "min": 10,
+              "weighted": 10
+            },
+            "trip_count": 44,
+            "trip_share": 0.0707395498392283,
+            "weighted_route_length": 100
+          }
+        ],
+        "supported": true
+      }
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-0",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37.04,
+        "name": "село Synthetic 1",
+        "point_id": "p1",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 0,
+        "text": "C1 · medoid\nсело Synthetic 1 · FIAS: p1",
+        "coordinates": [
+          37.04,
+          55
+        ]
+      },
+      "expected": "село Synthetic 1 · FIAS: p1",
+      "memberIds": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-1",
+    "facts": {
+      "representative": {
+        "lat": 55.08,
+        "lon": 37.08,
+        "name": "село Synthetic 10",
+        "point_id": "p10",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 1,
+        "text": "C2 · medoid\nсело Synthetic 10 · FIAS: p10",
+        "coordinates": [
+          37.08,
+          55.079999999999984
+        ]
+      },
+      "expected": "село Synthetic 10 · FIAS: p10",
+      "memberIds": [
+        "p10",
+        "p11",
+        "p8",
+        "p9"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-2",
+    "facts": {
+      "representative": {
+        "lat": 55.04,
+        "lon": 37.04,
+        "name": "село Synthetic 5",
+        "point_id": "p5",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 2,
+        "text": "C3 · medoid\nсело Synthetic 5 · FIAS: p5",
+        "coordinates": [
+          37.04,
+          55.03999999999999
+        ]
+      },
+      "expected": "село Synthetic 5 · FIAS: p5",
+      "memberIds": [
+        "p4",
+        "p5",
+        "p6",
+        "p7"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geo_cost-cluster-0",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37.04,
+        "name": "село Synthetic 1",
+        "point_id": "p1",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 0,
+        "text": "C1 · medoid\nсело Synthetic 1 · FIAS: p1",
+        "coordinates": [
+          37.04,
+          55
+        ]
+      },
+      "expected": "село Synthetic 1 · FIAS: p1",
+      "memberIds": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geo_cost-cluster-1",
+    "facts": {
+      "representative": {
+        "lat": 55.08,
+        "lon": 37.08,
+        "name": "село Synthetic 10",
+        "point_id": "p10",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 1,
+        "text": "C2 · medoid\nсело Synthetic 10 · FIAS: p10",
+        "coordinates": [
+          37.08,
+          55.079999999999984
+        ]
+      },
+      "expected": "село Synthetic 10 · FIAS: p10",
+      "memberIds": [
+        "p10",
+        "p11",
+        "p8",
+        "p9"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geo_cost-cluster-2",
+    "facts": {
+      "representative": {
+        "lat": 55.04,
+        "lon": 37.04,
+        "name": "село Synthetic 5",
+        "point_id": "p5",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 2,
+        "text": "C3 · medoid\nсело Synthetic 5 · FIAS: p5",
+        "coordinates": [
+          37.04,
+          55.03999999999999
+        ]
+      },
+      "expected": "село Synthetic 5 · FIAS: p5",
+      "memberIds": [
+        "p4",
+        "p5",
+        "p6",
+        "p7"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geo_volume-cluster-0",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37.04,
+        "name": "село Synthetic 1",
+        "point_id": "p1",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 0,
+        "text": "C1 · medoid\nсело Synthetic 1 · FIAS: p1",
+        "coordinates": [
+          37.04,
+          55
+        ]
+      },
+      "expected": "село Synthetic 1 · FIAS: p1",
+      "memberIds": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geo_volume-cluster-1",
+    "facts": {
+      "representative": {
+        "lat": 55.08,
+        "lon": 37.08,
+        "name": "село Synthetic 10",
+        "point_id": "p10",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 1,
+        "text": "C2 · medoid\nсело Synthetic 10 · FIAS: p10",
+        "coordinates": [
+          37.08,
+          55.079999999999984
+        ]
+      },
+      "expected": "село Synthetic 10 · FIAS: p10",
+      "memberIds": [
+        "p10",
+        "p11",
+        "p8",
+        "p9"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geo_volume-cluster-2",
+    "facts": {
+      "representative": {
+        "lat": 55.04,
+        "lon": 37.04,
+        "name": "село Synthetic 5",
+        "point_id": "p5",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 2,
+        "text": "C3 · medoid\nсело Synthetic 5 · FIAS: p5",
+        "coordinates": [
+          37.04,
+          55.03999999999999
+        ]
+      },
+      "expected": "село Synthetic 5 · FIAS: p5",
+      "memberIds": [
+        "p4",
+        "p5",
+        "p6",
+        "p7"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-bear_zones-cluster-0",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37.04,
+        "name": "село Synthetic 1",
+        "point_id": "p1",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 0,
+        "text": "B• · medoid\nсело Synthetic 1 · FIAS: p1",
+        "coordinates": [
+          37.04,
+          55
+        ]
+      },
+      "expected": "село Synthetic 1 · FIAS: p1",
+      "memberIds": [
+        "p1"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-bear_volume_zones-cluster-0",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37,
+        "name": "<missing>",
+        "point_id": "p0",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 0,
+        "text": "V• · medoid\nНазвание недоступно · FIAS: p0",
+        "coordinates": [
+          37,
+          55
+        ]
+      },
+      "expected": "Название недоступно · FIAS: p0",
+      "memberIds": [
+        "p0"
+      ]
+    }
+  },
+  {
+    "scenario": "02-request-free-five-mode-comparison",
+    "facts": {
+      "clusterCounts": {
+        "bear_volume_zones": 1,
+        "bear_zones": 1,
+        "geo_cost": 3,
+        "geo_volume": 3,
+        "geography": 3
+      },
+      "requestFree": true
+    }
+  },
+  {
+    "scenario": "03-missing-name-real-member",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37,
+        "name": "<missing>",
+        "point_id": "p0",
+        "type": "medoid"
+      },
+      "explicitUnavailable": true
+    }
+  },
+  {
+    "scenario": "04-origin-rows",
+    "facts": {
+      "row": {
+        "cluster_id": 0,
+        "destination_fias": "p0",
+        "destination_name": null,
+        "destination_region": "Region A",
+        "origin_fias": "a",
+        "origin_name": "Synthetic a",
+        "origin_region": "Origin Region",
+        "period_id": "202608",
+        "period_type": "current",
+        "price": 1000,
+        "price_type": "spot",
+        "route_length": 100,
+        "rub_per_km": 10,
+        "source_row_id": "4ea5f6a9d8e3839b",
+        "source_timestamp": null,
+        "status": "high_volume_singleton",
+        "tonnage_id": "20",
+        "trip_count": 500,
+        "vehicle_type": "tent",
+        "warnings": []
+      },
+      "representative": {
+        "lat": 55,
+        "lon": 37,
+        "name": "<missing>",
+        "point_id": "p0",
+        "type": "medoid"
+      }
+    }
+  },
+  {
+    "scenario": "05-native-keyboard-drill-up",
+    "facts": {
+      "focusedPoint": "p0",
+      "shiftTabEnterUp": true,
+      "noReclustering": true,
+      "mapPreserved": true
+    }
+  },
+  {
+    "scenario": "06-frozen-form-edit",
+    "facts": {
+      "text": "село Synthetic 1 · FIAS: p1",
+      "frozenLabels": [
+        {
+          "cluster": 1,
+          "text": "C2 · medoid\nсело Synthetic 10 · FIAS: p10",
+          "coordinates": [
+            37.08,
+            55.079999999999984
+          ]
+        },
+        {
+          "cluster": 2,
+          "text": "C3 · medoid\nсело Synthetic 5 · FIAS: p5",
+          "coordinates": [
+            37.04,
+            55.03999999999999
+          ]
+        },
+        {
+          "cluster": 0,
+          "text": "C1 · medoid\nсело Synthetic 1 · FIAS: p1",
+          "coordinates": [
+            37.04,
+            55
+          ]
+        }
+      ],
+      "tableUnchanged": true,
+      "stale": true
+    }
+  },
+  {
+    "scenario": "07-rejected-source-frozen-medoid",
+    "facts": {
+      "error": {
+        "code": "STALE_DATA_SNAPSHOT",
+        "error": "Данные Pulse изменились. Пересчитайте результат.",
+        "ok": false
+      },
+      "labels": [
+        {
+          "cluster": 1,
+          "text": "C2 · medoid\nсело Synthetic 10 · FIAS: p10",
+          "coordinates": [
+            37.08,
+            55.079999999999984
+          ]
+        },
+        {
+          "cluster": 2,
+          "text": "C3 · medoid\nсело Synthetic 5 · FIAS: p5",
+          "coordinates": [
+            37.04,
+            55.03999999999999
+          ]
+        },
+        {
+          "cluster": 0,
+          "text": "C1 · medoid\nсело Synthetic 1 · FIAS: p1",
+          "coordinates": [
+            37.04,
+            55
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-0",
+    "facts": {
+      "representative": {
+        "lat": 55,
+        "lon": 37.04,
+        "name": "село Synthetic 1",
+        "point_id": "p1",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 0,
+        "text": "C1 · medoid\nсело Synthetic 1 · FIAS: p1",
+        "coordinates": [
+          37.04,
+          55
+        ]
+      },
+      "expected": "село Synthetic 1 · FIAS: p1",
+      "memberIds": [
+        "p0",
+        "p1",
+        "p2",
+        "p3"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-1",
+    "facts": {
+      "representative": {
+        "lat": 55.08,
+        "lon": 37.08,
+        "name": "село Synthetic 10",
+        "point_id": "p10",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 1,
+        "text": "C2 · medoid\nсело Synthetic 10 · FIAS: p10",
+        "coordinates": [
+          37.08,
+          55.079999999999984
+        ]
+      },
+      "expected": "село Synthetic 10 · FIAS: p10",
+      "memberIds": [
+        "p10",
+        "p11",
+        "p8",
+        "p9"
+      ]
+    }
+  },
+  {
+    "scenario": "mode-geography-cluster-2",
+    "facts": {
+      "representative": {
+        "lat": 55.04,
+        "lon": 37.04,
+        "name": "село Synthetic 5",
+        "point_id": "p5",
+        "type": "medoid"
+      },
+      "map": {
+        "cluster": 2,
+        "text": "C3 · medoid\nсело Synthetic 5 · FIAS: p5",
+        "coordinates": [
+          37.04,
+          55.03999999999999
+        ]
+      },
+      "expected": "село Synthetic 5 · FIAS: p5",
+      "memberIds": [
+        "p4",
+        "p5",
+        "p6",
+        "p7"
+      ]
+    }
+  },
+  {
+    "scenario": "08-fresh-recalculation",
+    "facts": {
+      "oldSnapshot": "2e657cc16515be7e41df59dcdf5928f3fb8fb904957a9e916eb67ea87003002b",
+      "newSnapshot": "16427b405c8004d6522b755e1fe765d7daae5ab0526fc24513c3fe11f4140b47",
+      "origins": [
+        "a",
+        "b",
+        "new"
+      ]
+    }
+  }
+]

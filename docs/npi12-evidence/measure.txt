@@ -1,0 +1,53 @@
+python.exe : 01:20:10 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b') destinati
+on=Region A routes=4 resolved=4 request_id=1a01b726b37c4d4c909f0ae336327749 filters={'period_types': ['current'], 'pric
+e_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=7 repository_cache=miss location_cache=miss res
+ult_cache=miss graph_cache=miss calculation_ms=171.54
+строка:2 знак:22
++ ... ONUTF8='1'; & '.scratch/npi12-env/Scripts/python.exe' docs/npi12-evid ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (01:20:10 [INFO]...ation_ms=171.54:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+01:20:10 [INFO] backend.services.clustering_service: clustering_export request_id=8b6e88dcf09840f4be479d78ff9d78de mode
+=geography clusters=2
+01:20:10 [INFO] backend.services.clustering_service: clustering mode=geography origin=('o0000', 'o0001', 'o0002', 'o000
+3', 'o0004', 'o0005', 'o0006', 'o0007', 'o0008', 'o0009', 'o0010', 'o0011', 'o0012', 'o0013', 'o0014', 'o0015', 'o0016'
+, 'o0017', 'o0018', 'o0019', 'o0020', 'o0021', 'o0022', 'o0023', 'o0024', 'o0025', 'o0026', 'o0027', 'o0028', 'o0029',
+'o0030', 'o0031', 'o0032', 'o0033') destination=Region A routes=12 resolved=12 request_id=87dae14ff2724115854aa46ef4827
+2fc filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=
+408 repository_cache=hit location_cache=miss result_cache=miss graph_cache=miss calculation_ms=114.87
+01:20:10 [INFO] backend.services.clustering_service: clustering_export request_id=f60d782a16ac4a699911e91d61907ce5 mode
+=geography clusters=4
+{"origins": 34, "destinations": 12, "source_rows": 408, "assigned_destinations": 11, "excluded_source_rows": 34, "catalog_load_seconds": 0.06029900000021371, "run_seconds": 0.11696540000002642, "export_seconds": 0.2066061999998965, "reopen_seconds": 0.05736780000006547, "workbook_bytes": 40778, "reopened_rows": 374, "working_mib": 140.86, "peak_mib": 140.86}
+01:20:12 [INFO] backend.services.clustering_service: clustering mode=geography origin=('o0000', 'o0001', 'o0002', 'o000
+3', 'o0004', 'o0005', 'o0006', 'o0007', 'o0008', 'o0009', 'o0010', 'o0011', 'o0012', 'o0013', 'o0014', 'o0015', 'o0016'
+, 'o0017', 'o0018', 'o0019', 'o0020', 'o0021', 'o0022', 'o0023', 'o0024', 'o0025', 'o0026', 'o0027', 'o0028', 'o0029',
+'o0030', 'o0031', 'o0032', 'o0033', 'o0034', 'o0035', 'o0036', 'o0037', 'o0038', 'o0039', 'o0040', 'o0041', 'o0042', 'o
+0043', 'o0044', 'o0045', 'o0046', 'o0047', 'o0048', 'o0049', 'o0050', 'o0051', 'o0052', 'o0053', 'o0054', 'o0055', 'o00
+56', 'o0057', 'o0058', 'o0059', 'o0060', 'o0061', 'o0062', 'o0063', 'o0064', 'o0065', 'o0066', 'o0067', 'o0068', 'o0069
+', 'o0070', 'o0071', 'o0072', 'o0073', 'o0074', 'o0075', 'o0076', 'o0077', 'o0078', 'o0079', 'o0080', 'o0081', 'o0082',
+ 'o0083', 'o0084', 'o0085', 'o0086', 'o0087', 'o0088', 'o0089', 'o0090', 'o0091', 'o0092', 'o0093', 'o0094', 'o0095', '
+o0096', 'o0097', 'o0098', 'o0099') destination=Region A routes=100 resolved=100 request_id=e1b89ef0c0634006b5afdca31840
+c399 filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows
+=20000 repository_cache=hit location_cache=miss result_cache=miss graph_cache=miss calculation_ms=612.08
+01:20:16 [INFO] backend.services.clustering_service: clustering_export request_id=7ad5b8371f2d4688be3f836739ed4b99 mode
+=geography clusters=20
+{"origins": 100, "destinations": 100, "source_rows": 20000, "assigned_destinations": 100, "excluded_source_rows": 0, "catalog_load_seconds": 1.0246649000000616, "run_seconds": 0.6168379999999161, "export_seconds": 4.088773800000126, "reopen_seconds": 2.4167193000002953, "workbook_bytes": 1522284, "reopened_rows": 20000, "working_mib": 206.44, "peak_mib": 207.76}
+01:20:25 [INFO] backend.services.clustering_service: clustering mode=geography origin=('o0000', 'o0001', 'o0002', 'o000
+3', 'o0004', 'o0005', 'o0006', 'o0007', 'o0008', 'o0009', 'o0010', 'o0011', 'o0012', 'o0013', 'o0014', 'o0015', 'o0016'
+, 'o0017', 'o0018', 'o0019', 'o0020', 'o0021', 'o0022', 'o0023', 'o0024', 'o0025', 'o0026', 'o0027', 'o0028', 'o0029',
+'o0030', 'o0031', 'o0032', 'o0033', 'o0034', 'o0035', 'o0036', 'o0037', 'o0038', 'o0039', 'o0040', 'o0041', 'o0042', 'o
+0043', 'o0044', 'o0045', 'o0046', 'o0047', 'o0048', 'o0049', 'o0050', 'o0051', 'o0052', 'o0053', 'o0054', 'o0055', 'o00
+56', 'o0057', 'o0058', 'o0059', 'o0060', 'o0061', 'o0062', 'o0063', 'o0064', 'o0065', 'o0066', 'o0067', 'o0068', 'o0069
+', 'o0070', 'o0071', 'o0072', 'o0073', 'o0074', 'o0075', 'o0076', 'o0077', 'o0078', 'o0079', 'o0080', 'o0081', 'o0082',
+ 'o0083', 'o0084', 'o0085', 'o0086', 'o0087', 'o0088', 'o0089', 'o0090', 'o0091', 'o0092', 'o0093', 'o0094', 'o0095', '
+o0096', 'o0097', 'o0098', 'o0099', 'o0100', 'o0101', 'o0102', 'o0103', 'o0104', 'o0105', 'o0106', 'o0107', 'o0108', 'o0
+109', 'o0110', 'o0111', 'o0112', 'o0113', 'o0114', 'o0115', 'o0116', 'o0117', 'o0118', 'o0119', 'o0120', 'o0121', 'o012
+2', 'o0123', 'o0124', 'o0125', 'o0126', 'o0127', 'o0128', 'o0129', 'o0130', 'o0131', 'o0132', 'o0133', 'o0134', 'o0135'
+, 'o0136', 'o0137', 'o0138', 'o0139', 'o0140', 'o0141', 'o0142', 'o0143', 'o0144', 'o0145', 'o0146', 'o0147', 'o0148',
+'o0149') destination=Region A routes=300 resolved=300 request_id=e69fcdd28063447486e1cdf281bd4dea filters={'period_type
+s': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=90000 repository_cache=hi
+t location_cache=miss result_cache=miss graph_cache=miss calculation_ms=1205.54
+01:20:46 [INFO] backend.services.clustering_service: clustering_export request_id=2511dd4ba3af40b182449daa0743516e mode
+=geography clusters=15
+{"origins": 150, "destinations": 300, "source_rows": 90000, "assigned_destinations": 300, "excluded_source_rows": 0, "catalog_load_seconds": 3.8914937999998074, "run_seconds": 1.211826899999778, "export_seconds": 21.266117699999995, "reopen_seconds": 16.01978680000002, "workbook_bytes": 6695463, "reopened_rows": 90000, "working_mib": 476.2, "peak_mib": 486.15}

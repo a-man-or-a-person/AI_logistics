@@ -1,0 +1,782 @@
+[
+  {
+    "id": "R1-01",
+    "criterion": "select A+B→region R, Calculate: X shared by A/B is one visible marker/point and one destination entry; machine count equals selected row sum.",
+    "status": "PASS",
+    "action": "Select Alpha+Beta and Region A; Calculate, inspect map/table/point.",
+    "observed": "12 pooled destinations, 480 machines; shared points appear once.",
+    "evidence": "selection/live-results.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-02",
+    "criterion": "activate explicit All without choosing origin-region: result context lists complete R-serving origin set, including origins beyond search suggestions; no unrelated-region origin contributes.",
+    "status": "PASS",
+    "action": "Select All and Region A without an origin region; expand saved origins; query suggestions limit30.",
+    "observed": "36 resolved origins versus30 suggestions; foreign Region B origin absent;12 points/876 machines.",
+    "evidence": "all/live-network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-03",
+    "criterion": "select common segment filters; every contribution obeys them; zero-match selected origin remains explained in frozen context.",
+    "status": "PASS",
+    "action": "Select current/spot/tent/20, add zero-match origin; inspect frozen requests and rows.",
+    "observed": "All four filters submitted; zero-match origin retained with explanation; no tender leakage.",
+    "evidence": "all/live-network.json;selection/live-results.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-04",
+    "criterion": "A+B and B+A select same canonical dataset and metrics; no duplicate trips introduced by selection order or duplicate FIAS input.",
+    "status": "PASS",
+    "action": "POST A+B, B+A and duplicate/whitespace FIAS sets.",
+    "observed": "Canonical result equality, no additional rows/trips; independently executed union regression.",
+    "evidence": "executed-tests.md",
+    "limitation": "API-only identity seam; desktop order is also checked through canonical request output.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-05",
+    "criterion": "empty manual selection without All produces visible validation/recovery, not implicit all; existing scalar single-origin API works equivalently to singleton set.",
+    "status": "PASS",
+    "action": "Submit empty manual selection; select mismatching retro/tender and Calculate.",
+    "observed": "Visible validation/NO_DATA; saved display/context retained; scalar/singleton parity passes API replay.",
+    "evidence": "selection/live-results.json;all/live-network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-06",
+    "criterion": "no matching rows for all selected origins yields NO_DATA visibly; previous result retains original context and no zero-valued fake clusters appear.",
+    "status": "PASS",
+    "action": "Submit empty manual selection; select mismatching retro/tender and Calculate.",
+    "observed": "Visible validation/NO_DATA; saved display/context retained; scalar/singleton parity passes API replay.",
+    "evidence": "selection/live-results.json;all/live-network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-07",
+    "criterion": "change origin selection/region/filters after saved run: old map/table/point details unchanged, stale-form indication visible.",
+    "status": "PASS",
+    "action": "Edit origins, period, region, price and mode with details open.",
+    "observed": "Original summary/rows/table unchanged; stale indication; details send original frozen context.",
+    "evidence": "navigation/live-network.json;selection/live-results.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-08",
+    "criterion": "add new origin/source generation after All result: saved origin set does not expand; successful explicit recalculation resolves new set under new snapshot.",
+    "status": "PASS",
+    "action": "Add origin after All; reject detail; fail refresh; recalculate.",
+    "observed": "Saved36 stays36; new successful snapshot resolves37; separate navigation34→35 and weekly replacement repeated.",
+    "evidence": "all/live-network.json;freshness/network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-09",
+    "criterion": "changing mode uses graph from all pooled coordinate-resolved destinations before eligibility; Geo+Cost/Bear do not add spatial edges or route-duplicate nodes.",
+    "status": "PASS",
+    "action": "Run five actual adapters; execute full-graph/induced-subgraph invariants.",
+    "observed": "Graph constructed before eligibility; no duplicate destination nodes/new business edges.",
+    "evidence": "medoid/live-network.json;executed-tests.md",
+    "limitation": "Graph internals verified at API/algorithm seam, not inferred from rendered pixels.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R1-10",
+    "criterion": "keyboard selects/removes origins, activates All and Calculate with visible focus; selected tokens and preview agree with submitted frozen context.",
+    "status": "PASS",
+    "action": "Native Arrow/Enter origin selection, Tab/Delete removal, Space All, Enter Calculate.",
+    "observed": "Tokens match submitted context; Space toggles retained manual selection; visible focus and validation.",
+    "evidence": "selection/live-results.json;all/live-observations.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-01",
+    "criterion": "sort actual active table, download/open XLSX: first sheet same columns/headers/all row IDs/order; no representative/origin column or viewport truncation.",
+    "status": "PASS",
+    "action": "Sort route column, collapse table, Enter download; independently reopen actual bytes.",
+    "observed": "First sheet14 exact headers, all cluster labels/order; MIME/attachment; no hidden viewport truncation. Invalid/null/tie sorting passes executed API cases.",
+    "evidence": "network.json;workbook-inspection.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-02",
+    "criterion": "workbook direction sheets identify source origin region→saved cluster; no independent origin-region clustering or new run occurs.",
+    "status": "PASS",
+    "action": "Open direction sheets and context of downloaded fixtures with conflicting/null source regions.",
+    "observed": "Rows retain actual region, explicit unknown group, exact saved cluster labels/mapping; no clustering call during export.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-03",
+    "criterion": "source fixture with60 matched rows, browser has loaded0/50: export contains all60 once, with existing normalized fields plus origin/region/destination/cluster.",
+    "status": "PASS",
+    "action": "Download before any detail page; fixture includes60 equal-value missing-metric rows.",
+    "observed": "All60 retained once;67 Geography/Volume and65 Cost assigned rows before updates; unique stable IDs.",
+    "evidence": "workbook-inspection.json;network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-04",
+    "criterion": "origin with two row region labels groups each row by its actual region; catalog modal value never rewrites it; discrepancy disclosed.",
+    "status": "PASS",
+    "action": "Open direction sheets and context of downloaded fixtures with conflicting/null source regions.",
+    "observed": "Rows retain actual region, explicit unknown group, exact saved cluster labels/mapping; no clustering call during export.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-05",
+    "criterion": "null origin region appears in explicit unknown-region direction group, not dropped/guessed.",
+    "status": "PASS",
+    "action": "Open direction sheets and context of downloaded fixtures with conflicting/null source regions.",
+    "observed": "Rows retain actual region, explicit unknown group, exact saved cluster labels/mapping; no clustering call during export.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-06",
+    "criterion": "assigned destination with missing-price individual row exports that row; economic-invalid unassigned destination absent; exclusion counts/reasons disclosed.",
+    "status": "PASS",
+    "action": "Export each active supported comparison variant; reconcile IDs/membership and excluded destinations.",
+    "observed": "Geography/Volume155 machines;Cost145; source rows of assigned X retained despite missing metrics; unassigned destinations excluded with context; no unselected origin leakage.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-07",
+    "criterion": "edit form after run, export: workbook uses original selected origins/filters/mode/parameters/periods/snapshot, not new form.",
+    "status": "PASS",
+    "action": "Edit Bear form after saved Geography; cached Geo+Cost after Bear Volume edit; switch equivalent manual/All.",
+    "observed": "Workbook retains displayed mode, origins, snapshot, normalized parameters/filters and observed selection intent.",
+    "evidence": "network.json;workbook-inspection.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-08",
+    "criterion": "numeric1000.05 retains value with UI price format; unavailable blank and zero numeric; units/denominators/coverage documented.",
+    "status": "PASS",
+    "action": "Replace synthetic quality rows; real browser download/open; inspect XML cells and sheet map.",
+    "observed": "1000.05 preserved; zero numeric, missing blank; all four =,+,-,@ prefixes literal;000123 text; legal unique long/colliding names; no formulas/macros/external links.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-09",
+    "criterion": "source strings beginning =,+,-,@ remain literal text with no executed formulas/links; IDs retain leading zeros/text identity.",
+    "status": "PASS",
+    "action": "Replace synthetic quality rows; real browser download/open; inspect XML cells and sheet map.",
+    "observed": "1000.05 preserved; zero numeric, missing blank; all four =,+,-,@ prefixes literal;000123 text; legal unique long/colliding names; no formulas/macros/external links.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-10",
+    "criterion": "conflict detected before export or generation changed during export: visible error/recalculate, no mixed or apparently successful partial workbook.",
+    "status": "PASS",
+    "action": "Modify source before export and inside real workbook writer; cancel pending transport.",
+    "observed": "STALE_DATA_SNAPSHOT409; no extra download; old result retained, export blocked until fresh success; cancellation never hands partial bytes to browser.",
+    "evidence": "network.json;live-observations.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-11",
+    "criterion": "same region but unselected origin rows absent; cached comparison variant export uses only its own saved membership/mode.",
+    "status": "PASS",
+    "action": "Export each active supported comparison variant; reconcile IDs/membership and excluded destinations.",
+    "observed": "Geography/Volume155 machines;Cost145; source rows of assigned X retained despite missing metrics; unassigned destinations excluded with context; no unselected origin leakage.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-12",
+    "criterion": "download has real XLSX MIME/attachment and opens; collapsed table still exports full saved rows; invalid sort rejected and row order follows null/tie rules.",
+    "status": "PASS",
+    "action": "Sort route column, collapse table, Enter download; independently reopen actual bytes.",
+    "observed": "First sheet14 exact headers, all cluster labels/order; MIME/attachment; no hidden viewport truncation. Invalid/null/tie sorting passes executed API cases.",
+    "evidence": "network.json;workbook-inspection.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-13",
+    "criterion": "direction names long/invalid/colliding remain distinct/legal and full labels reconstructable from context; no silently overwritten sheet.",
+    "status": "PASS",
+    "action": "Replace synthetic quality rows; real browser download/open; inspect XML cells and sheet map.",
+    "observed": "1000.05 preserved; zero numeric, missing blank; all four =,+,-,@ prefixes literal;000123 text; legal unique long/colliding names; no formulas/macros/external links.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-14",
+    "criterion": "keyboard initiates export; loading/error/retry visible; server result unavailable or empty/unsupported table explained; retry does not silently rerun clustering.",
+    "status": "PASS",
+    "action": "Enter export; writer/network failure and retry; pending cancel; Bear and restarted service.",
+    "observed": "Loading/cancel/error/retry visible; no run/compare on retry; Bear unsupported; RESULT_UNAVAILABLE recovery; empty guard separately exercised in actual Edge controller seam.",
+    "evidence": "network.json;live-observations.json;empty-guard.json;executed-tests.md",
+    "limitation": "Empty-table branch is Edge/controller-only; normal downloads and typed errors use real Flask.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R2-15",
+    "criterion": "union exported source-row IDs exactly equals filtered source records for saved assigned destinations; counts/weighted metrics reconcile per validity rules, no source-page cap or fabricated values.",
+    "status": "PASS",
+    "action": "Export each active supported comparison variant; reconcile IDs/membership and excluded destinations.",
+    "observed": "Geography/Volume155 machines;Cost145; source rows of assigned X retained despite missing metrics; unassigned destinations excluded with context; no unselected origin leakage.",
+    "evidence": "workbook-inspection.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-01",
+    "criterion": "A→X10 machines100km and B→X30 machines300km display250km at pooled X; same metric in workbook.",
+    "status": "PASS",
+    "action": "Independent A10×100+B30×300, add20 missing lengths; inspect pooled point and downloads.",
+    "observed": "250km with valid40; missing-weight rows increase totals but not mean. Exact40/60 tested through executed HTTP case; downloaded expanded fixture has40/140.",
+    "evidence": "measurements.json;workbook-inspection.json;executed-tests.md",
+    "limitation": "Exact40/60 arithmetic is API seam; browser-expanded fixture additionally contains60 missing-metric rows.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-02",
+    "criterion": "add20 machines with missing distance: mean stays250, coverage40/60; no zero imputation.",
+    "status": "PASS",
+    "action": "Independent A10×100+B30×300, add20 missing lengths; inspect pooled point and downloads.",
+    "observed": "250km with valid40; missing-weight rows increase totals but not mean. Exact40/60 tested through executed HTTP case; downloaded expanded fixture has40/140.",
+    "evidence": "measurements.json;workbook-inspection.json;executed-tests.md",
+    "limitation": "Exact40/60 arithmetic is API seam; browser-expanded fixture additionally contains60 missing-metric rows.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-03",
+    "criterion": "no valid positive lengths/weights → unavailable null/—/blank, not zero or divide-by-zero success.",
+    "status": "PASS",
+    "action": "Set all fixture route lengths missing, Calculate and download/open.",
+    "observed": "Backend null; every rendered route cell —; every workbook route cell blank. Zero/invalid-weight cases pass executed API tests.",
+    "evidence": "workbook-inspection.json;live-observations.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-04",
+    "criterion": "cluster over multiple points with partial missing distances matches hand-calculated raw valid-row mean, not total-trip-weighted average of point means.",
+    "status": "PASS",
+    "action": "Calculate12-point All with partial route gaps; compare raw valid sums and saved table/export.",
+    "observed": "First cluster route208.0km uses valid251 machines rather than total291; raw numerator52200; remaining clusters250km.",
+    "evidence": "navigation/live-observations.json;measurements.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-05",
+    "criterion": "point origin summary isolates A100/B300km and respective machines/price valid denominators from same frozen rows.",
+    "status": "PASS",
+    "action": "Open contributors A/B and their frozen rows at shared destination.",
+    "observed": "A100km versus B300km; B region null/conflict retained; separate valid route/price weights reconcile.",
+    "evidence": "navigation/live-network.json;measurements.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-06",
+    "criterion": "route tooltip/methodology identifies km, machine weights and valid denominator; price/rate missing does not remove a valid route contribution.",
+    "status": "PASS",
+    "action": "Hover/focus route methodology; pointer transfer/Escape; inspect valid weights.",
+    "observed": "Existing method names km/machine weights/valid denominator; missing-price valid route still contributes.",
+    "evidence": "navigation/live-observations.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-07",
+    "criterion": "single-origin synthetic regression keeps existing point/table values, min/median/max semantics and valid coverage.",
+    "status": "PASS",
+    "action": "Run single-origin saved-table regression with literal expected min/median/max/coverage.",
+    "observed": "120km valid5/total9; price28000.05/9; point min/median/max preserved. Scalar/singleton HTTP parity passes.",
+    "evidence": "executed-tests.md",
+    "limitation": "API-only single-origin arithmetic seam; desktop table presentation independently replayed on union.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R3-08",
+    "criterion": "segment filters and combined selected periods affect numerator/denominator together; forecast label denotes supplied Pulse period.",
+    "status": "PASS",
+    "action": "Combine retro/current; configure common filters; add supplied forecast row and run current+forecast/download.",
+    "observed": "480→600 machines on retro/current; current+forecast retains actual Pulse forecast label; valid route200/weight2; all four filters constrain slice.",
+    "evidence": "selection/live-results.json;all/live-network.json;network.json;workbook-inspection.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R4-01",
+    "criterion": "readiness document maps actual repository responsibilities and current Pulse assumptions; records_factory is not claimed as full source integration.",
+    "status": "PASS",
+    "action": "Review connected repository/loader/accumulator/service and correct obsolete CURRENT stage claims.",
+    "observed": "Readiness accurately describes actual Pulse responsibility, frozen All/detail/export identity, weights, revisions and paging; no provider fiction.",
+    "evidence": "../pulse_ati_readiness.md;spec-review.md",
+    "limitation": "Document/source review only; historical NPI-01 proof is not counted as new runtime evidence.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R4-02",
+    "criterion": "every ATI mapping/access/schema/owner/units/period/revision/paging gap explicit UNKNOWN, with blocked future activity identified; no invented verified mapping.",
+    "status": "PASS",
+    "action": "Review ATI register, UI source labels and staged artifact scope.",
+    "observed": "All ATI owner/access/schema/units/grain/revisions/paging/license gaps remain UNKNOWN; no ATI runtime or local forecast added; synthetic evidence only.",
+    "evidence": "../pulse_ati_readiness.md;spec-review.md;standards-review.md",
+    "limitation": "Document/source review; live Pulse labels support runtime observations, no ATI integration executed.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R4-03",
+    "criterion": "normalized grain, machine weights, source/coordinate revisions, detail row identity/paging and capability requirements documented for future source.",
+    "status": "PASS",
+    "action": "Review connected repository/loader/accumulator/service and correct obsolete CURRENT stage claims.",
+    "observed": "Readiness accurately describes actual Pulse responsibility, frozen All/detail/export identity, weights, revisions and paging; no provider fiction.",
+    "evidence": "../pulse_ati_readiness.md;spec-review.md",
+    "limitation": "Document/source review only; historical NPI-01 proof is not counted as new runtime evidence.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R4-04",
+    "criterion": "no working ATI selector/interface/provider adapter advertised or added; runtime still truthfully Pulse.",
+    "status": "PASS",
+    "action": "Review ATI register, UI source labels and staged artifact scope.",
+    "observed": "All ATI owner/access/schema/units/grain/revisions/paging/license gaps remain UNKNOWN; no ATI runtime or local forecast added; synthetic evidence only.",
+    "evidence": "../pulse_ati_readiness.md;spec-review.md;standards-review.md",
+    "limitation": "Document/source review; live Pulse labels support runtime observations, no ATI integration executed.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R4-05",
+    "criterion": "documentation lists information required before real integration and keeps external forecast distinct from local prediction; no credentials/confidential samples published.",
+    "status": "PASS",
+    "action": "Review ATI register, UI source labels and staged artifact scope.",
+    "observed": "All ATI owner/access/schema/units/grain/revisions/paging/license gaps remain UNKNOWN; no ATI runtime or local forecast added; synthetic evidence only.",
+    "evidence": "../pulse_ati_readiness.md;spec-review.md;standards-review.md",
+    "limitation": "Document/source review; live Pulse labels support runtime observations, no ATI integration executed.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-01",
+    "criterion": "select point X: separate inspector summary shows contributing origin rows with machines/distance/price and metric coverage, bottom table unchanged.",
+    "status": "PASS",
+    "action": "Native map point/contributor selection; Enter B; first50 and Show more to61.",
+    "observed": "Separate contributor summary; exact A→point rows;61 unique newest-first rows, no other-origin leakage; bottom table unchanged.",
+    "evidence": "navigation/live-network.json;navigation/live-observations.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-02",
+    "criterion": "choose origin A by click/keyboard: first page contains only A→X frozen rows; source context labels visible and correct.",
+    "status": "PASS",
+    "action": "Native map point/contributor selection; Enter B; first50 and Show more to61.",
+    "observed": "Separate contributor summary; exact A→point rows;61 unique newest-first rows, no other-origin leakage; bottom table unchanged.",
+    "evidence": "navigation/live-network.json;navigation/live-observations.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-03",
+    "criterion": "Show more appends next≤50 newest-first rows with stable IDs, no duplicates or other origin leakage.",
+    "status": "PASS",
+    "action": "Native map point/contributor selection; Enter B; first50 and Show more to61.",
+    "observed": "Separate contributor summary; exact A→point rows;61 unique newest-first rows, no other-origin leakage; bottom table unchanged.",
+    "evidence": "navigation/live-network.json;navigation/live-observations.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-04",
+    "criterion": "up rows→point summary→cluster preserves saved result/filter/sort context, no new clustering request.",
+    "status": "PASS",
+    "action": "Native up rows→summary→cluster→overview with Shift+Tab/Enter and reentry.",
+    "observed": "No new requests; same saved filter/membership/map transform/sort/collapse; focus restored to origin/point/cluster.",
+    "evidence": "navigation/live-observations.json;navigation/live-network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-05",
+    "criterion": "all-clusters or different cluster clears old point/origin descendants; late pending response cannot reopen old context.",
+    "status": "PASS",
+    "action": "Hold real row request; select different table cluster; release late response.",
+    "observed": "Old descendants remain hidden; late transport does not reopen point/origin.",
+    "evidence": "navigation/live-observations.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-06",
+    "criterion": "valid cached comparison switch makes no run/compare request, shows overview/default trip sort and correct checked mode controls.",
+    "status": "PASS",
+    "action": "Bear Volume→cached Geography, inspect overview/default sort/checked radio and edit Archive.",
+    "observed": "Switch is request-free; checked/editable/submitted Geography agree; supported table shown, Bear table hidden.",
+    "evidence": "navigation/live-observations.json;all/live-observations.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-07",
+    "criterion": "edit form while details open: rows/summary remain bound to old context and stale indication appears; new input not silently used.",
+    "status": "PASS",
+    "action": "Edit form with open loaded contributor/rows.",
+    "observed": "Old data and context unchanged; stale form disclosed; no detail query uses edited inputs.",
+    "evidence": "navigation/live-network.json;selection/live-results.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-08",
+    "criterion": "simulated network error displays Retry; retry/loading/success operate within same context; rejected snapshot uses recalculation recovery instead of repeated failed page.",
+    "status": "PASS",
+    "action": "Inject summary and rows network error, Retry, then genuine source conflict.",
+    "observed": "Visible retry/loading/success in same context; stale uses explicit recalculate recovery, not repeated failing page.",
+    "evidence": "navigation/live-observations.json;navigation/live-network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-09",
+    "criterion": "Tab/Enter operate parent/up/source controls with visible focus and understandable labels; browser-history integration not required.",
+    "status": "PASS",
+    "action": "Native up rows→summary→cluster→overview with Shift+Tab/Enter and reentry.",
+    "observed": "No new requests; same saved filter/membership/map transform/sort/collapse; focus restored to origin/point/cluster.",
+    "evidence": "navigation/live-observations.json;navigation/live-network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R5-10",
+    "criterion": "table hover/selection and map point click select consistent cluster/point/inspector; unassigned point is honestly outside clusters, no fabricated parent/export membership.",
+    "status": "PASS",
+    "action": "Native table hover/select, map destination click, inspect unresolved/unassigned points.",
+    "observed": "Map/table/inspector agree; missing-coordinate and economic-invalid points have no invented parent/export membership.",
+    "evidence": "navigation/live-observations.json;medoid/live-network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R6-01",
+    "criterion": "representative is backend medoid ID in actual assigned member set, not centroid or invented city.",
+    "status": "PASS",
+    "action": "Inspect map labels and every cluster inspector across five actual modes; missing-name and unresolved locality.",
+    "observed": "Same authoritative member ID/name/geometry; non-city allowed; missing-name explicit; unresolved p12 never representative;14 table columns unchanged.",
+    "evidence": "medoid/live-observations.json;medoid/live-network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R6-02",
+    "criterion": "map/inspector display same recognizable locality/name/ID; lower-table columns unchanged.",
+    "status": "PASS",
+    "action": "Inspect map labels and every cluster inspector across five actual modes; missing-name and unresolved locality.",
+    "observed": "Same authoritative member ID/name/geometry; non-city allowed; missing-name explicit; unresolved p12 never representative;14 table columns unchanged.",
+    "evidence": "medoid/live-observations.json;medoid/live-network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R6-03",
+    "criterion": "identical dataset/order repeats same medoid including equal-distance case; no unchanged representative promise when volumes/data change.",
+    "status": "PASS",
+    "action": "Repeat deterministic tie/singleton/coincident medoid cases and same cached actual dataset.",
+    "observed": "Unweighted distance medoid is2 for x0/2/10, not centroid4 or maximum volume10; identical order chooses same tie member.",
+    "evidence": "executed-tests.md;medoid/live-observations.json",
+    "limitation": "Equal-distance determinism is algorithm/API-only; labels/geometry are actual headed browser observations.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R6-04",
+    "criterion": "non-city locality allowed; missing source name visibly unavailable with ID rather than guessed city, missing-coordinate point never representative.",
+    "status": "PASS",
+    "action": "Inspect map labels and every cluster inspector across five actual modes; missing-name and unresolved locality.",
+    "observed": "Same authoritative member ID/name/geometry; non-city allowed; missing-name explicit; unresolved p12 never representative;14 table columns unchanged.",
+    "evidence": "medoid/live-observations.json;medoid/live-network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R6-05",
+    "criterion": "NAVERNO/temporary review marker appears in next decomposition/review; any semantic replacement requires new decision.",
+    "status": "PASS",
+    "action": "Review recorded NPI-09 reaffirmation and temporary marker; inspect connected implementation diff.",
+    "observed": "User reaffirmation retained historically, НАВЕРНО/ВРЕМЕННО preserved; no new decision, reverse-geocode, centroid/warehouse recommendation or Bear rule.",
+    "evidence": "../npi09_implementation_report.md;spec-review.md;ponytail-review.md",
+    "limitation": "The temporal pre-display approval is documentary evidence, not a newly repeated approval.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "R6-06",
+    "criterion": "no extra reverse-geocoding/centroid-city calculation, warehouse recommendation or new Bear representative rule.",
+    "status": "PASS",
+    "action": "Review recorded NPI-09 reaffirmation and temporary marker; inspect connected implementation diff.",
+    "observed": "User reaffirmation retained historically, НАВЕРНО/ВРЕМЕННО preserved; no new decision, reverse-geocode, centroid/warehouse recommendation or Bear rule.",
+    "evidence": "../npi09_implementation_report.md;spec-review.md;ponytail-review.md",
+    "limitation": "The temporal pre-display approval is documentary evidence, not a newly repeated approval.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-01",
+    "criterion": "same snapshot with different origins/filters/mode parameters never confuses result/rows/export identity; exact backend membership checked. All resolution alone does not mark unchanged form stale or corrupt selection-intent provenance through cache reuse.",
+    "status": "PASS",
+    "action": "Equivalent manual/All calculations and cached compare/export; five actual variants.",
+    "observed": "Explicit intent stays separate; same dataset/snapshot across variants; full catalog resolved once; no run/compare on internal switch; winner null.",
+    "evidence": "network.json;all/live-network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-02",
+    "criterion": "source/coordinate generation change separates caches; known rejected generation cannot be reactivated via cached comparison or export.",
+    "status": "PASS",
+    "action": "Weekly source replacement and coordinate edit; failed/fresh run and export recovery.",
+    "observed": "Old generation unavailable; caches invalidated; known rejected result cannot reactivate/download; fresh snapshot/rows restore.",
+    "evidence": "freshness/network.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-03",
+    "criterion": "compare resolves All once at one generation, five modes share same frozen dataset; mode switch no hidden run and winner remains null.",
+    "status": "PASS",
+    "action": "Equivalent manual/All calculations and cached compare/export; five actual variants.",
+    "observed": "Explicit intent stays separate; same dataset/snapshot across variants; full catalog resolved once; no run/compare on internal switch; winner null.",
+    "evidence": "network.json;all/live-network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-04",
+    "criterion": "result-cache eviction/restart yields visible RESULT_UNAVAILABLE/recalculate for new detail/export contracts, no substitute result.",
+    "status": "PASS",
+    "action": "Clear result cache and recreate backend service with same files; access old details/export.",
+    "observed": "RESULT_UNAVAILABLE409; no hidden clustering; explicit Calculate restores correct rows/workbook.",
+    "evidence": "navigation/live-network.json;network.json;freshness/network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-05",
+    "criterion": "legacy scalar run/preview/compare/detail callers retain success shape/status; singleton set is equivalent; LEGACY/RESEARCH still separate.",
+    "status": "PASS",
+    "action": "Replay scalar preview/run/compare/detail and research/legacy full suite.",
+    "observed": "Existing shapes/statuses compatible; singleton equal; Product restrictions do not migrate into research/legacy.",
+    "evidence": "executed-tests.md;pytest-results.xml",
+    "limitation": "Compatibility API/test seam; Data Map view transition also exercised in real download cancellation.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-06",
+    "criterion": "five actual modes run on representative synthetic origin union; existing Bear positive/no_bears/threshold semantics remain functional, table unsupported unchanged.",
+    "status": "PASS",
+    "action": "Five actual modes on union; uniform and outlier fixtures; export support guards.",
+    "observed": "Three partition modes work; both Bear positive singletons in medoid fixture; uniform All supports no_bears; Bear tables/export remain unsupported.",
+    "evidence": "medoid/live-network.json;all/live-network.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-07",
+    "criterion": "exporting saved cached Geo+Cost after editing form/Bear mode uses saved Geo+Cost table/members and precise source context, including metric-missing rows of assigned points only.",
+    "status": "PASS",
+    "action": "Saved cached Cost after editing form to Bear; download/open.",
+    "observed": "Only saved Cost membership/filters/source context; missing-metric rows of assigned X remain.",
+    "evidence": "network.json;workbook-inspection.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-08",
+    "criterion": "collapse/reopen, sort, tooltips hover/focus/Escape/pointer-transfer still work; new selection/up/export controls do not hide errors/focus.",
+    "status": "PASS",
+    "action": "Collapse/reopen/sort and help hover/focus/Escape/pointer transfer after drill-up.",
+    "observed": "Sort/collapse/navigation focus preserved; one visible disclosure; export/error controls accessible.",
+    "evidence": "navigation/live-observations.json;live-observations.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-09",
+    "criterion": "point origin summary totals/coverage reconcile with source rows and pooled point/table; region detail regrouping changes neither weights nor membership.",
+    "status": "PASS",
+    "action": "Reconcile contributor totals, source row regions and pooled saved point/table/workbook.",
+    "observed": "Region regrouping preserves full row ID union, counts, metric-valid weights and saved cluster membership.",
+    "evidence": "navigation/live-network.json;measurements.json;workbook-inspection.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "I-10",
+    "criterion": "observable All→region run/export logs fixture origin/destination/source-row counts and timings; absent realistic load requirements/evidence remains UNVERIFIED, no capacity promise or silent truncation.",
+    "status": "UNVERIFIED",
+    "action": "Measure34/12/408,100/100/20000,150/300/90000 All slices; actual90k browser download/reopen.",
+    "observed": "Run/export/catalog timings and memory logged;90k complete download; production workload/targets absent.",
+    "evidence": "measurements.json;capacity/timings.json;capacity/reopened.json",
+    "limitation": "PRODUCTION CAPACITY UNVERIFIED; measurements are one-shot safe synthetic runs, not percentiles or a guarantee.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "P1-01",
+    "criterion": "reproduce true source conflict; unchanged-filter Calculate causes fresh run request, new snapshot and successful reselected point/origin rows.",
+    "status": "PASS",
+    "action": "Separate historical10 mouse and16 native Enter conflict/recovery; fail fresh run; reject saved export/comparison.",
+    "observed": "Fresh request/new snapshot/working rows; failed refresh retains honest stale display; invalid caches/export blocked; ordinary valid cache switching remains.",
+    "evidence": "navigation/live-observations.json;freshness/network.json;network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "P1-02",
+    "criterion": "after conflict, same rejected snapshot cannot return via saved comparison/download; export blocked until fresh success.",
+    "status": "PASS",
+    "action": "Separate historical10 mouse and16 native Enter conflict/recovery; fail fresh run; reject saved export/comparison.",
+    "observed": "Fresh request/new snapshot/working rows; failed refresh retains honest stale display; invalid caches/export blocked; ordinary valid cache switching remains.",
+    "evidence": "navigation/live-observations.json;freshness/network.json;network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "P1-03",
+    "criterion": "fresh request failure keeps old result honestly stale/error, retry succeeds; no silent data mixing or deletion of ordinary valid cache switching.",
+    "status": "PASS",
+    "action": "Separate historical10 mouse and16 native Enter conflict/recovery; fail fresh run; reject saved export/comparison.",
+    "observed": "Fresh request/new snapshot/working rows; failed refresh retains honest stale display; invalid caches/export blocked; ordinary valid cache switching remains.",
+    "evidence": "navigation/live-observations.json;freshness/network.json;network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "P2-01",
+    "criterion": "reproduce sequence, edit Archive: checked/visible/form method stays Geography and subsequent submitted run uses Geography.",
+    "status": "PASS",
+    "action": "Historical12 Bear Volume→Geography→Archive edit→next Calculate; saved Cost export after Bear edit.",
+    "observed": "Checked/form/submitted Geography; cached switch request-free; saved membership remains; export uses displayed saved mode.",
+    "evidence": "navigation/live-observations.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "P2-02",
+    "criterion": "cached activation aligns relevant presets with saved mode, no fresh run; unsupported table hidden for Bear, correct table for Geography modes.",
+    "status": "PASS",
+    "action": "Historical12 Bear Volume→Geography→Archive edit→next Calculate; saved Cost export after Bear edit.",
+    "observed": "Checked/form/submitted Geography; cached switch request-free; saved membership remains; export uses displayed saved mode.",
+    "evidence": "navigation/live-observations.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "P2-03",
+    "criterion": "unrelated filter edit marks saved result stale without mutating membership/metrics; export uses saved mode despite edited form.",
+    "status": "PASS",
+    "action": "Historical12 Bear Volume→Geography→Archive edit→next Calculate; saved Cost export after Bear edit.",
+    "observed": "Checked/form/submitted Geography; cached switch request-free; saved membership remains; export uses displayed saved mode.",
+    "evidence": "navigation/live-observations.json;network.json;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-01",
+    "criterion": "dedicated P1 and P2 remediations completed with all6 regression criteria and repeated prior desktop scenarios10/12/16; neither defect marked fixed by this spec.",
+    "status": "PASS",
+    "action": "Inspect merged P1/P2 ancestry and separately repeat historical10/12/16 plus6 remediation criteria.",
+    "observed": "All three repeat records and6 regressions executed on combined main; no historical PASS substituted.",
+    "evidence": "navigation/live-observations.json;baseline.txt;executed-tests.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-02",
+    "criterion": "required GitHub Actions verification green on actual candidate HEAD, locked dependency check/Ruff/Python suite and mandatory Node/Edge frontend checks; no silent frontend skips.",
+    "status": "UNVERIFIED",
+    "action": "Locked install/pip check/Ruff/593 tests136 mandatoryfrontend/zero skips/syntax/startup; exact main CI.",
+    "observed": "Local gates and exact596d9fb main CI PASS. Final documentation PR exact-HEAD CI cannot be asserted before publication.",
+    "evidence": "main-ci.json;pytest-results.xml;quality-gates.json",
+    "limitation": "UNVERIFIED at tracked-report commit; final exact HEAD CI and disposition are in PR/publication supplement.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-03",
+    "criterion": "observable desktop acceptance executes relevant54 R-criteria and10 I-criteria with real app interaction/workbook opening; API/doc-only criteria identified honestly. Any required unexecuted branch UNVERIFIED, never PASS.",
+    "status": "PASS",
+    "action": "Replay78 criteria at approved observable seams using real app/algorithms, keyboard and downloaded/reopened workbooks.",
+    "observed": "Live branches repeated; API/algorithm/document-only subbranches explicitly labeled; source evidence linked per row.",
+    "evidence": "criterion-evidence.json;executed-tests.md;scenario-matrix.md",
+    "limitation": "Automated desktop acceptance only; human acceptance UNVERIFIED.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-04",
+    "criterion": "no unresolved blocking integrity defect in snapshot, weights, membership, provenance/export completion; incomplete files not successful artifacts.",
+    "status": "PASS",
+    "action": "Inspect snapshots/weights/membership/provenance, complete files, failed/cancelled downloads and independent reviews.",
+    "observed": "No unresolved blocking integrity defect found; failed exports never create successful partial artifacts.",
+    "evidence": "standards-review.md;spec-review.md;workbook-inspection.json;network.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-05",
+    "criterion": "five modes remain functional, Bear/no_bears verified, no unexpected RESEARCH/LEGACY breakage or generic source framework.",
+    "status": "PASS",
+    "action": "Five-mode actual replay plus full research/legacy regression.",
+    "observed": "All modes and Bear positive/no_bears stay functional; no generic source framework introduced.",
+    "evidence": "medoid/live-network.json;all/live-network.json;pytest-results.xml",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-06",
+    "criterion": "keyboard/error/retry/frozen-context interactions exercised; downloaded workbook numeric/text/order/rows inspected, not just MIME/callback.",
+    "status": "PASS",
+    "action": "Keyboard/focus/late-response/error/retry/stale/export content branches.",
+    "observed": "Native input/focus restores; typed recovery; reopened numeric/text/order/full rows verified.",
+    "evidence": "navigation/live-observations.json;network.json;workbook-inspection.json",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-07",
+    "criterion": "safe synthetic or approved representative fixtures; no confidential SIBUR rows/customer data/credentials committed or published with source/evidence.",
+    "status": "PASS",
+    "action": "Audit published artifact allowlist and evidence fixtures.",
+    "observed": "Only deterministic synthetic rows/coordinates/IDs; no production source loaded, no browser profile/download binaries staged.",
+    "evidence": "artifact-manifest.json;standards-review.md",
+    "limitation": "Synthetic acceptance; not human acceptance.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  },
+  {
+    "id": "G-08",
+    "criterion": "realistic capacity/SLA not invented. Missing production-scale evidence explicitly UNVERIFIED in release report; report measured representative workflow limits. Capacity acceptance cannot be asserted until requirements supplied; classify any resulting exception explicitly.",
+    "status": "UNVERIFIED",
+    "action": "Record actual synthetic observations and absent production targets; classify release exception.",
+    "observed": "No invented SLA/cap/truncation; capacity explicitly UNVERIFIED; production release is not approved by automated green.",
+    "evidence": "measurements.json;capacity/reopened.json;ponytail-review.md",
+    "limitation": "External production workload/operational acceptance remains unavailable; not a functional defect.",
+    "environment": "Windows; Python3.12.14; Node22.23.3; headed Edge155.0.4283.45; real Flask; locked dependencies; synthetic Pulse."
+  }
+]

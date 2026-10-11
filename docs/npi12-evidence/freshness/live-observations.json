@@ -1,0 +1,259 @@
+[
+  {
+    "environment": {
+      "protocolVersion": "1.3",
+      "product": "Edg/155.0.4283.45",
+      "revision": "@50f24ef2aa5369a074b8888b7db82d9c0652d642",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "jsVersion": "15.5.9.4"
+    }
+  },
+  {
+    "scenario": "01-original-all-detail",
+    "facts": {
+      "snapshot": "041c2c533f9b329aaa4fbe935f763196a74ae9ba1823ecd49162d45e73163680",
+      "origins": 34,
+      "rows": 50
+    }
+  },
+  {
+    "scenario": "02-validated-cache-hit",
+    "facts": {
+      "runs": 1,
+      "revisionChecks": 1,
+      "loads": 1
+    }
+  },
+  {
+    "scenario": "03-weekly-replacement-failed-refresh",
+    "facts": {
+      "oldSnapshot": "041c2c533f9b329aaa4fbe935f763196a74ae9ba1823ecd49162d45e73163680",
+      "revision": {
+        "available": [
+          false
+        ],
+        "data_snapshot": "d6c9476dc3c81b7cb4ae3aa14e972b99db1d7915d9532b0c5af881653d4a9aec",
+        "ok": true
+      },
+      "frozenContextPreserved": true,
+      "oldDetailsBlocked": true
+    }
+  },
+  {
+    "scenario": "04-all-refreshed-new-origin",
+    "facts": {
+      "snapshot": "d6c9476dc3c81b7cb4ae3aa14e972b99db1d7915d9532b0c5af881653d4a9aec",
+      "origins": 35,
+      "detail": {
+        "data_snapshot": "d6c9476dc3c81b7cb4ae3aa14e972b99db1d7915d9532b0c5af881653d4a9aec",
+        "destination_fias": "synthetic-00",
+        "has_more": false,
+        "limit": 50,
+        "offset": 0,
+        "ok": true,
+        "rows": [
+          {
+            "cluster_id": 0,
+            "destination_fias": "synthetic-00",
+            "destination_name": "Synthetic Destination 00",
+            "destination_region": "Region A",
+            "origin_fias": "new",
+            "origin_name": "Synthetic new",
+            "origin_region": "Origin Region",
+            "period_id": "202608",
+            "period_type": "current",
+            "price": 2000,
+            "price_type": "spot",
+            "route_length": 200,
+            "rub_per_km": 10,
+            "source_row_id": "d4aff66525ec413c",
+            "source_timestamp": null,
+            "status": "normal",
+            "tonnage_id": "20",
+            "trip_count": 1,
+            "vehicle_type": "tent",
+            "warnings": []
+          }
+        ],
+        "total": 1
+      },
+      "request": {
+        "destination_region": "Region A",
+        "mode": "geography",
+        "origin_fiases": [
+          "a",
+          "b",
+          "c",
+          "extra-00",
+          "extra-01",
+          "extra-02",
+          "extra-03",
+          "extra-04",
+          "extra-05",
+          "extra-06",
+          "extra-07",
+          "extra-08",
+          "extra-09",
+          "extra-10",
+          "extra-11",
+          "extra-12",
+          "extra-13",
+          "extra-14",
+          "extra-15",
+          "extra-16",
+          "extra-17",
+          "extra-18",
+          "extra-19",
+          "extra-20",
+          "extra-21",
+          "extra-22",
+          "extra-23",
+          "extra-24",
+          "extra-25",
+          "extra-26",
+          "extra-27",
+          "extra-28",
+          "extra-29",
+          "extra-30",
+          "new"
+        ],
+        "parameters": {
+          "k_mode": "auto",
+          "n_clusters": "auto"
+        },
+        "period_types": [
+          "current"
+        ],
+        "price_types": [
+          "spot"
+        ],
+        "tonnage_ids": [],
+        "vehicle_types": [],
+        "data_snapshot": "d6c9476dc3c81b7cb4ae3aa14e972b99db1d7915d9532b0c5af881653d4a9aec",
+        "destination_fias": "synthetic-00",
+        "detail_origin_fias": "new",
+        "offset": 0,
+        "limit": 50
+      }
+    }
+  },
+  {
+    "scenario": "05-validated-five-mode-comparison",
+    "facts": {
+      "compareRequests": 1,
+      "variants": [
+        "bear_volume_zones",
+        "bear_zones",
+        "geo_cost",
+        "geo_volume",
+        "geography"
+      ]
+    }
+  },
+  {
+    "scenario": "06-eviction-comparison-refresh",
+    "facts": {
+      "revision": {
+        "available": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "data_snapshot": "d6c9476dc3c81b7cb4ae3aa14e972b99db1d7915d9532b0c5af881653d4a9aec",
+        "ok": true
+      },
+      "compareRequests": 2
+    }
+  },
+  {
+    "scenario": "07-restart-same-revision",
+    "facts": {
+      "revision": {
+        "available": [
+          false
+        ],
+        "data_snapshot": "d6c9476dc3c81b7cb4ae3aa14e972b99db1d7915d9532b0c5af881653d4a9aec",
+        "ok": true
+      },
+      "freshRun": true
+    }
+  },
+  {
+    "scenario": "08-revision-network-failure",
+    "facts": {
+      "cachedNotPublished": true,
+      "runs": 4
+    }
+  },
+  {
+    "scenario": "09-network-retry-valid-cache",
+    "facts": {
+      "runs": 4,
+      "revision": {
+        "available": [
+          true
+        ],
+        "data_snapshot": "d6c9476dc3c81b7cb4ae3aa14e972b99db1d7915d9532b0c5af881653d4a9aec",
+        "ok": true
+      }
+    }
+  },
+  {
+    "scenario": "10-comparison-source-replacement",
+    "facts": {
+      "compareRequests": 4,
+      "revision": {
+        "available": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "data_snapshot": "156dd094ab1e7cc020b37fe5479ae8018791e6673351d74ad136367c2ef1348e",
+        "ok": true
+      }
+    }
+  },
+  {
+    "scenario": "11-p2-frozen-mode-switch",
+    "facts": {
+      "selected": "geography",
+      "clusteringRequestsUnchanged": true
+    }
+  },
+  {
+    "scenario": "12-source-change-inflight-calculation",
+    "facts": {
+      "validated": "156dd094ab1e7cc020b37fe5479ae8018791e6673351d74ad136367c2ef1348e",
+      "response": {
+        "code": "STALE_DATA_SNAPSHOT",
+        "error": "Data generation changed. Recalculate the result.",
+        "ok": false
+      },
+      "oldFrozenDisplayStale": true
+    }
+  },
+  {
+    "scenario": "13-coordinate-cache-rejected",
+    "facts": {
+      "oldSnapshot": "c808e620b7674e4d040c9468e52b0a23985bcefda1ed68e4d1d44ba80f51b663",
+      "revision": {
+        "available": [
+          false
+        ],
+        "data_snapshot": "fe0fd9e795583572e77cbd7a95b86060df431fbdff4221a7010b527e8e41f125",
+        "ok": true
+      },
+      "exportBlocked": true
+    }
+  },
+  {
+    "scenario": "14-coordinate-fresh-recovery",
+    "facts": {
+      "snapshot": "fe0fd9e795583572e77cbd7a95b86060df431fbdff4221a7010b527e8e41f125"
+    }
+  }
+]

@@ -1,0 +1,64 @@
+ * Serving Flask app 'backend.app'
+ * Debug mode: off
+01:20:44 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5080
+01:20:44 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+01:20:44 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:44] "GET / HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET / HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /css/ol.css HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /css/style.css HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/ol.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/app.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/api.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/clustering/controller.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/filters.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/map.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/clustering/state.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/clustering/controls.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/clustering/inspector.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/clustering/comparison.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/clustering/formatters.js HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /js/clustering/table.js HTTP/1.1" 200 -
+01:20:46 [INFO] backend.data_processor: Загружаем данные из [LOCAL_WORKSPACE]\.scratch\npi12-medoid-live\pulse.csv...
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+01:20:46 [INFO] backend.data_processor: Загружено строк: 26, городов отгрузки: 2, городов доставки: 12
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /api/regions HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /api/clustering/options HTTP/1.1" 200 -
+01:20:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:46] "GET /api/clustering/origins?q=&limit=30 HTTP/1.1" 200 -
+01:20:47 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:47] "GET /api/clustering/options HTTP/1.1" 200 -
+01:20:48 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:48] "GET /api/clustering/options HTTP/1.1" 200 -
+01:20:48 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:48] "GET /api/clustering/options?all_origins=true&destination_region=Region+A HTTP/1.1" 200 -
+01:20:49 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b') destination=Region A routes=13 resolved=12 request_id=79b685cab4b540dab67b3d7102ef53fc filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=25 repository_cache=hit location_cache=miss result_cache=miss graph_cache=miss calculation_ms=274.26
+01:20:49 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:49] "POST /api/clustering/run HTTP/1.1" 200 -
+01:20:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:52] "GET /api/geocode-status HTTP/1.1" 200 -
+01:20:54 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:54] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:20:54 [INFO] backend.services.clustering_service: clustering request_id=1fc0ae89ffc54952b046c98c3e7d975b mode=geography origin=('a', 'b') destination=Region A filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=25 points=13 resolved=12 repository_cache=hit location_cache=hit graph_cache=not_used result_cache=hit calculation_ms=3.98
+01:20:54 [INFO] backend.services.clustering_service: clustering mode=geo_cost origin=('a', 'b') destination=Region A routes=13 resolved=12 request_id=1fc0ae89ffc54952b046c98c3e7d975b filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=25 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=67.50
+01:20:54 [INFO] backend.services.clustering_service: clustering mode=geo_volume origin=('a', 'b') destination=Region A routes=13 resolved=12 request_id=1fc0ae89ffc54952b046c98c3e7d975b filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=25 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=57.51
+01:20:54 [INFO] backend.services.clustering_service: clustering mode=bear_zones origin=('a', 'b') destination=Region A routes=13 resolved=12 request_id=1fc0ae89ffc54952b046c98c3e7d975b filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=25 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=8.16
+01:20:54 [INFO] backend.services.clustering_service: clustering mode=bear_volume_zones origin=('a', 'b') destination=Region A routes=13 resolved=12 request_id=1fc0ae89ffc54952b046c98c3e7d975b filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=25 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=7.47
+01:20:54 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:54] "POST /api/clustering/compare HTTP/1.1" 200 -
+01:20:56 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:20:56] "GET /api/geocode-status HTTP/1.1" 200 -
+01:21:00 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:00] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:21:01 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:01] "GET /api/geocode-status HTTP/1.1" 200 -
+01:21:05 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:05] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:21:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:06] "GET /api/geocode-status HTTP/1.1" 200 -
+01:21:11 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:11] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:21:12 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:12] "GET /api/geocode-status HTTP/1.1" 200 -
+01:21:14 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:14] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:21:16 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:16] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:21:17 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:17] "GET /api/geocode-status HTTP/1.1" 200 -
+01:21:20 [INFO] backend.services.clustering_service: clustering_point_origins request_id=1e4c8a5e55624b1b990e414d3503a0a5 destination=p0 origins=2
+01:21:20 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:20] "POST /api/clustering/point-origins HTTP/1.1" 200 -
+01:21:20 [INFO] backend.services.clustering_service: clustering_point_rows request_id=25e2350499cc4043b59ed341ec22937b destination=p0 offset=0 rows=1
+01:21:20 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:20] "POST /api/clustering/point-rows HTTP/1.1" 200 -
+01:21:21 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:21] "GET /api/geocode-status HTTP/1.1" 200 -
+01:21:22 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:22] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:21:24 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:24] "POST /fixture/change-source HTTP/1.1" 200 -
+01:21:25 [WARNING] backend.clustering_api: product_clustering_error request_id=57403f6fa04645298ceaa1f438780069 endpoint=/api/clustering/point-origins code=STALE_DATA_SNAPSHOT status=409
+01:21:25 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:25] "[31m[1mPOST /api/clustering/point-origins HTTP/1.1[0m" 409 -
+01:21:26 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:26] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:21:26 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b', 'new') destination=Region A routes=13 resolved=12 request_id=3f1b57cad13c48949008345344966c50 filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=26 repository_cache=hit location_cache=miss result_cache=miss graph_cache=miss calculation_ms=105.19
+01:21:26 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:26] "POST /api/clustering/run HTTP/1.1" 200 -
+01:21:26 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:26] "GET /api/geocode-status HTTP/1.1" 200 -
+01:21:31 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:21:31] "GET /api/geocode-status HTTP/1.1" 200 -

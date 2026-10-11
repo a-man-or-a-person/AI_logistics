@@ -1,0 +1,8 @@
+{
+  "status": "В результате нет кластеров для экспорта.",
+  "disabled": "true",
+  "focus": "btn-export-clustering",
+  "exportRequests": 0,
+  "runRequests": 1,
+  "sameResult": true
+}

@@ -1,0 +1,59 @@
+python.exe : 01:24:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:52] "GET / HTTP/1.1" 200 -
+строка:2 знак:22
++ ... ONUTF8='1'; & '.scratch/npi12-env/Scripts/python.exe' docs/npi12-evid ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (01:24:52 [INFO]...HTTP/1.1" 200 -:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+01:24:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:52] "GET /css/ol.css HTTP/1.1" 200 -
+01:24:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:52] "GET /css/style.css HTTP/1.1" 200 -
+01:24:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:52] "GET /js/ol.js HTTP/1.1" 200 -
+01:24:52 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:52] "GET /js/app.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/api.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/clustering/controller.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/filters.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/map.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/clustering/controls.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/clustering/inspector.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/clustering/state.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/clustering/comparison.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/clustering/formatters.js HTTP/1.1" 200 -
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "GET /js/clustering/table.js HTTP/1.1" 200 -
+01:24:53 [INFO] backend.data_processor: Загружаем данные из [LOCAL_WORKSPACE]\.scra
+tch\npi12-measure\pulse.csv...
+01:24:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:53] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+01:24:58 [INFO] backend.data_processor: Загружено строк: 90000, городов отгрузки: 1, городов доставки: 300
+01:24:58 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:58] "GET /api/regions HTTP/1.1" 200 -
+01:24:59 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:59] "GET /api/clustering/options HTTP/1.1" 200 -
+01:24:59 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:59] "GET /api/clustering/origins?q=&limit=30 HTTP/1.1" 200 -
+click #all-origins {"x":30.5,"y":214.3000030517578} hit <input id="all-origins" type="checkbox" aria-describedby="all-origins-hint">
+01:24:59 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:59] "GET /api/clustering/options HTTP/1.1" 200 -
+01:24:59 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:59] "GET /api/clustering/options HTTP/1.1" 200 -
+01:24:59 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:24:59] "GET /api/clustering/options?all_origins=true&destinatio
+n_region=Region+A HTTP/1.1" 200 -
+click #btn-run-clustering {"x":154.40000915527344,"y":945.4500122070312} hit <button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button>
+01:25:01 [INFO] backend.services.clustering_service: clustering mode=geography origin=('o0000', 'o0001', 'o0002', 'o000
+3', 'o0004', 'o0005', 'o0006', 'o0007', 'o0008', 'o0009', 'o0010', 'o0011', 'o0012', 'o0013', 'o0014', 'o0015', 'o0016'
+, 'o0017', 'o0018', 'o0019', 'o0020', 'o0021', 'o0022', 'o0023', 'o0024', 'o0025', 'o0026', 'o0027', 'o0028', 'o0029',
+'o0030', 'o0031', 'o0032', 'o0033', 'o0034', 'o0035', 'o0036', 'o0037', 'o0038', 'o0039', 'o0040', 'o0041', 'o0042', 'o
+0043', 'o0044', 'o0045', 'o0046', 'o0047', 'o0048', 'o0049', 'o0050', 'o0051', 'o0052', 'o0053', 'o0054', 'o0055', 'o00
+56', 'o0057', 'o0058', 'o0059', 'o0060', 'o0061', 'o0062', 'o0063', 'o0064', 'o0065', 'o0066', 'o0067', 'o0068', 'o0069
+', 'o0070', 'o0071', 'o0072', 'o0073', 'o0074', 'o0075', 'o0076', 'o0077', 'o0078', 'o0079', 'o0080', 'o0081', 'o0082',
+ 'o0083', 'o0084', 'o0085', 'o0086', 'o0087', 'o0088', 'o0089', 'o0090', 'o0091', 'o0092', 'o0093', 'o0094', 'o0095', '
+o0096', 'o0097', 'o0098', 'o0099', 'o0100', 'o0101', 'o0102', 'o0103', 'o0104', 'o0105', 'o0106', 'o0107', 'o0108', 'o0
+109', 'o0110', 'o0111', 'o0112', 'o0113', 'o0114', 'o0115', 'o0116', 'o0117', 'o0118', 'o0119', 'o0120', 'o0121', 'o012
+2', 'o0123', 'o0124', 'o0125', 'o0126', 'o0127', 'o0128', 'o0129', 'o0130', 'o0131', 'o0132', 'o0133', 'o0134', 'o0135'
+, 'o0136', 'o0137', 'o0138', 'o0139', 'o0140', 'o0141', 'o0142', 'o0143', 'o0144', 'o0145', 'o0146', 'o0147', 'o0148',
+'o0149') destination=Region A routes=300 resolved=300 request_id=b7207094e4574985be0e1aab9599fa53 filters={'period_type
+s': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=90000 repository_cache=hi
+t location_cache=miss result_cache=miss graph_cache=miss calculation_ms=1111.04
+01:25:01 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:25:01] "POST /api/clustering/run HTTP/1.1" 200 -
+click #btn-export-clustering {"x":1326.168800354004,"y":374.20001220703125} hit <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status" aria-disabled="false">Скачать XLSX</button>
+01:25:04 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:25:04] "GET /api/geocode-status HTTP/1.1" 200 -
+01:25:09 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:25:09] "GET /api/geocode-status HTTP/1.1" 200 -
+01:25:14 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:25:14] "GET /api/geocode-status HTTP/1.1" 200 -
+01:25:19 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:25:19] "GET /api/geocode-status HTTP/1.1" 200 -
+01:25:20 [INFO] backend.services.clustering_service: clustering_export request_id=1c8013bd3d61451c823e99054dcee1d4 mode
+=geography clusters=15
+01:25:20 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:25:20] "POST /api/clustering/export HTTP/1.1" 200 -
+{"name":"90k-browser-complete","facts":{"status":"Файл product-geography-8e75cfea44f9.xlsx передан браузеру для сохранения.","focus":"btn-export-clustering","tableHidden":false,"collapsed":false}}

@@ -1,0 +1,479 @@
+{
+  "source": "deterministic synthetic acceptance only",
+  "excluded": [
+    "production/private inputs",
+    "browser profiles",
+    "virtualenvs",
+    "binary downloaded XLSX",
+    "other worktrees",
+    "unselected local screenshots"
+  ],
+  "note": "SHA256 covers listed publication artifacts; this self-describing manifest is excluded from its own hashes.",
+  "files": [
+    {
+      "path": "docs/npi12-evidence/01-keyboard-sorted-collapsed-all.png",
+      "bytes": 668422,
+      "sha256": "27acf61714a8e491537574d55540b466675e20be5ad3cdaf3f8455e773a784e5"
+    },
+    {
+      "path": "docs/npi12-evidence/03-cached-cost-after-bear-edit.png",
+      "bytes": 585283,
+      "sha256": "5e23f40a9553f365a1ac13843abbeac6badd53f6f76bde0c277ffda92fd6bf56"
+    },
+    {
+      "path": "docs/npi12-evidence/07-source-changed-during-generation.png",
+      "bytes": 575980,
+      "sha256": "a09f0b0a6ccc20c3a28577951ac16caef12ea07b2b0f9102e9cc1b7c848ece74"
+    },
+    {
+      "path": "docs/npi12-evidence/10-restart-unavailable.png",
+      "bytes": 575659,
+      "sha256": "eecf4cdb1f6c804123e2b4ff7c905b331f9328eb1a024dfdf656eca0946c22fc"
+    },
+    {
+      "path": "docs/npi12-evidence/12-null-route-zero-precision-literal-colliding-names.png",
+      "bytes": 555171,
+      "sha256": "b93ffb3bf9a363d2319e87df5d903258d0d0e734482a54a814239aa48b8b4356"
+    },
+    {
+      "path": "docs/npi12-evidence/13-supplied-pulse-forecast-combined-periods.png",
+      "bytes": 569199,
+      "sha256": "3c151a512f1fa6f9795a73fad7e8aaa7fc70107f9080dc016229ae892953aea6"
+    },
+    {
+      "path": "docs/npi12-evidence/acceptance-matrix.md",
+      "bytes": 44317,
+      "sha256": "0e52c1d2531060812d0890a721776c4fa6e515305dcad67aa6e3bdd6b7ce35fc"
+    },
+    {
+      "path": "docs/npi12-evidence/all/03-all-map-table.png",
+      "bytes": 593895,
+      "sha256": "dbacf5a94b0c472dd5fd145e0388d9bb6f7151d2a401e8a342bba33ec9e5edfb"
+    },
+    {
+      "path": "docs/npi12-evidence/all/15-keyboard-all.png",
+      "bytes": 515522,
+      "sha256": "b4c9ab6cc8938bd32cb7da8203f4197e7ecebe388eab17ac556e5ec5818df76f"
+    },
+    {
+      "path": "docs/npi12-evidence/all/driver.txt",
+      "bytes": 4540,
+      "sha256": "9fc4389143a4cba1486ce3cb866cd08bcbbe68adab50bc281158e9ace96f4242"
+    },
+    {
+      "path": "docs/npi12-evidence/all/live-network.json",
+      "bytes": 1345382,
+      "sha256": "862261d6759a6e9ab7f32e0c945d2f809953acef8a27b5d2c37acdea09545a83"
+    },
+    {
+      "path": "docs/npi12-evidence/all/live-observations.json",
+      "bytes": 7413,
+      "sha256": "beb603ca3c7444e4991d9b6915edb128ff903b1e67f2e8d490d47c3b8df49e5d"
+    },
+    {
+      "path": "docs/npi12-evidence/all/server.txt",
+      "bytes": 28043,
+      "sha256": "c3d54b142c92019047f23e4240b74e729b6aba19dc07aa1ce8144ed6a782983e"
+    },
+    {
+      "path": "docs/npi12-evidence/all-run.txt",
+      "bytes": 38,
+      "sha256": "490d6412e5c7d7eaf855464a695bb49ea00266895f00a4b9e4c0cd8c3137d0ab"
+    },
+    {
+      "path": "docs/npi12-evidence/authority.json",
+      "bytes": 836,
+      "sha256": "848cf85cf76b858112779ba0e71bd182b211e40a6e7618d944ab50893891a8ff"
+    },
+    {
+      "path": "docs/npi12-evidence/baseline.txt",
+      "bytes": 1179,
+      "sha256": "bb6bd4d7b429bc66941a1490b517c2c8d5621e18ae726f5e5c713596411e90cd"
+    },
+    {
+      "path": "docs/npi12-evidence/browser-startup.txt",
+      "bytes": 28,
+      "sha256": "47d84a980096ea4a0009d55e72314363e92bdb15cd0a7fc84dc180f9b0b7a7c8"
+    },
+    {
+      "path": "docs/npi12-evidence/capacity/90k-browser-complete.png",
+      "bytes": 632299,
+      "sha256": "0a3ddcc60aa9e2e4d31d0de9561731451617a47eb63116cc81ed79d548140a83"
+    },
+    {
+      "path": "docs/npi12-evidence/capacity/network.json",
+      "bytes": 1052426,
+      "sha256": "8e3b9131f4bd89a31cffa3f6e39ed8c1727261bde58345e1f297fb209ded9388"
+    },
+    {
+      "path": "docs/npi12-evidence/capacity/reopened.json",
+      "bytes": 1270,
+      "sha256": "1d2555b9edc3c4eeaa622aff706de1cbae8a35babb9d1a73327e6a0cd94198e5"
+    },
+    {
+      "path": "docs/npi12-evidence/capacity/timings.json",
+      "bytes": 142,
+      "sha256": "1eeb5707c8483a7a945a899c41b6a7e1802753454f976a73d70b12dd630b5cba"
+    },
+    {
+      "path": "docs/npi12-evidence/capacity-live.txt",
+      "bytes": 6280,
+      "sha256": "8a1afb53301146a4c990757210be07a1a28104d1b23e179f63322d40e3e794bf"
+    },
+    {
+      "path": "docs/npi12-evidence/capacity_live.py",
+      "bytes": 3598,
+      "sha256": "0fc34cd7f51d83e11f270d2bbec801a519a5b364226fb287267b03d014d5716a"
+    },
+    {
+      "path": "docs/npi12-evidence/criterion-evidence.json",
+      "bytes": 58590,
+      "sha256": "68a3c91056df51e4dad048fabd42e15cde5d0306eab636a28a2e92059e92d0d6"
+    },
+    {
+      "path": "docs/npi12-evidence/empty-guard.json",
+      "bytes": 215,
+      "sha256": "41968e6797e8fe8bc69c4590dec9e8585bd76c6be24f51a923fc7e64f23196f9"
+    },
+    {
+      "path": "docs/npi12-evidence/empty-guard.txt",
+      "bytes": 86,
+      "sha256": "60e1f2dad61dd84b7ad12b954597df5b1a9b38ed069f43b1ae1b394bf9f43800"
+    },
+    {
+      "path": "docs/npi12-evidence/empty_guard.py",
+      "bytes": 1647,
+      "sha256": "04df1c88f56191272cbbb4904be9a5160865cbbf2bace61da5fabea74c6114ed"
+    },
+    {
+      "path": "docs/npi12-evidence/executed-tests.md",
+      "bytes": 54430,
+      "sha256": "c9b9c25e45040d8394fd68c4e33e8e8b1c64eed4f12fce4e6377a5e4879915fd"
+    },
+    {
+      "path": "docs/npi12-evidence/export-live-clean.txt",
+      "bytes": 35809,
+      "sha256": "9fca24e1b16de9b0337eb185f11c315a2b7a0b43376483792dced0c84c551ca4"
+    },
+    {
+      "path": "docs/npi12-evidence/export-live.txt",
+      "bytes": 1406,
+      "sha256": "a6a6703ff56a3b0246c48afef3bc500b480afc094cc368c38c24e474cfcc0aeb"
+    },
+    {
+      "path": "docs/npi12-evidence/export_edge.mjs",
+      "bytes": 14683,
+      "sha256": "0889f18307540da80fc9822dbe6f3af6a033f6e114dc1fdef914bb29a84948a0"
+    },
+    {
+      "path": "docs/npi12-evidence/export_live.py",
+      "bytes": 8386,
+      "sha256": "cb2ec8199d6c0c480c6363240106b0e154ef97e20576ae86fc725ce0d98d4d81"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness/03-weekly-replacement-failed-refresh.png",
+      "bytes": 472968,
+      "sha256": "b0db854dc3a07f324a33891acf9f71ed1dc8c1f8d9e0b907d46c032af2c4cb99"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness/12-source-change-inflight-calculation.png",
+      "bytes": 538015,
+      "sha256": "82fc4a6d2143cfc757cc82a83d8bf2415b1999ea11e145f4cc6db3e497554c87"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness/13-coordinate-cache-rejected.png",
+      "bytes": 538407,
+      "sha256": "ea0c3eb560c79716c31cfec0a4ef9fba1f131d29fba2c7286a668118af931f1b"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness/driver.txt",
+      "bytes": 4076,
+      "sha256": "354c32df584364bbaf6c10cb184f38faa4c4fd3bdfe78be939c310e7716b0d1f"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness/live-observations.json",
+      "bytes": 6472,
+      "sha256": "732b054a2431ede89ae559a856da77ea9461d1408847dfff08c55d20dbff07f5"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness/network.json",
+      "bytes": 1728542,
+      "sha256": "420d907c68bbd47a0bce9fe9479e1478d78278718de36f2721e9a9d3acbfaddb"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness/server.txt",
+      "bytes": 31836,
+      "sha256": "68758c558c6379ded6995ae9b893feed6f14f996c50a1131c772662472e1c5bc"
+    },
+    {
+      "path": "docs/npi12-evidence/freshness-run.txt",
+      "bytes": 44,
+      "sha256": "6d370ff1bd9b42dd9fb00daf3f9021e0f2e717c6199d7b7c94c48861bad2f2fa"
+    },
+    {
+      "path": "docs/npi12-evidence/live-observations.json",
+      "bytes": 7569,
+      "sha256": "5f2a4825b768f7949bca16ba5a89fb2f0dcd59954fa81a1f6e431081abd2c7b6"
+    },
+    {
+      "path": "docs/npi12-evidence/locked-install-clean.txt",
+      "bytes": 5973,
+      "sha256": "ae8adf65b3c5ad2dc3a8e54590cc34cadc17038aba54baa4cb98b51507e2ae08"
+    },
+    {
+      "path": "docs/npi12-evidence/locked-install.txt",
+      "bytes": 7852,
+      "sha256": "9ff9a060c6c2d4fae96afe8f6a8c36d6048e94a9b0be737d0ddab5fd63f7fc39"
+    },
+    {
+      "path": "docs/npi12-evidence/main-branch.json",
+      "bytes": 104,
+      "sha256": "a5728608999372205248dd22838128b340fdbd4678ad5152cc50bfeb980403a4"
+    },
+    {
+      "path": "docs/npi12-evidence/main-ci.json",
+      "bytes": 263,
+      "sha256": "6df335548aa3e983b0981dd384e22503bc6a9a72bca4a7cc621d4c8dd5916ab1"
+    },
+    {
+      "path": "docs/npi12-evidence/measure.py",
+      "bytes": 6481,
+      "sha256": "f3366614ce242ffc3d92621f307aafdd30c7d7ad79784fc4c7432e9541da11a8"
+    },
+    {
+      "path": "docs/npi12-evidence/measure.txt",
+      "bytes": 6176,
+      "sha256": "a7a48038879bddc8267baf8a28719a02ef1c2d67d8d2002f3697be69814d1713"
+    },
+    {
+      "path": "docs/npi12-evidence/measurements.json",
+      "bytes": 2954,
+      "sha256": "58abb4255f2c08df74f7d6c6ddf92cf14c4915dec48c357f41d0d968da40c393"
+    },
+    {
+      "path": "docs/npi12-evidence/medoid/driver.txt",
+      "bytes": 11169,
+      "sha256": "ed56d7a261f3bcc8e87149dfca814bcea7a0f75c6ff1735e83f7969054efd418"
+    },
+    {
+      "path": "docs/npi12-evidence/medoid/live-network.json",
+      "bytes": 342515,
+      "sha256": "6c218bd4a490eb832ce3cd90c696d4a4147fbcb723588e72b7837254fd852752"
+    },
+    {
+      "path": "docs/npi12-evidence/medoid/live-observations.json",
+      "bytes": 19424,
+      "sha256": "1867b7d3bc8ae09c5aad5248360b613a11f57ab9bc29a1649b19fcdecca5ae5a"
+    },
+    {
+      "path": "docs/npi12-evidence/medoid/mode-bear_volume_zones-cluster-0.png",
+      "bytes": 619595,
+      "sha256": "caf74a99caf11a4b78ffc51a0397834b80a63502e0992d10f283c9066ae5e399"
+    },
+    {
+      "path": "docs/npi12-evidence/medoid/mode-bear_zones-cluster-0.png",
+      "bytes": 636539,
+      "sha256": "d16c1aabaf9dc50d18f94792be6d19aa37a08950df66746ab04294bee19b5cc2"
+    },
+    {
+      "path": "docs/npi12-evidence/medoid/server.txt",
+      "bytes": 8893,
+      "sha256": "e75271a2b61584f84dd0fbd950ff1436efa7bc93379f26a10e72802217b6b670"
+    },
+    {
+      "path": "docs/npi12-evidence/medoid-run.txt",
+      "bytes": 41,
+      "sha256": "f13ee319179d2fae1ae9ae02b44110cc5e3e57ef81aecf53fe0579e8ac02509c"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/05-origin-paging.png",
+      "bytes": 523000,
+      "sha256": "79589ba818fc787ea0db17c3a14ecd8290abd456d9a6363fb3d9fe1fea6e17e8"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/08b-up-cluster-keyboard.png",
+      "bytes": 638319,
+      "sha256": "feb2445af1c3534f259a2009078115f82892e37f07ae2dd58e39cd47ef8e5210"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/08e-late-rows-parent-switch.png",
+      "bytes": 467211,
+      "sha256": "313121c0e6ee0db69d47078632262a3aa00f94174a2f5efbe446df3f323dca9e"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/driver.txt",
+      "bytes": 19087,
+      "sha256": "6281b137609dbb2073d21f376f0f2494c4329c64b9cf9956a74c5615a33f25c5"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/historical-16-keyboard-fresh-recovery.png",
+      "bytes": 477053,
+      "sha256": "49af74fa11da8a7708b1ae3e8661ce250382c814562fe8a4cfe6866cec76b42f"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/live-network.json",
+      "bytes": 939544,
+      "sha256": "7700f29f67fc53c7e7a1ae14be07e96817ce0e86f747f530e89d83cc9caaa5ed"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/live-observations.json",
+      "bytes": 32187,
+      "sha256": "4db9d19d9015a918ef2a09426618f5685f0060c90df9ae31f9060061eb66621c"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation/server.txt",
+      "bytes": 18597,
+      "sha256": "ca33c0d6f4f7d910518c6ca7600b701d23335d4a40c6d305654652b4afe07f95"
+    },
+    {
+      "path": "docs/npi12-evidence/navigation-run.txt",
+      "bytes": 45,
+      "sha256": "9b0d7b7862d0d004d13ae228dee2f54ea710a331b376965a85eaab8ec4170e37"
+    },
+    {
+      "path": "docs/npi12-evidence/network.json",
+      "bytes": 804868,
+      "sha256": "12417e1b126a9a8527a8d9298141340899ee94a5b8df1147c3461ba87bfe617f"
+    },
+    {
+      "path": "docs/npi12-evidence/pip-check-clean.txt",
+      "bytes": 30,
+      "sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09"
+    },
+    {
+      "path": "docs/npi12-evidence/pip-check.txt",
+      "bytes": 30,
+      "sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09"
+    },
+    {
+      "path": "docs/npi12-evidence/ponytail-review.md",
+      "bytes": 1896,
+      "sha256": "123bbc445c3d3e52cbd5b6340517a61a7bd8cf6ed0bde985a27ae424ac9b8828"
+    },
+    {
+      "path": "docs/npi12-evidence/pytest-clean.txt",
+      "bytes": 1796,
+      "sha256": "4097b387ca97e898ef19788274b6864318ff21ecb071201153081abefb1fdef0"
+    },
+    {
+      "path": "docs/npi12-evidence/pytest-results.xml",
+      "bytes": 94160,
+      "sha256": "20aa0844533df6f3b22dec2dfcfbddb058783086f30273babe683c206720a3b9"
+    },
+    {
+      "path": "docs/npi12-evidence/pytest.txt",
+      "bytes": 11803,
+      "sha256": "bbf86528f4ff92aaf5e1a8e208e69353bdabe788e1207bc3ad082c35cdf92d07"
+    },
+    {
+      "path": "docs/npi12-evidence/quality-gates.json",
+      "bytes": 2322,
+      "sha256": "9c4078a2027a5aa2b068843a556e54fe8c43821c8cadfb22e074f96f4ebc0f69"
+    },
+    {
+      "path": "docs/npi12-evidence/README.md",
+      "bytes": 3343,
+      "sha256": "feed9b0d8e61a76ee4e5d52faad268c1b11c3b8208a2fe60d2f8c90f3ab52a3c"
+    },
+    {
+      "path": "docs/npi12-evidence/replay.py",
+      "bytes": 9774,
+      "sha256": "87c9e77e688837d8182550167393d518a999e84ed819a1aca46a08236854249a"
+    },
+    {
+      "path": "docs/npi12-evidence/review-supplement.md",
+      "bytes": 1784,
+      "sha256": "ccbf1a92bafb53ce666007a6fd0195bb67f57e48a34ba0abcc6081ec87a316d0"
+    },
+    {
+      "path": "docs/npi12-evidence/ruff-final.txt",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/npi12-evidence/ruff.txt",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/npi12-evidence/scenario-matrix.md",
+      "bytes": 7921,
+      "sha256": "faaec9961e7102c8743d413915af2dec7f7ed282d35f0d7e8ec6c1320c6d7864"
+    },
+    {
+      "path": "docs/npi12-evidence/selection/08-no-data-preserves-result.png",
+      "bytes": 537614,
+      "sha256": "02f37868f59b932220ce16a31e1942d93c8bf4149d2de70abe2c6fc4649510d5"
+    },
+    {
+      "path": "docs/npi12-evidence/selection/driver.txt",
+      "bytes": 3041,
+      "sha256": "411245a28f2fa17517fc5626f2c7bd9f9c0809bd67b1ffd90a0499c3c4e3acd7"
+    },
+    {
+      "path": "docs/npi12-evidence/selection/live-results.json",
+      "bytes": 746730,
+      "sha256": "1e9fe0c88796ee43f721ade84935d936643404b7db58b5296a662eacf40c9138"
+    },
+    {
+      "path": "docs/npi12-evidence/selection/server.txt",
+      "bytes": 16916,
+      "sha256": "e3dc0deda8aea3171fa5c37e31b13ea8b7de456e0bce9b9ce70875bba638734c"
+    },
+    {
+      "path": "docs/npi12-evidence/selection-run.txt",
+      "bytes": 44,
+      "sha256": "f7c557df456ab74e9ce7199c1dbb9ecec17bbc1815631b3424e2b570016a324f"
+    },
+    {
+      "path": "docs/npi12-evidence/spec-review.md",
+      "bytes": 1594,
+      "sha256": "8c8df16d37bcc8eddaa18e26adb2e913d6e3dcbe4cb4932eaa4816f410e94de5"
+    },
+    {
+      "path": "docs/npi12-evidence/standards-review.md",
+      "bytes": 1586,
+      "sha256": "15588fcdc71a4565121fbbeba4cf198d94fc88f10c000d0c2168d17509b0c610"
+    },
+    {
+      "path": "docs/npi12-evidence/startup-server.txt",
+      "bytes": 1880,
+      "sha256": "fab1d29eb93825e0aea68fb4b33355abc146828dfacafbdfbfd5a40e2d730b1d"
+    },
+    {
+      "path": "docs/npi12-evidence/startup.json",
+      "bytes": 2541,
+      "sha256": "2dbba306becfcc54a19b418372566fd3debb70d890893fe4ebb554bb4a2be6b7"
+    },
+    {
+      "path": "docs/npi12-evidence/startup.py",
+      "bytes": 3601,
+      "sha256": "34d93ba6fbc1bf7b6579850e7ab01c2e81467a0ee7a62c9a7e8015d823feda8e"
+    },
+    {
+      "path": "docs/npi12-evidence/startup.txt",
+      "bytes": 131,
+      "sha256": "eeaf20e7f7fa8765423388dacd045d9702a5fbf329ebce3472c4541a1ed2c734"
+    },
+    {
+      "path": "docs/npi12-evidence/syntax-diff.txt",
+      "bytes": 43,
+      "sha256": "32d61d534912224fdae2e482e08f147139c094a2b6eef3448f435df829cbdb8a"
+    },
+    {
+      "path": "docs/npi12-evidence/workbook-inspection.json",
+      "bytes": 9913,
+      "sha256": "c03b455b1998a735dcdadacec91cb57f2b318e24c79d7fedb92cf8f503e527ef"
+    },
+    {
+      "path": "docs/npi12_integrated_acceptance_report.md",
+      "bytes": 24061,
+      "sha256": "d8340ec213320eda0c10ff3b717107f5990294db6e4743ee499ad72451ac5df3"
+    },
+    {
+      "path": "docs/pulse_ati_readiness.md",
+      "bytes": 20729,
+      "sha256": "0d45d781b1965781aed01ec5df7ae53c021711ff072a42a58c5e98868289132e"
+    }
+  ]
+}

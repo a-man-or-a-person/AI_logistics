@@ -1,0 +1,1 @@
+PASS: real Edge/controller seam; empty saved table explains blocked export, no rerun.

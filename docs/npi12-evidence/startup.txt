@@ -1,0 +1,1 @@
+REPRODUCED: port 5055 serves exact static bytes of the older personal checkout; isolated candidate run.py serves current controls.

@@ -1,0 +1,21 @@
+........................................................................ [ 12%]
+........................................................................ [ 24%]
+........................................................................ [ 36%]
+........................................................................ [ 48%]
+........................................................................ [ 60%]
+........................................................................ [ 72%]
+........................................................................ [ 84%]
+........................................................................ [ 97%]
+.................                                                        [100%]
+============================== warnings summary ===============================
+.scratch\npi12-env\Lib\site-packages\_pytest\cacheprovider.py:475
+  [LOCAL_WORKSPACE]\.scratch\npi12-env\Lib\site-packages\_pytest\cacheprovider.py:475: PytestCacheWarning: could not create cache path [LOCAL_WORKSPACE]\.pytest_cache\v\cache\nodeids: [WinError 5] Отказано в доступе: '[LOCAL_WORKSPACE]\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+.scratch\npi12-env\Lib\site-packages\_pytest\stepwise.py:51
+  [LOCAL_WORKSPACE]\.scratch\npi12-env\Lib\site-packages\_pytest\stepwise.py:51: PytestCacheWarning: could not create cache path [LOCAL_WORKSPACE]\.pytest_cache\v\cache\stepwise: [WinError 5] Отказано в доступе: '[LOCAL_WORKSPACE]\\.pytest_cache\\v\\cache'
+    session.config.cache.set(STEPWISE_CACHE_DIR, [])
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: [LOCAL_WORKSPACE]\docs\npi12-evidence\pytest-results.xml -
+593 passed, 2 warnings in 328.96s (0:05:28)

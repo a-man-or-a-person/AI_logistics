@@ -1,0 +1,105 @@
+{
+  "import_seconds": 2.7788602999999057,
+  "math": {
+    "status": "PASS",
+    "point": {
+      "active_period_count": 1,
+      "cluster_id": 0,
+      "coordinate_source": "unverified_cache",
+      "coordinate_status": "resolved",
+      "data_quality_flags": [
+        "invalid_price_or_route_length",
+        "missing_or_nonpositive_price",
+        "missing_or_nonpositive_route_length"
+      ],
+      "economic_status": "available",
+      "fias_id": "x",
+      "id": "x",
+      "lat": 55.0,
+      "lon": 37.0,
+      "name": "X",
+      "period_types": [
+        "current"
+      ],
+      "region": "Region A",
+      "regional_mean_trip_count": null,
+      "regional_weighted_rub_per_km": null,
+      "relative_rate_delta": null,
+      "relative_volume_delta": null,
+      "source_row_count": 4,
+      "status": "normal",
+      "trip_count": 80,
+      "valid_price_trip_count": 60,
+      "valid_route_length_trip_count": 40,
+      "valid_rub_per_km_trip_count": 40,
+      "weighted_price": 4666.666666666667,
+      "weighted_route_length": 250.0,
+      "weighted_rub_per_km": 17.5
+    },
+    "source_rows": 7,
+    "machines": 95,
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "route_numerator": 10000,
+    "price_numerator": 280000,
+    "rate_numerator": 700,
+    "valid_weights": {
+      "route": 40,
+      "price": 60,
+      "rate": 40
+    }
+  },
+  "scales": [
+    {
+      "origins": 34,
+      "destinations": 12,
+      "source_rows": 408,
+      "assigned_destinations": 11,
+      "excluded_source_rows": 34,
+      "catalog_load_seconds": 0.06029900000021371,
+      "run_seconds": 0.11696540000002642,
+      "export_seconds": 0.2066061999998965,
+      "reopen_seconds": 0.05736780000006547,
+      "workbook_bytes": 40778,
+      "reopened_rows": 374,
+      "working_mib": 140.86,
+      "peak_mib": 140.86
+    },
+    {
+      "origins": 100,
+      "destinations": 100,
+      "source_rows": 20000,
+      "assigned_destinations": 100,
+      "excluded_source_rows": 0,
+      "catalog_load_seconds": 1.0246649000000616,
+      "run_seconds": 0.6168379999999161,
+      "export_seconds": 4.088773800000126,
+      "reopen_seconds": 2.4167193000002953,
+      "workbook_bytes": 1522284,
+      "reopened_rows": 20000,
+      "working_mib": 206.44,
+      "peak_mib": 207.76
+    },
+    {
+      "origins": 150,
+      "destinations": 300,
+      "source_rows": 90000,
+      "assigned_destinations": 300,
+      "excluded_source_rows": 0,
+      "catalog_load_seconds": 3.8914937999998074,
+      "run_seconds": 1.211826899999778,
+      "export_seconds": 21.266117699999995,
+      "reopen_seconds": 16.01978680000002,
+      "workbook_bytes": 6695463,
+      "reopened_rows": 90000,
+      "working_mib": 476.2,
+      "peak_mib": 486.15
+    }
+  ]
+}

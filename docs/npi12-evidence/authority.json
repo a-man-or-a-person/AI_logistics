@@ -1,0 +1,14 @@
+{
+  "source": "Original workspace .scratch/next-product-iteration",
+  "sha256": {
+    "spec.md": "52616d4730bf74853069db2cbb23d270c402b98fff17014e6538abb716fdc6e6",
+    "coverage-matrix.md": "aca0e9f16c6a57227767d9af70b173567d567b320f71709d028bdfdebf0e830d",
+    "tracker.md": "14459f87702fbbb6ddf2b6ef66a5a102b215c7ab829119b14ffa12ed2f077d4e",
+    "implementation-order.md": "3a72adb2e69513fd6ecd74baa07e45ea48c84f8c772e7bdfb4aabce66223b6c0",
+    "execution-requirements.md": "dde28220c4bc059babec522ae3628e05d6b0c3b271b11d017504d50c6ac451dd",
+    "issues/12-integrated-release-validation.md": "480b82147737035518c38ea8afa3dd29f23aab1ce28d0ec12eaed68e7f969fe1"
+  },
+  "criteria": 78,
+  "user_stories": 43,
+  "note": "Historical tracker labels preserved; completed prerequisites independently reconciled with fetched merged ancestry."
+}
