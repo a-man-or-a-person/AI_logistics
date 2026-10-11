@@ -38,7 +38,10 @@ def _run_browser_script(script: str) -> dict:
         root = Path(directory)
         page = root / "frontend-contract.html"
         profile = root / "profile"
-        page.write_text(f"<!doctype html><body><script>{script}</script></body>", encoding="utf-8")
+        page.write_text(
+            f'<!doctype html><meta charset="utf-8"><body><script>{script}</script></body>',
+            encoding="utf-8",
+        )
         return _run_node_script(f"""
           import {{spawn}} from 'node:child_process';
           import {{readFile}} from 'node:fs/promises';
