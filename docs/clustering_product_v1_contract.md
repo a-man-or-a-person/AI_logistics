@@ -1,6 +1,6 @@
 # Canonical clustering Product v1 contract
 
-Дата актуализации: 2026-10-10.
+Дата актуализации: 2026-10-11.
 
 ## Назначение
 
@@ -172,6 +172,13 @@ All разрешается один раз перед пятью вариант�
 Неразрешённые координаты учитываются в data quality и исключаются из ML.
 
 ## Совместимость
+
+Frontend поддерживает explicit multi-select по FIAS, один регион назначения и общие
+фильтры. Сохранённый результат и detail используют frozen origins/filters/mode/parameters;
+редактирование формы меняет только editable state и stale indication. Ошибка нового run
+сохраняет прежний результат. `STALE_DATA_SNAPSHOT` инвалидирует rejected generation,
+а `RESULT_UNAVAILABLE` — только соответствующий saved result, включая comparison copies;
+оба состояния требуют явного успешного пересчёта. Региональная кнопка All пока отсутствует.
 
 Data Map и `/api/ml-cluster` сохранены для legacy-клиентов. Product v1 вызывает
 только `/api/clustering/*`.

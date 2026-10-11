@@ -122,6 +122,245 @@ def _run_node_script(script: str) -> dict:
     return json.loads(completed.stdout)
 
 
+def test_explicit_origin_set_requests_are_canonical_and_freeze_independent_of_form():
+    module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    actual = _run_node_script(f"""
+      {module}
+      const form = {{origins: [{{fias_id: 'b'}}, {{fias_id: 'a'}}, {{fias_id: 'b'}}],
+        destinationRegion: 'R', periodTypes: ['current'], priceTypes: ['spot'],
+        vehicleTypes: [], tonnageIds: [], mode: 'geography', kMode: 'auto'}};
+      const request = buildRequest(form);
+      const state = {{form, result: {{cache: new Map()}}, ui: {{}}}};
+      setResult(state, {{status: 'success', data_snapshot: 's'}}, request);
+      form.origins = [{{fias_id: 'a'}}];
+      console.log(JSON.stringify({{
+        selected: request.origin_fiases,
+        scalar: 'origin_fias' in request,
+        saved: state.result.requestSnapshot.origin_fiases,
+        stale: isResultStale(state),
+        canonical: requestSignature(request) === requestSignature(buildRequest({{...form,
+          origins: [{{fias_id: 'a'}}, {{fias_id: 'b'}}]}})),
+        empty: datasetSnapshot({{...form, origins: []}}).origin_fiases,
+        legacy: datasetSnapshot({{...form, origins: undefined, origin: {{fias_id: 'a'}}}}).origin_fias,
+      }}));
+    """)
+    assert actual == {
+        "selected": ["a", "b"], "scalar": False, "saved": ["a", "b"],
+        "stale": True, "canonical": True, "empty": [], "legacy": "a",
+    }
+
+
+def test_unavailable_result_invalidates_equivalent_comparison_copy_only():
+    module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    assert _run_node_script(f"""
+      {module}
+      const request = {{origin_fiases: ['a', 'b'], destination_region: 'R',
+        mode: 'geography', parameters: {{k_mode: 'auto', n_clusters: 'auto'}}}};
+      const saved = {{data_snapshot: 's', analysis: {{mode: 'geography', frozen_request: request}}}};
+      const copy = JSON.parse(JSON.stringify(saved));
+      const other = {{...saved, analysis: {{mode: 'geo_volume', frozen_request: {{...request, mode: 'geo_volume'}}}}}};
+      const detailKey = result => requestSignature({{...result.analysis.frozen_request,
+        data_snapshot: 's', destination_fias: 'x'}});
+      const state = {{result: {{data: saved, cache: new Map([['run', saved], ['copy', copy], ['other', other]])}},
+        comparison: {{cache: new Map([['compare', {{results: {{geography: copy, geo_volume: other}}}}]]),
+          results: {{geography: copy, geo_volume: other}}}},
+        ui: {{pointRows: new Map([[detailKey(saved), {{status: 'success'}}], [detailKey(other), {{status: 'success'}}]])}}}};
+      rejectUnavailableResult(state, saved);
+      console.log(JSON.stringify({{keys: [...state.result.cache.keys()],
+        variants: Object.keys(state.comparison.results), comparisons: state.comparison.cache.size,
+        details: [...state.ui.pointRows.values()].map(detail => detail.status)}}));
+    """) == {"keys": ["other"], "variants": ["geo_volume"], "comparisons": 0, "details": ["unavailable", "success"]}
+
+
+def _product_workspace_script(actions: str) -> str:
+    from backend.product_modes import default_product_mode_catalog
+
+    capabilities = [item.as_dict() for item in default_product_mode_catalog().manifest()]
+    html = re.search(r"<body[^>]*>([\s\S]*?)</body>", _read("frontend/index.html"))[1]
+    html = re.sub(r"<script[\s\S]*?</script>", "", html)
+    modules = []
+    for filename in ("api", "clustering/state", "clustering/formatters", "clustering/controls",
+                     "clustering/inspector", "clustering/table", "clustering/comparison",
+                     "clustering/controller"):
+        source = re.sub(r"^import[\s\S]*?;\n", "", _read(f"frontend/js/{filename}.js"), flags=re.MULTILINE)
+        exports = re.findall(r"export (?:async )?(?:function|const) (\w+)", source)
+        assignments = ";".join(f"globalThis.{name} = {name}" for name in exports)
+        modules.append("{" + source.replace("export ", "") + assignments + "}")
+    return f"""
+      document.body.innerHTML = {json.dumps(html)};
+      const origins = [{{fias_id: 'b', name: 'Beta', region: 'South'}},
+        {{fias_id: 'a', name: 'Alpha', region: 'North'}}];
+      const requests = [];
+      const options = {{ok: true, mode_capabilities: {json.dumps(capabilities)},
+        defaults: {{mode: 'geography', period_types: ['current'], price_types: ['spot']}},
+        destination_regions: ['R'], period_types: ['current', 'retro'],
+        price_types: ['spot', 'tender'], vehicle_types: [], tonnage_ids: []}};
+      let failRun = false, failSearch = false, failRows = false;
+      globalThis.fetch = async (url, init = {{}}) => {{
+        const path = String(url).split('/api/clustering/')[1];
+        const payload = init.body ? JSON.parse(init.body) : null;
+        requests.push({{path, payload}});
+        let data = options, status = 200;
+        if (path.startsWith('origins')) {{
+          data = path.includes('q=missing') ? [] : origins;
+          if (failSearch) {{status = 500; data = {{error: 'Catalog offline'}};}}
+        }}
+        if (path === 'run') {{
+          data = {{ok: true, status: 'success', data_snapshot: 's1',
+            analysis: {{mode: payload.mode, parameters: {{k_mode: 'auto', n_clusters: 2}},
+              origins, origin_fiases: ['a', 'b'], origin: null, destination_region: 'R',
+              filters: {{period_types: ['current'], price_types: ['spot']}}, frozen_request: payload,
+              origin_coverage: [{{fias_id: 'a', zero_match: true}}]}},
+            data_quality: {{}}, points: [{{id: 'x', fias_id: 'x', name: 'X', trip_count: 40}}],
+            clusters: [], cluster_table: {{supported: true, rows: []}}}};
+          if (failRun) {{status = 422; data = {{error: 'No data matches the selected filters.', code: 'NO_DATA'}};}}
+        }}
+        if (path === 'point-rows') {{
+          data = {{ok: true, rows: [], total: 0, has_more: false}};
+          if (failRows) {{status = 409; data = {{code: 'RESULT_UNAVAILABLE', error: 'Saved result evicted'}};}}
+        }}
+        return {{ok: status === 200, status, json: async () => structuredClone(data)}};
+      }};
+      function clearClusteringResult() {{}}
+      function renderClusteringPoints() {{}}
+      function setMlResultStale() {{}}
+      function highlightCluster() {{}}
+      function hoverCluster() {{}}
+      function setClusteringLayers() {{}}
+      function focusClusteringPoint() {{}}
+      {''.join(modules)}
+      (async () => {{
+        await initClustering();
+        const pause = () => new Promise(resolve => setTimeout(resolve, 280));
+        const input = document.getElementById('cluster-origin');
+        const choose = async id => {{
+          input.value = '';
+          input.dispatchEvent(new Event('input', {{bubbles: true}}));
+          await pause();
+          document.querySelector(`[data-origin-index="${{origins.findIndex(o => o.fias_id === id)}}"]`).click();
+          await pause();
+        }};
+        {actions}
+      }})().catch(error => {{document.body.dataset.result = JSON.stringify({{error: String(error)}});}});
+    """
+
+
+def test_origin_tokens_survive_search_and_submit_the_union_with_keyboard_removal():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('b');
+      document.getElementById('cluster-region').value = 'R';
+      document.getElementById('cluster-region').dispatchEvent(new Event('change', {bubbles: true}));
+      await pause();
+      await choose('a');
+      input.value = 'missing';
+      input.dispatchEvent(new Event('input', {bubbles: true}));
+      await pause();
+      const tokens = [...document.querySelectorAll('[data-remove-origin]')];
+      const selected = tokens.map(button => button.dataset.removeOrigin);
+      const route = document.getElementById('filter-route').textContent;
+      document.getElementById('btn-run-clustering').click();
+      await pause();
+      const submitted = requests.find(request => request.path === 'run')?.payload;
+      const remove = tokens.find(button => button.dataset.removeOrigin === 'b');
+      remove?.focus();
+      remove?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Delete', bubbles: true}));
+      await pause();
+      document.body.dataset.result = JSON.stringify({selected, route,
+        origins: submitted?.origin_fiases, region: submitted?.destination_region,
+        optionsUnion: requests.some(request => request.path.includes('origin_fiases=a&origin_fiases=b')),
+        remaining: [...document.querySelectorAll('[data-remove-origin]')].map(button => button.dataset.removeOrigin),
+        frozen: document.getElementById('result-context').textContent.includes('Alpha')
+          && document.getElementById('result-context').textContent.includes('Beta'),
+        stale: !document.getElementById('analysis-stale').classList.contains('hidden'),
+      });
+    """))
+    assert actual == {
+        "selected": ["b", "a"], "route": "Beta, Alpha → R",
+        "origins": ["a", "b"], "region": "R", "optionsUnion": True,
+        "remaining": ["a"], "frozen": True, "stale": True,
+    }
+
+
+def test_union_point_rows_use_exact_saved_request_after_form_edits():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('b'); await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true}));
+      await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const saved = requests.find(request => request.path === 'run').payload;
+      document.querySelector('#cluster-periods input[value="retro"]').click();
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
+      document.querySelector('.pulse-details').open = true;
+      await pause();
+      const payload = requests.find(request => request.path === 'point-rows')?.payload;
+      document.body.dataset.result = JSON.stringify({origins: payload?.origin_fiases,
+        periods: payload?.period_types, mode: payload?.mode, parameters: payload?.parameters,
+        snapshot: payload?.data_snapshot, destination: payload?.destination_fias,
+        scalar: payload ? 'origin_fias' in payload : true,
+        frozen: saved.period_types, stale: !document.getElementById('analysis-stale').classList.contains('hidden')});
+    """))
+    assert actual == {
+        "origins": ["a", "b"], "periods": ["current"], "mode": "geography",
+        "parameters": {"k_mode": "auto", "n_clusters": "auto"}, "snapshot": "s1",
+        "destination": "x", "scalar": False, "frozen": ["current"], "stale": True,
+    }
+
+
+def test_no_data_and_catalog_errors_keep_selected_origins_and_saved_result_visible():
+    actual = _run_browser_script(_product_workspace_script("""
+      document.getElementById('btn-run-clustering').click();
+      const empty = document.getElementById('analysis-form-error').textContent;
+      await choose('b'); await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const context = document.getElementById('result-context').textContent;
+      const zeroMatch = context.includes('Без строк по выбранным фильтрам: Alpha');
+      document.querySelector('#cluster-periods input[value="retro"]').click();
+      failRun = true;
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const noData = document.getElementById('analysis-form-error').textContent;
+      const visible = !document.getElementById('inspector-result').classList.contains('hidden');
+      failSearch = true;
+      input.value = 'offline'; input.dispatchEvent(new Event('input', {bubbles: true})); await pause();
+      document.body.dataset.result = JSON.stringify({empty, zeroMatch, noData, visible,
+        contextPreserved: document.getElementById('result-context').textContent === context,
+        catalog: document.getElementById('cluster-origin-meta').textContent.includes('Catalog offline'),
+        selected: document.querySelectorAll('[data-remove-origin]').length,
+        tableVisible: !document.getElementById('cluster-table-panel').classList.contains('hidden')});
+    """))
+    assert actual == {
+        "empty": "Выберите хотя бы одно отправление из списка.", "zeroMatch": True,
+        "noData": "NO_DATA: No data matches the selected filters.", "visible": True,
+        "contextPreserved": True, "catalog": True, "selected": 2, "tableVisible": True,
+    }
+
+
+def test_evicted_union_result_requires_fresh_calculation_without_rejecting_valid_generation():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('b'); await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      failRows = true;
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
+      document.querySelector('.pulse-details').open = true; await pause();
+      const recovery = document.querySelector('.pulse-state')?.textContent.includes('Пересчитайте');
+      const retry = Boolean(document.querySelector('[data-pulse-retry]'));
+      failRows = false;
+      document.getElementById('btn-run-clustering').click(); await pause();
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
+      document.querySelector('.pulse-details').open = true; await pause();
+      document.body.dataset.result = JSON.stringify({recovery, retry,
+        runs: requests.filter(request => request.path === 'run').length,
+        rows: requests.filter(request => request.path === 'point-rows').length,
+        success: document.querySelector('.pulse-state')?.textContent.includes('нет строк'),
+        stale: !document.getElementById('analysis-stale').classList.contains('hidden')});
+    """))
+    assert actual == {"recovery": True, "retry": False, "runs": 2, "rows": 2, "success": True, "stale": False}
+
+
 @pytest.fixture(scope="module")
 def point_detail_presentations():
     formatters = _read("frontend/js/clustering/formatters.js").replace("export ", "")
@@ -568,7 +807,7 @@ def test_frontend_honors_published_capabilities_when_compatibility_values_drift(
         "geographyResultKind": "zones",
         "missingCapabilitiesError": "Product mode capabilities are required",
         "request": {
-            "origin_fias": "",
+            "origin_fiases": [],
             "destination_region": "",
             "period_types": ["current"],
             "price_types": ["spot"],

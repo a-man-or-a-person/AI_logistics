@@ -69,6 +69,7 @@ export function createClusteringState(options = {}) {
     comparisonModeIds: modeCapabilities.filter(item => item.comparison?.supported).map(item => item.id),
     form: {
       origin: null,
+      origins: [],
       destinationRegion: '',
       periodTypes: [...(options.defaults?.period_types || ['current'])],
       priceTypes: [...(options.defaults?.price_types || ['spot'])],
@@ -85,6 +86,7 @@ export function createClusteringState(options = {}) {
     },
     result: { status: 'empty', data: null, error: null, requestSnapshot: null, cache: new Map() },
     rejectedSnapshots: new Set(),
+    unavailableResults: new WeakSet(),
     comparison: { open: false, status: 'empty', context: null, contextDisplay: null, results: {}, activeMode: null, error: null, cache: new Map() },
     ui: {
       selectedCluster: null,
@@ -101,7 +103,9 @@ export function createClusteringState(options = {}) {
 
 export function datasetSnapshot(form) {
   return {
-    origin_fias: form.origin?.fias_id || '',
+    ...(form.origins?.length || !form.origin
+      ? { origin_fiases: [...new Set((form.origins || []).map(origin => origin.fias_id.trim()))].sort() }
+      : { origin_fias: form.origin.fias_id }),
     destination_region: form.destinationRegion,
     period_types: sorted(form.periodTypes),
     price_types: sorted(form.priceTypes),
@@ -156,7 +160,7 @@ export function requestSignature(request) {
 }
 
 export function isResultStale(state) {
-  return state.rejectedSnapshots?.has(state.result.data?.data_snapshot) || Boolean(state.result.requestSnapshot)
+  return state.unavailableResults?.has(state.result.data) || state.rejectedSnapshots?.has(state.result.data?.data_snapshot) || Boolean(state.result.requestSnapshot)
     && !semanticallyEqual(buildRequest(state.form), state.result.requestSnapshot);
 }
 
@@ -166,14 +170,48 @@ export function isComparisonStale(state) {
 }
 
 export function setResult(state, data, request) {
+  if (state.unavailableResults?.has(data)) {
+    throw Object.assign(new Error('Сохранённый результат недоступен. Пересчитайте результат.'), {code: 'RESULT_UNAVAILABLE'});
+  }
   if (state.rejectedSnapshots?.has(data.data_snapshot)) {
     throw Object.assign(new Error('Данные Pulse изменились. Пересчитайте результат.'), {code: 'STALE_DATA_SNAPSHOT'});
   }
   const cache = state.result.cache || new Map();
   cache.set(requestSignature(request), data);
+  for (const [key, detail] of state.ui.pointRows || []) {
+    if (detail.status === 'unavailable') state.ui.pointRows.delete(key);
+  }
   state.result = { status: data.status || 'success', data, error: null, requestSnapshot: clone(request), cache };
   state.ui.selectedCluster = null;
   state.ui.selectedPoint = null;
+}
+
+export function rejectUnavailableResult(state, result) {
+  const unavailable = (state.unavailableResults ||= new WeakSet());
+  const matches = data => data.data_snapshot === result.data_snapshot
+    && semanticallyEqual(data.analysis.frozen_request, result.analysis.frozen_request);
+  unavailable.add(result);
+  for (const [key, data] of state.result.cache || []) {
+    if (matches(data)) {
+      unavailable.add(data);
+      state.result.cache.delete(key);
+    }
+  }
+  for (const [key, response] of state.comparison?.cache || []) {
+    if (Object.values(response.results || {}).some(matches)) state.comparison.cache.delete(key);
+  }
+  for (const [mode, data] of Object.entries(state.comparison?.results || {})) {
+    if (matches(data)) {
+      unavailable.add(data);
+      delete state.comparison.results[mode];
+    }
+  }
+  for (const [key, detail] of state.ui.pointRows) {
+    const {data_snapshot, destination_fias, ...context} = JSON.parse(key);
+    if (data_snapshot === result.data_snapshot && semanticallyEqual(context, result.analysis.frozen_request)) {
+      Object.assign(detail, {status: 'unavailable', rows: [], total: null, hasMore: false, error: null});
+    }
+  }
 }
 
 export function rejectDataSnapshot(state, snapshot) {

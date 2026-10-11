@@ -76,8 +76,11 @@ function contextFor(analysis) {
   const prices = (filters.price_types || []).join(', ') || '—';
   const vehicles = (filters.vehicle_types || []).join(', ') || 'Все';
   const tonnages = (filters.tonnage_ids || []).map(value => `${value} т`).join(', ') || 'Все';
-  return `<strong>${escapeHtml(analysis.origin?.name || analysis.origin?.fias_id)} → ${escapeHtml(analysis.destination_region)}</strong>
+  const origins = analysis.origins || (analysis.origin ? [analysis.origin] : []);
+  const zeroMatch = (analysis.origin_coverage || []).filter(origin => origin.zero_match);
+  return `<strong>${escapeHtml(origins.map(origin => origin.name || origin.fias_id).join(', '))} → ${escapeHtml(analysis.destination_region)}</strong>
     <span>Источник: Pulse</span>
+    ${zeroMatch.length ? `<small>Без строк по выбранным фильтрам: ${escapeHtml(zeroMatch.map(item => origins.find(origin => origin.fias_id === item.fias_id)?.name || item.fias_id).join(', '))}</small>` : ''}
     <small>${escapeHtml(periods)} · ${escapeHtml(prices)} · ${escapeHtml(vehicles)} · ${escapeHtml(tonnages)}</small>`;
 }
 
@@ -191,6 +194,8 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
     ? '<p class="pulse-state" role="status">Загружаем строки Pulse…</p>'
     : pulse.status === 'stale'
       ? '<p class="pulse-state error" role="alert">Данные Pulse изменились. Пересчитайте результат.</p>'
+      : pulse.status === 'unavailable'
+        ? '<p class="pulse-state error" role="alert">Сохранённый результат недоступен. Пересчитайте результат.</p>'
       : pulse.status === 'error'
         ? `<p class="pulse-state error" role="alert">${escapeHtml(pulse.error || 'Не удалось загрузить строки Pulse.')}</p><button type="button" data-pulse-retry>Повторить</button>`
         : pulse.status === 'success' && !pulseRows

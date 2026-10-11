@@ -4,7 +4,7 @@ import {
 } from '../api.js';
 import {
   buildRequest, createClusteringState, datasetSnapshot, isComparisonStale,
-  isResultStale, modeParameter, rejectDataSnapshot, requestSignature, setResult, updateClusteringOptions,
+  isResultStale, modeParameter, rejectDataSnapshot, rejectUnavailableResult, requestSignature, setResult, updateClusteringOptions,
 } from './state.js';
 import { readChecks, renderFormState, renderOptionControls } from './controls.js';
 import { renderErrorState, renderInspector } from './inspector.js';
@@ -20,6 +20,8 @@ const $ = id => document.getElementById(id);
 let state;
 let originOptions = [];
 let originTimer;
+let originSearchVersion = 0;
+let optionsVersion = 0;
 let runController;
 let pointRowsController;
 let comparisonFocusReturn;
@@ -60,9 +62,30 @@ function wireEvents() {
   $('cluster-origin').addEventListener('input', onOriginInput);
   $('cluster-origin').addEventListener('focus', () => showOriginOptions());
   $('cluster-origin').addEventListener('keydown', onOriginKeydown);
+  $('selected-origins').addEventListener('click', event => {
+    const button = event.target.closest('[data-remove-origin]');
+    if (button) removeOrigin(button.dataset.removeOrigin);
+  });
+  $('selected-origins').addEventListener('keydown', event => {
+    if (['Delete', 'Backspace'].includes(event.key) && event.target.dataset.removeOrigin) {
+      event.preventDefault();
+      removeOrigin(event.target.dataset.removeOrigin);
+    }
+  });
+  $('cluster-origin-options').addEventListener('keydown', event => {
+    const options = [...document.querySelectorAll('.combo-option')];
+    const index = options.indexOf(event.target);
+    if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
+      event.preventDefault();
+      options[(index + (event.key === 'ArrowDown' ? 1 : options.length - 1)) % options.length]?.focus();
+    } else if (event.key === 'Escape') {
+      hideOriginOptions();
+      $('cluster-origin').focus();
+    }
+  });
   $('cluster-region').addEventListener('change', async () => {
     state.form.destinationRegion = $('cluster-region').value;
-    if (state.form.origin && state.form.destinationRegion) await loadContextOptions();
+    if (state.form.origins.length) await loadContextOptions();
     renderAll();
   });
   document.querySelectorAll('[data-step]').forEach(button => button.addEventListener('click', () => {
@@ -128,16 +151,26 @@ function syncForm(event) {
 }
 
 async function searchOrigins(query) {
-  originOptions = await fetchClusteringOrigins(query, 30);
+  const version = ++originSearchVersion;
+  try {
+    const origins = await fetchClusteringOrigins(query, 30);
+    if (version !== originSearchVersion) return;
+    originOptions = origins;
+    $('cluster-origin-meta').textContent = origins.length ? 'Выберите отправление из подсказок' : 'Отправления не найдены. Измените поиск.';
+  } catch (error) {
+    if (version !== originSearchVersion) return;
+    originOptions = [];
+    $('cluster-origin-meta').textContent = `Не удалось загрузить отправления: ${error.message}. Повторите поиск.`;
+  }
   $('cluster-origin-options').innerHTML = originOptions.map((origin, index) => `
-    <button class="combo-option" type="button" role="option" data-origin-index="${index}">
-      <strong>${escapeText(origin.name)}</strong><small>${escapeText(origin.region)}</small>
+    <button class="combo-option" type="button" role="option" aria-selected="${state.form.origins.some(item => item.fias_id === origin.fias_id)}" data-origin-index="${index}">
+      <strong>${escapeText(origin.name)}</strong><small>${escapeText(origin.region)} · ${escapeText(origin.fias_id)}</small>
     </button>`).join('');
   document.querySelectorAll('[data-origin-index]').forEach(button => button.addEventListener('click', () => chooseOrigin(originOptions[Number(button.dataset.originIndex)])));
 }
 
 function onOriginInput() {
-  if (state.form.origin && $('cluster-origin').value !== state.form.origin.name) clearOrigin();
+  ++originSearchVersion;
   clearTimeout(originTimer);
   originTimer = setTimeout(async () => {
     await searchOrigins($('cluster-origin').value.trim());
@@ -165,34 +198,49 @@ function hideOriginOptions() {
 }
 
 async function chooseOrigin(origin) {
-  state.form.origin = origin;
-  state.form.destinationRegion = '';
-  $('cluster-origin').value = origin.name;
-  $('cluster-origin-meta').textContent = origin.region || 'Регион не указан';
+  if (!state.form.origins.some(item => item.fias_id === origin.fias_id)) state.form.origins.push(origin);
+  $('cluster-origin').value = '';
+  ++originSearchVersion;
+  clearTimeout(originTimer);
   hideOriginOptions();
-  setOptionsLoading(true, 'Загружаем регионы назначения…');
-  try {
-    const options = await fetchClusteringOptions(origin.fias_id);
-    updateClusteringOptions(state, options);
-    $('cluster-region').disabled = false;
-    $('cluster-region').replaceChildren(new Option('Выберите регион…', ''));
-    options.destination_regions.forEach(region => $('cluster-region').add(new Option(region, region)));
-    renderAll();
-  } catch (error) {
-    showFormError(error.message);
-  } finally {
-    setOptionsLoading(false);
-  }
+  renderOrigins();
+  renderAll();
+  $('cluster-origin').focus();
+  await loadContextOptions();
+}
+
+async function removeOrigin(fias) {
+  state.form.origins = state.form.origins.filter(origin => origin.fias_id !== fias);
+  renderOrigins();
+  $('cluster-origin').focus();
+  renderAll();
+  await loadContextOptions();
+}
+
+function renderOrigins() {
+  $('selected-origins').innerHTML = state.form.origins.map(origin => `
+    <button type="button" data-remove-origin="${escapeText(origin.fias_id)}"
+      aria-label="Удалить отправление ${escapeText(origin.name || origin.fias_id)} (${escapeText(origin.fias_id)})">
+      ${escapeText(origin.name || origin.fias_id)} <small>${escapeText(origin.fias_id)}</small> ×
+    </button>`).join('');
 }
 
 async function loadContextOptions() {
+  const version = ++optionsVersion;
+  const origins = state.form.origins.map(origin => origin.fias_id);
+  const region = state.form.destinationRegion;
   setOptionsLoading(true, 'Загружаем доступные параметры…');
   try {
     const options = await fetchClusteringOptions(
-      state.form.origin.fias_id,
-      state.form.destinationRegion,
+      origins,
+      region,
     );
+    if (version !== optionsVersion) return;
     updateClusteringOptions(state, options);
+    $('cluster-region').replaceChildren(new Option('Выберите регион…', ''));
+    options.destination_regions.forEach(value => $('cluster-region').add(new Option(value, value)));
+    state.form.destinationRegion = origins.length && options.destination_regions.includes(region) ? region : '';
+    $('cluster-region').value = state.form.destinationRegion;
     const facetValues = key => new Set((options[key] || []).map(item => typeof item === 'string' ? item : item.value));
     const contextualDefault = (key, preferred) => {
       const available = [...facetValues(key)];
@@ -208,15 +256,20 @@ async function loadContextOptions() {
     if (!state.form.periodTypes.length) state.form.periodTypes = contextualDefault('period_types', 'current');
     if (!state.form.priceTypes.length) state.form.priceTypes = contextualDefault('price_types', 'spot');
     renderOptionControls(state);
+    $('analysis-form-error').classList.add('hidden');
+    renderAll();
   } catch (error) {
+    if (version !== optionsVersion) return;
     showFormError(error.message);
   } finally {
-    setOptionsLoading(false);
+    if (version === optionsVersion) setOptionsLoading(false);
   }
 }
 
 function setOptionsLoading(loading, message = '') {
   ['cluster-region', 'btn-run-clustering'].forEach(id => { $(id).disabled = loading; });
+  $('cluster-region').disabled = loading || !state.form.origins.length;
+  $('compare-modes').disabled = loading;
   $('clustering-controls').classList.toggle('options-loading', loading);
   $('options-status').textContent = loading ? message : '';
   $('options-status').classList.toggle('hidden', !loading);
@@ -224,14 +277,20 @@ function setOptionsLoading(loading, message = '') {
 
 function clearOrigin() {
   state.form.origin = null;
+  state.form.origins = [];
+  ++optionsVersion;
+  ++originSearchVersion;
+  clearTimeout(originTimer);
+  $('cluster-origin').value = '';
+  renderOrigins();
   state.form.destinationRegion = '';
   $('cluster-region').disabled = true;
   $('cluster-region').replaceChildren(new Option('Сначала выберите точку отправления', ''));
-  $('cluster-origin-meta').textContent = 'Выберите одну точку отправления';
+  $('cluster-origin-meta').textContent = 'Выберите одно или несколько отправлений';
 }
 
 function validate(request) {
-  if (!request.origin_fias) return 'Выберите точку отправления из списка.';
+  if (!request.origin_fias && !request.origin_fiases?.length) return 'Выберите хотя бы одно отправление из списка.';
   if (!request.destination_region) return 'Выберите один регион доставки.';
   if (!request.period_types.length) return 'Выберите хотя бы один период.';
   if (!request.price_types.length) return 'Выберите хотя бы один тип цены.';
@@ -295,8 +354,10 @@ async function executeRun() {
     if (controller.signal.aborted) return;
     state.result.status = 'error';
     state.result.error = { code: runError.code, message: runError.message };
-    renderErrorState(state.result.error);
-    if (runError.code === 'NO_DATA') {
+    showFormError(`${runError.code || 'Ошибка'}: ${runError.message}`);
+    if (state.result.data) renderInspectorState();
+    else renderErrorState(state.result.error);
+    if (runError.code === 'NO_DATA' && !state.result.data) {
       $('empty-state').querySelector('.empty-title').textContent = 'По выбранным фильтрам данных нет.';
       $('empty-state').querySelector('.empty-sub').textContent = 'Измените сегмент данных и повторите расчёт.';
       $('empty-state').classList.remove('hidden');
@@ -463,7 +524,7 @@ function renderClusterTableState() {
 
 function comparisonContext(form) {
   return {
-    route: `${form.origin?.name || 'Точка не выбрана'} → ${form.destinationRegion || 'Регион не выбран'}`,
+    route: `${form.origins?.map(origin => origin.name || origin.fias_id).join(', ') || form.origin?.name || 'Точка не выбрана'} → ${form.destinationRegion || 'Регион не выбран'}`,
     periods: form.periodTypes.map(value => PERIOD_LABELS[value] || value).join(', ') || '—',
     prices: form.priceTypes.map(value => PRICE_LABELS[value] || value).join(', ') || '—',
     vehicles: form.vehicleTypes.join(', ') || 'Все',
@@ -473,7 +534,7 @@ function comparisonContext(form) {
 
 function renderEmptyState() {
   if (state.result.data || state.result.status === 'error') return;
-  const ready = Boolean(state.form.origin && state.form.destinationRegion);
+  const ready = Boolean((state.form.origins?.length || state.form.origin) && state.form.destinationRegion);
   $('empty-state').querySelector('.empty-title').textContent = ready
     ? 'Всё готово к расчёту.'
     : 'Выберите направление и параметры анализа.';
@@ -509,18 +570,25 @@ function pointRowsKey() {
   if (!result || !state.ui.selectedPoint) return null;
   return requestSignature({
     data_snapshot: result.data_snapshot,
+    ...frozenPointContext(result),
+    destination_fias: state.ui.selectedPoint,
+  });
+}
+
+function frozenPointContext(result) {
+  return result.analysis.frozen_request || {
     origin_fias: result.analysis.origin.fias_id,
     destination_region: result.analysis.destination_region,
-    destination_fias: state.ui.selectedPoint,
     ...(result.analysis.filters || {}),
-  });
+  };
 }
 
 function pointRowsForSelection() {
   const key = pointRowsKey();
   if (!key) return {status: 'idle', rows: [], total: null, hasMore: false, open: false};
   if (!state.ui.pointRows.has(key)) {
-    const status = state.rejectedSnapshots?.has(state.result.data.data_snapshot) ? 'stale' : 'idle';
+    const status = state.unavailableResults?.has(state.result.data) ? 'unavailable'
+      : state.rejectedSnapshots?.has(state.result.data.data_snapshot) ? 'stale' : 'idle';
     state.ui.pointRows.set(key, {status, rows: [], total: null, hasMore: false, open: false, error: null});
   }
   return state.ui.pointRows.get(key);
@@ -544,7 +612,7 @@ async function loadPointRows({restart = false} = {}) {
   const result = state.result.data;
   const point = result?.points.find(item => item.id === state.ui.selectedPoint);
   if (!point || result.cluster_table?.supported !== true) return;
-  if (state.rejectedSnapshots?.has(result.data_snapshot)) return;
+  if (state.unavailableResults?.has(result) || state.rejectedSnapshots?.has(result.data_snapshot)) return;
   const key = pointRowsKey();
   const detail = pointRowsForSelection();
   detail.open = true;
@@ -556,17 +624,11 @@ async function loadPointRows({restart = false} = {}) {
   detail.status = 'loading';
   detail.error = null;
   renderInspectorState();
-  const filters = result.analysis.filters || {};
   try {
     const response = await fetchClusteringPointRows({
+      ...frozenPointContext(result),
       data_snapshot: result.data_snapshot,
-      origin_fias: result.analysis.origin.fias_id,
-      destination_region: result.analysis.destination_region,
       destination_fias: point.fias_id || point.id,
-      period_types: filters.period_types || [],
-      price_types: filters.price_types || [],
-      vehicle_types: filters.vehicle_types || [],
-      tonnage_ids: filters.tonnage_ids || [],
       offset: detail.rows.length,
       limit: 50,
     }, {signal: controller.signal});
@@ -581,8 +643,12 @@ async function loadPointRows({restart = false} = {}) {
     if (error.code === 'STALE_DATA_SNAPSHOT') {
       rejectDataSnapshot(state, result.data_snapshot);
       renderAll();
+    } else if (error.code === 'RESULT_UNAVAILABLE') {
+      rejectUnavailableResult(state, result);
+      renderAll();
     }
-    detail.status = error.code === 'STALE_DATA_SNAPSHOT' ? 'stale' : 'error';
+    detail.status = error.code === 'RESULT_UNAVAILABLE' ? 'unavailable'
+      : error.code === 'STALE_DATA_SNAPSHOT' ? 'stale' : 'error';
     detail.error = error.message;
   } finally {
     if (pointRowsController === controller) pointRowsController = null;

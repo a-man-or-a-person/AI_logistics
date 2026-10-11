@@ -76,7 +76,9 @@ export function regeocodeTown(town, region) {
 
 export function fetchClusteringOptions(originFias = '', destinationRegion = '') {
   const params = new URLSearchParams();
-  if (originFias) params.set('origin_fias', originFias);
+  if (Array.isArray(originFias)) {
+    [...new Set(originFias)].sort().forEach(fias => params.append('origin_fiases', fias));
+  } else if (originFias) params.set('origin_fias', originFias);
   if (destinationRegion) params.set('destination_region', destinationRegion);
   const suffix = params.toString() ? `?${params}` : '';
   return requestJson(`${API_BASE}/api/clustering/options${suffix}`);

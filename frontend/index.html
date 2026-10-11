@@ -37,7 +37,8 @@
           <h2><span>01</span> Направление</h2>
           <label for="cluster-origin">Откуда</label>
           <div class="combobox"><input id="cluster-origin" type="search" role="combobox" aria-autocomplete="list" aria-controls="cluster-origin-options" aria-expanded="false" placeholder="Поиск точки отправления…" autocomplete="off"><div id="cluster-origin-options" class="combo-options hidden" role="listbox"></div></div>
-          <p id="cluster-origin-meta" class="field-hint">Выберите одну точку отправления</p>
+          <div id="selected-origins" class="selected-origins" aria-label="Выбранные отправления"></div>
+          <p id="cluster-origin-meta" class="field-hint" role="status" aria-live="polite">Выберите одно или несколько отправлений</p>
           <label for="cluster-region">Регион доставки</label>
           <select id="cluster-region" disabled required><option value="">Сначала выберите точку отправления</option></select>
           <p id="options-status" class="field-hint options-status hidden" role="status" aria-live="polite"></p>
