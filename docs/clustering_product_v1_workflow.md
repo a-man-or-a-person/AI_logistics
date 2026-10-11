@@ -99,3 +99,16 @@ controls и inspector открываются bottom-sheet поверх карт�
 режима и параметров. Карточка результата фиксирует тот же data slice, а сравнение явно
 показывает общую выборку над пятью нейтральными карточками. Клик по продуктовой точке
 одновременно открывает popup на карте и подробности в inspector без повторного запроса.
+
+## CURRENT drill-up navigation (NPI-08)
+
+Pulse/origin rows return to the point summary, then its saved cluster, then the overview.
+Up changes only navigation: saved request, membership, form, table sort/collapse/scroll,
+and map center/zoom remain. Parent changes clear point/origin descendants and cancel
+pending detail requests. Unassigned points return directly to overview and have no
+fabricated parent. Native buttons restore focus to their parent/source control.
+
+Loaded summaries/pages reuse their exact frozen keys without refetch. Cached comparison
+activation resets overview and trip_count descending, opens only supported tables and
+synchronizes checked mode controls. New Calculate/Compare retain Pulse revision checks;
+stale snapshot and unavailable result retain explicit recalculation recovery.

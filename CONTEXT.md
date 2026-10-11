@@ -39,8 +39,7 @@ Frontend выбирает одно или несколько отправлен�
 использует frozen resolved set. UI поддерживает explicit «Все отправления» с выбранным
 регионом доставки и сохранённым полным набором. Inspector показывает вклад каждого
 contributing origin в выбранную точку: машины, взвешенные маршрут/цена и отдельное
-покрытие. Выбор origin открывает frozen origin→point строки Pulse. Drill-up и XLSX
-ещё не реализованы.
+покрытие. Выбор origin открывает frozen origin→point строки Pulse. Explicit drill-up preserves the saved context; XLSX remains NEXT.
 Новый detail-контекст связан с точным saved result и его membership; eviction
 требует пересчёта. Контракт: [Product API](docs/clustering_product_v1_contract.md).
 
