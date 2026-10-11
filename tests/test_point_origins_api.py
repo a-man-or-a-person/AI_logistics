@@ -46,6 +46,15 @@ def detail_request(run, destination='x'):
             'destination_fias': destination}
 
 
+def test_summary_does_not_accept_the_row_only_origin_selector(union_client):
+    client, _ = union_client
+    run = client.post('/api/clustering/run', json=payload()).get_json()
+    response = client.post('/api/clustering/point-origins', json={
+        **detail_request(run), 'detail_origin_fias': 'a'})
+    assert response.status_code == 400
+    assert response.get_json()['code'] == 'INVALID_REQUEST'
+
+
 def test_summary_uses_independent_valid_weights_and_preserves_missing_metrics(union_client):
     client, service = union_client
     with service.source_path.open('a', encoding='utf8', newline='') as stream:

@@ -952,6 +952,8 @@ class ClusteringService:
         return frozen, token, snapshot, saved_point, rows
 
     def point_origins(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
+        if isinstance(payload, dict) and "detail_origin_fias" in payload:
+            raise ProductClusteringError("INVALID_REQUEST", "Summary requires the complete saved origin set.", 400)
         frozen, token, snapshot, point, rows = self._frozen_point_rows(payload, require_saved=True)
         grouped = defaultdict(list)
         for row in rows:

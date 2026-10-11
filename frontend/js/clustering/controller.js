@@ -336,7 +336,7 @@ function cancelCalculation() {
 }
 
 async function executeRun() {
-  cancelPointRows();
+  cancelPointDetailRequests();
   const request = buildRequest(state.form);
   const error = validate(request);
   if (error) return showFormError(error);
@@ -389,7 +389,7 @@ async function executeRun() {
 
 function reset() {
   cancelCalculation();
-  cancelPointRows();
+  cancelPointDetailRequests();
   state = createClusteringState(state.options);
   renderOptionControls(state);
   clearOrigin();
@@ -486,7 +486,7 @@ async function runComparison() {
 }
 
 function activateComparisonMode(mode) {
-  cancelPointRows();
+  cancelPointDetailRequests();
   const result = state.comparison.results[mode];
   if (!result) return;
   cancelCalculation();
@@ -564,14 +564,18 @@ function renderEmptyState() {
 }
 
 function renderInspectorState() {
+  const focusedOrigin = globalThis.document?.activeElement?.dataset.originFias;
   renderInspector(state, {
     pointRowsKey,
     pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
     selectedOrigin: state.ui.selectedOrigin,
     onOriginSelect: origin => {
-      cancelPointRows();
+      cancelPointDetailRequests();
       state.ui.selectedOrigin = origin;
-      loadPointRows();
+      const detail = pointRowsForSelection();
+      detail.open = true;
+      if (detail.status === 'idle' || detail.status === 'error') loadPointRows();
+      else renderInspectorState();
     },
     onOriginsRetry: () => loadPointOrigins(),
     onClusterHover: clusterId => highlightCluster(clusterId),
@@ -585,12 +589,16 @@ function renderInspectorState() {
     onPulseToggle: open => {
       const detail = pointRowsForSelection();
       detail.open = open;
-      if (!open) cancelPointRows();
+      if (!open) cancelPointDetailRequests();
       else if (detail.status === 'idle') loadPointRows();
     },
     onPulseMore: () => loadPointRows(),
     onPulseRetry: () => loadPointRows(),
   });
+  if (focusedOrigin) {
+    [...document.querySelectorAll('[data-origin-fias]')]
+      .find(button => button.dataset.originFias === focusedOrigin)?.focus({preventScroll: true});
+  }
 }
 
 function pointOriginsKey() {
@@ -628,7 +636,7 @@ function pointRowsForSelection() {
   return state.ui.pointRows.get(key);
 }
 
-function cancelPointRows() {
+function cancelPointDetailRequests() {
   pointOriginsController?.abort();
   pointOriginsController = null;
   const summary = state.ui.pointOrigins?.get(pointOriginsKey());
@@ -640,7 +648,7 @@ function cancelPointRows() {
 }
 
 function selectPoint(pointId, focus = false) {
-  cancelPointRows();
+  cancelPointDetailRequests();
   state.ui.selectedPoint = pointId;
   state.ui.selectedOrigin = null;
   if (pointId && focus) focusClusteringPoint(pointId);

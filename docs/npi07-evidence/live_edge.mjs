@@ -161,10 +161,16 @@ try {
   assert.ok(lastBody('point-rows').rows.every(r=>r.origin_fias==='b'));
   assert.deepEqual(new Set(lastBody('point-rows').rows.map(r=>r.origin_region)),new Set(['B Region',null]));
   // Focus by mouse, switch with Tab/Enter: native contributor button receives real keyboard input.
-  await click('[data-origin-fias="a"]'); await key('Tab','Tab',9);
+  const cachedRequests=requests.filter(r=>r.url.endsWith('/point-rows')).length;
+  await click('[data-origin-fias="a"]');
+  assert.equal(await evaluate("document.querySelector('[data-origin-fias=\"a\"]').getAttribute('aria-pressed')"),'true');
+  assert.equal(await evaluate("document.querySelectorAll('.pulse-table tbody tr').length"),61);
+  assert.equal(requests.filter(r=>r.url.endsWith('/point-rows')).length,cachedRequests);
+  await key('Tab','Tab',9);
   const focus=await evaluate("document.activeElement.dataset.originFias"); assert.equal(focus,'b');
   await key('Enter','Enter',13);
   assert.equal(await evaluate("document.querySelector('[data-origin-fias=\"b\"]').getAttribute('aria-pressed')"),'true');
+  assert.equal(await evaluate("document.querySelectorAll('.pulse-table tbody tr').length"),3);
   await record('07-keyboard-origin',{focus,enteredOrigin:'b',realKeyboard:true,actualRowRegions:['B Region',null]});
   const summaryText=await evaluate("document.querySelector('.origin-summary').textContent");
   const rowText=await evaluate("document.querySelector('.pulse-table tbody').textContent");

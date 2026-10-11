@@ -1991,3 +1991,24 @@ def test_origin_summary_and_detail_cancel_late_responses_and_reject_all_related_
     assert actual == {'cancelled': True, 'error': 'error', 'noLeak': ['b-1'],
                       'unavailable': ['unavailable', 'unavailable'], 'stale': ['stale', 'stale'],
                       'origins': ['a', 'b', 'c'], 'detail': 'b', 'summaryRows': [{'origin_fias': 'b'}]}
+
+
+def test_cached_origin_selection_renders_the_selected_origin_without_refetch():
+    script = _product_workspace_script("""
+      await choose('b'); await choose('a');
+      const region=document.getElementById('cluster-region'); region.value='R';
+      region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}})); await pause();
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      document.querySelector('[data-origin-fias="a"]').click(); await pause();
+      const before=requests.filter(r=>r.path==='point-rows').length;
+      document.querySelector('[data-origin-fias="b"]').focus();
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      document.body.dataset.result=JSON.stringify({selected:document.querySelector('[data-origin-fias="b"]').getAttribute('aria-pressed'),
+        context:document.querySelector('.pulse-details').textContent.includes('b → x'),
+        requestFree:before===requests.filter(r=>r.path==='point-rows').length,
+        focus:document.activeElement.dataset.originFias});
+    """)
+    script = script.replace("origins: [{origin_fias: 'b'", "origins: [{origin_fias:'a',origin_name:'Alpha',trip_count:10,warnings:[]},{origin_fias: 'b'")
+    assert _run_browser_script(script) == {'selected':'true','context':True,'requestFree':True,'focus':'b'}
