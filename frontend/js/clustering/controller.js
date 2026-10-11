@@ -365,6 +365,10 @@ async function executeRun() {
     renderAll();
   } catch (runError) {
     if (controller.signal.aborted) return;
+    if (runError.code === 'STALE_DATA_SNAPSHOT' && state.result.data) {
+      rejectDataSnapshot(state, state.result.data.data_snapshot);
+      renderAll();
+    }
     state.result.status = 'error';
     state.result.error = { code: runError.code, message: runError.message };
     showFormError(`${runError.code || 'Ошибка'}: ${runError.message}`);
@@ -506,6 +510,10 @@ async function runComparison() {
     if (state.comparison.activeMode) activateComparisonMode(state.comparison.activeMode);
   } catch (error) {
     if (controller.signal.aborted) return;
+    if (error.code === 'STALE_DATA_SNAPSHOT' && state.result.data) {
+      rejectDataSnapshot(state, state.result.data.data_snapshot);
+      renderAll();
+    }
     state.comparison.status = 'error';
     state.comparison.error = { code: error.code, message: error.message };
   }

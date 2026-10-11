@@ -383,6 +383,33 @@ def test_cancelled_revision_cannot_publish_or_invalidate_a_new_workspace(replace
                       'obsoleteRejected': False, 'enabled': True, 'error': None}
 
 
+@pytest.mark.parametrize('operation', ['run', 'compare'])
+def test_source_change_after_revision_during_calculation_rejects_frozen_details(operation):
+    actual = _run_browser_script(_product_workspace_script(f"""
+      await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const saved = workspace.getState().result.data;
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
+      document.querySelector('.pulse-details').open = true; await pause();
+      const transport = globalThis.fetch;
+      globalThis.fetch = async (url, init) => String(url).endsWith('/' + {json.dumps(operation)})
+        ? {{ok: false, status: 409, json: async () => ({{ok: false, code: 'STALE_DATA_SNAPSHOT', error: 'Source changed during calculation'}})}}
+        : transport(url, init);
+      if ({json.dumps(operation)} === 'run') document.querySelector('#cluster-periods input[value="retro"]').click();
+      document.getElementById({json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes')}).click(); await pause();
+      const s = workspace.getState();
+      document.body.dataset.result = JSON.stringify({{kept: s.result.data === saved,
+        rejected: s.rejectedSnapshots.has('s1'),
+        cachesEmpty: !s.result.cache.size && !s.comparison.cache.size,
+        summariesAndRowsBlocked: [...s.ui.pointOrigins.values(), ...s.ui.pointRows.values()].every(d => d.status === 'stale'),
+        revisionSucceeded: requests.some(r => r.path === 'revision'), stale: isResultStale(s)}});
+    """))
+    assert actual == {'kept': True, 'rejected': True, 'cachesEmpty': True,
+                      'summariesAndRowsBlocked': True, 'revisionSucceeded': True, 'stale': True}
+
+
 def test_all_control_requires_region_and_uses_explicit_all_options_run_and_frozen_detail():
     actual = _run_browser_script(_product_workspace_script("""
       const all = document.getElementById('all-origins');
