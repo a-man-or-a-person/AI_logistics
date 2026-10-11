@@ -1,99 +1,99 @@
-FF                                                                       [100%]
-================================== FAILURES ===================================
-____ test_calculation_validates_frontend_cache_before_acceptance[race-run] ____
-
-operation = 'run', change = 'race'
-
-    @pytest.mark.parametrize('operation', ['run', 'compare'])
-    @pytest.mark.parametrize('change', ['unchanged', 'source', 'restart', 'network', 'race'])
-    def test_calculation_validates_frontend_cache_before_acceptance(operation, change):
-        actual = _run_browser_script(_product_workspace_script(f"""
-          await choose('a');
-          const region = document.getElementById('cluster-region');
-          region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
-          const perform = () => document.getElementById({json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes')}).click();
-          perform(); await pause();
-          const saved = workspace.getState().result.data;
-          window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
-          document.querySelector('.pulse-details').open = true; await pause();
-          if ({json.dumps(change)} === 'source') revision = 's2';
-          if ({json.dumps(change)} === 'restart') available = false;
-          if ({json.dumps(change)} === 'network') failRevision = true;
-          if ({json.dumps(change)} === 'race') {{failRevision = true; revisionErrorCode = 'STALE_DATA_SNAPSHOT'; revision = 's2';}}
-          if ({json.dumps(change)} === 'source' || {json.dumps(change)} === 'restart') failRun = true;
-          perform(); await pause();
-          const s = workspace.getState();
-          const snapshot = s.result.data.data_snapshot;
-          const kept = s.result.data === saved;
-          const stale = isResultStale(s);
-          const detailsSafe = [...s.ui.pointRows.values(), ...s.ui.pointOrigins.values()]
-            .every(d => !['success', 'loading'].includes(d.status));
-          const counts = () => requests.filter(r => r.path === {json.dumps(operation)}).length;
-          const failedCount = counts();
-          const checks = requests.filter(r => r.path === 'revision').length;
-          const errorVisible = {json.dumps(operation)} === 'run'
-            ? !document.getElementById('analysis-form-error').classList.contains('hidden')
-            : s.comparison.status === 'error';
-          failRun = false; failRevision = false; available = true;
-          if ({json.dumps(change)} !== 'unchanged') {{perform(); await pause();}}
-          document.body.dataset.result = JSON.stringify({{checks, failedCount, kept, snapshot, stale,
-            detailsSafe, errorVisible, finalCount: counts(), finalSnapshot: s.result.data.data_snapshot}});
-        """))
-        assert 'error' not in actual, actual
-        assert actual['checks'] == 1
-        assert actual['kept'] and actual['snapshot'] == 's1'
-        assert actual['failedCount'] == (2 if change in ('source', 'restart') else 1)
->       assert actual['stale'] == (change in ('source', 'restart', 'race'))
-E       AssertionError: assert False == ('race' in ('source', 'restart', 'race'))
-
-tests\test_clustering_frontend_contract.py:344: AssertionError
-__ test_calculation_validates_frontend_cache_before_acceptance[race-compare] __
-
-operation = 'compare', change = 'race'
-
-    @pytest.mark.parametrize('operation', ['run', 'compare'])
-    @pytest.mark.parametrize('change', ['unchanged', 'source', 'restart', 'network', 'race'])
-    def test_calculation_validates_frontend_cache_before_acceptance(operation, change):
-        actual = _run_browser_script(_product_workspace_script(f"""
-          await choose('a');
-          const region = document.getElementById('cluster-region');
-          region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
-          const perform = () => document.getElementById({json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes')}).click();
-          perform(); await pause();
-          const saved = workspace.getState().result.data;
-          window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
-          document.querySelector('.pulse-details').open = true; await pause();
-          if ({json.dumps(change)} === 'source') revision = 's2';
-          if ({json.dumps(change)} === 'restart') available = false;
-          if ({json.dumps(change)} === 'network') failRevision = true;
-          if ({json.dumps(change)} === 'race') {{failRevision = true; revisionErrorCode = 'STALE_DATA_SNAPSHOT'; revision = 's2';}}
-          if ({json.dumps(change)} === 'source' || {json.dumps(change)} === 'restart') failRun = true;
-          perform(); await pause();
-          const s = workspace.getState();
-          const snapshot = s.result.data.data_snapshot;
-          const kept = s.result.data === saved;
-          const stale = isResultStale(s);
-          const detailsSafe = [...s.ui.pointRows.values(), ...s.ui.pointOrigins.values()]
-            .every(d => !['success', 'loading'].includes(d.status));
-          const counts = () => requests.filter(r => r.path === {json.dumps(operation)}).length;
-          const failedCount = counts();
-          const checks = requests.filter(r => r.path === 'revision').length;
-          const errorVisible = {json.dumps(operation)} === 'run'
-            ? !document.getElementById('analysis-form-error').classList.contains('hidden')
-            : s.comparison.status === 'error';
-          failRun = false; failRevision = false; available = true;
-          if ({json.dumps(change)} !== 'unchanged') {{perform(); await pause();}}
-          document.body.dataset.result = JSON.stringify({{checks, failedCount, kept, snapshot, stale,
-            detailsSafe, errorVisible, finalCount: counts(), finalSnapshot: s.result.data.data_snapshot}});
-        """))
-        assert 'error' not in actual, actual
-        assert actual['checks'] == 1
-        assert actual['kept'] and actual['snapshot'] == 's1'
-        assert actual['failedCount'] == (2 if change in ('source', 'restart') else 1)
->       assert actual['stale'] == (change in ('source', 'restart', 'race'))
-E       AssertionError: assert False == ('race' in ('source', 'restart', 'race'))
-
-tests\test_clustering_frontend_contract.py:344: AssertionError
-=========================== short test summary info ===========================
-FAILED tests/test_clustering_frontend_contract.py::test_calculation_validates_frontend_cache_before_acceptance[race-run]
-FAILED tests/test_clustering_frontend_contract.py::test_calculation_validates_frontend_cache_before_acceptance[race-compare]
+FF                                                                       [100%]
+================================== FAILURES ===================================
+____ test_calculation_validates_frontend_cache_before_acceptance[race-run] ____
+
+operation = 'run', change = 'race'
+
+    @pytest.mark.parametrize('operation', ['run', 'compare'])
+    @pytest.mark.parametrize('change', ['unchanged', 'source', 'restart', 'network', 'race'])
+    def test_calculation_validates_frontend_cache_before_acceptance(operation, change):
+        actual = _run_browser_script(_product_workspace_script(f"""
+          await choose('a');
+          const region = document.getElementById('cluster-region');
+          region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
+          const perform = () => document.getElementById({json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes')}).click();
+          perform(); await pause();
+          const saved = workspace.getState().result.data;
+          window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
+          document.querySelector('.pulse-details').open = true; await pause();
+          if ({json.dumps(change)} === 'source') revision = 's2';
+          if ({json.dumps(change)} === 'restart') available = false;
+          if ({json.dumps(change)} === 'network') failRevision = true;
+          if ({json.dumps(change)} === 'race') {{failRevision = true; revisionErrorCode = 'STALE_DATA_SNAPSHOT'; revision = 's2';}}
+          if ({json.dumps(change)} === 'source' || {json.dumps(change)} === 'restart') failRun = true;
+          perform(); await pause();
+          const s = workspace.getState();
+          const snapshot = s.result.data.data_snapshot;
+          const kept = s.result.data === saved;
+          const stale = isResultStale(s);
+          const detailsSafe = [...s.ui.pointRows.values(), ...s.ui.pointOrigins.values()]
+            .every(d => !['success', 'loading'].includes(d.status));
+          const counts = () => requests.filter(r => r.path === {json.dumps(operation)}).length;
+          const failedCount = counts();
+          const checks = requests.filter(r => r.path === 'revision').length;
+          const errorVisible = {json.dumps(operation)} === 'run'
+            ? !document.getElementById('analysis-form-error').classList.contains('hidden')
+            : s.comparison.status === 'error';
+          failRun = false; failRevision = false; available = true;
+          if ({json.dumps(change)} !== 'unchanged') {{perform(); await pause();}}
+          document.body.dataset.result = JSON.stringify({{checks, failedCount, kept, snapshot, stale,
+            detailsSafe, errorVisible, finalCount: counts(), finalSnapshot: s.result.data.data_snapshot}});
+        """))
+        assert 'error' not in actual, actual
+        assert actual['checks'] == 1
+        assert actual['kept'] and actual['snapshot'] == 's1'
+        assert actual['failedCount'] == (2 if change in ('source', 'restart') else 1)
+>       assert actual['stale'] == (change in ('source', 'restart', 'race'))
+E       AssertionError: assert False == ('race' in ('source', 'restart', 'race'))
+
+tests\test_clustering_frontend_contract.py:344: AssertionError
+__ test_calculation_validates_frontend_cache_before_acceptance[race-compare] __
+
+operation = 'compare', change = 'race'
+
+    @pytest.mark.parametrize('operation', ['run', 'compare'])
+    @pytest.mark.parametrize('change', ['unchanged', 'source', 'restart', 'network', 'race'])
+    def test_calculation_validates_frontend_cache_before_acceptance(operation, change):
+        actual = _run_browser_script(_product_workspace_script(f"""
+          await choose('a');
+          const region = document.getElementById('cluster-region');
+          region.value = 'R'; region.dispatchEvent(new Event('change', {{bubbles: true}})); await pause();
+          const perform = () => document.getElementById({json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes')}).click();
+          perform(); await pause();
+          const saved = workspace.getState().result.data;
+          window.dispatchEvent(new CustomEvent('clustering-point-select', {{detail: {{pointId: 'x'}}}})); await pause();
+          document.querySelector('.pulse-details').open = true; await pause();
+          if ({json.dumps(change)} === 'source') revision = 's2';
+          if ({json.dumps(change)} === 'restart') available = false;
+          if ({json.dumps(change)} === 'network') failRevision = true;
+          if ({json.dumps(change)} === 'race') {{failRevision = true; revisionErrorCode = 'STALE_DATA_SNAPSHOT'; revision = 's2';}}
+          if ({json.dumps(change)} === 'source' || {json.dumps(change)} === 'restart') failRun = true;
+          perform(); await pause();
+          const s = workspace.getState();
+          const snapshot = s.result.data.data_snapshot;
+          const kept = s.result.data === saved;
+          const stale = isResultStale(s);
+          const detailsSafe = [...s.ui.pointRows.values(), ...s.ui.pointOrigins.values()]
+            .every(d => !['success', 'loading'].includes(d.status));
+          const counts = () => requests.filter(r => r.path === {json.dumps(operation)}).length;
+          const failedCount = counts();
+          const checks = requests.filter(r => r.path === 'revision').length;
+          const errorVisible = {json.dumps(operation)} === 'run'
+            ? !document.getElementById('analysis-form-error').classList.contains('hidden')
+            : s.comparison.status === 'error';
+          failRun = false; failRevision = false; available = true;
+          if ({json.dumps(change)} !== 'unchanged') {{perform(); await pause();}}
+          document.body.dataset.result = JSON.stringify({{checks, failedCount, kept, snapshot, stale,
+            detailsSafe, errorVisible, finalCount: counts(), finalSnapshot: s.result.data.data_snapshot}});
+        """))
+        assert 'error' not in actual, actual
+        assert actual['checks'] == 1
+        assert actual['kept'] and actual['snapshot'] == 's1'
+        assert actual['failedCount'] == (2 if change in ('source', 'restart') else 1)
+>       assert actual['stale'] == (change in ('source', 'restart', 'race'))
+E       AssertionError: assert False == ('race' in ('source', 'restart', 'race'))
+
+tests\test_clustering_frontend_contract.py:344: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_calculation_validates_frontend_cache_before_acceptance[race-run]
+FAILED tests/test_clustering_frontend_contract.py::test_calculation_validates_frontend_cache_before_acceptance[race-compare]

@@ -1,35 +1,35 @@
-Requirement already satisfied: blinker==1.9.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 2)) (1.9.0)
-Requirement already satisfied: certifi==2026.7.22 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 3)) (2026.7.22)
-Requirement already satisfied: click==8.4.2 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 4)) (8.4.2)
-Requirement already satisfied: colorama==0.4.6 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 5)) (0.4.6)
-Requirement already satisfied: Flask==3.1.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 6)) (3.1.0)
-Requirement already satisfied: flask-cors==6.0.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 7)) (6.0.0)
-Requirement already satisfied: geographiclib==2.1 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 8)) (2.1)
-Requirement already satisfied: geopy==2.5.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 9)) (2.5.0)
-Requirement already satisfied: iniconfig==2.3.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 10)) (2.3.0)
-Requirement already satisfied: itsdangerous==2.2.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 11)) (2.2.0)
-Requirement already satisfied: Jinja2==3.1.6 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 12)) (3.1.6)
-Requirement already satisfied: joblib==1.5.3 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 13)) (1.5.3)
-Requirement already satisfied: MarkupSafe==3.0.3 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 14)) (3.0.3)
-Requirement already satisfied: numpy==1.26.4 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 15)) (1.26.4)
-Requirement already satisfied: packaging==26.3 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 16)) (26.3)
-Requirement already satisfied: pluggy==1.6.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 17)) (1.6.0)
-Requirement already satisfied: pyproj==3.7.2 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 18)) (3.7.2)
-Requirement already satisfied: pytest==8.3.5 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 19)) (8.3.5)
-Requirement already satisfied: ruff==0.9.10 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 20)) (0.9.10)
-Requirement already satisfied: scikit-learn==1.4.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 21)) (1.4.0)
-Requirement already satisfied: scipy==1.13.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 22)) (1.13.0)
-Requirement already satisfied: shapely==2.0.4 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 23)) (2.0.4)
-Requirement already satisfied: threadpoolctl==3.6.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 24)) (3.6.0)
-Requirement already satisfied: Werkzeug==3.1.8 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 25)) (3.1.8)
-python.exe : 
-строка:2 знак:1
-+ & '../../.codex-impl-env/Scripts/python.exe' -m pip install --dry-run ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-[notice] A new release of pip is available: 25.0.1 -> 26.2.1
-[notice] To update, run: C:\folder\Python\������ �� ���������\.codex-impl-env\Scripts\python.exe -m pip install --upgra
-de pip
-No broken requirements found.
+Requirement already satisfied: blinker==1.9.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 2)) (1.9.0)
+Requirement already satisfied: certifi==2026.7.22 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 3)) (2026.7.22)
+Requirement already satisfied: click==8.4.2 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 4)) (8.4.2)
+Requirement already satisfied: colorama==0.4.6 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 5)) (0.4.6)
+Requirement already satisfied: Flask==3.1.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 6)) (3.1.0)
+Requirement already satisfied: flask-cors==6.0.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 7)) (6.0.0)
+Requirement already satisfied: geographiclib==2.1 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 8)) (2.1)
+Requirement already satisfied: geopy==2.5.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 9)) (2.5.0)
+Requirement already satisfied: iniconfig==2.3.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 10)) (2.3.0)
+Requirement already satisfied: itsdangerous==2.2.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 11)) (2.2.0)
+Requirement already satisfied: Jinja2==3.1.6 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 12)) (3.1.6)
+Requirement already satisfied: joblib==1.5.3 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 13)) (1.5.3)
+Requirement already satisfied: MarkupSafe==3.0.3 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 14)) (3.0.3)
+Requirement already satisfied: numpy==1.26.4 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 15)) (1.26.4)
+Requirement already satisfied: packaging==26.3 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 16)) (26.3)
+Requirement already satisfied: pluggy==1.6.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 17)) (1.6.0)
+Requirement already satisfied: pyproj==3.7.2 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 18)) (3.7.2)
+Requirement already satisfied: pytest==8.3.5 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 19)) (8.3.5)
+Requirement already satisfied: ruff==0.9.10 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 20)) (0.9.10)
+Requirement already satisfied: scikit-learn==1.4.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 21)) (1.4.0)
+Requirement already satisfied: scipy==1.13.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 22)) (1.13.0)
+Requirement already satisfied: shapely==2.0.4 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 23)) (2.0.4)
+Requirement already satisfied: threadpoolctl==3.6.0 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 24)) (3.6.0)
+Requirement already satisfied: Werkzeug==3.1.8 in c:\folder\python\������ �� ���������\.codex-impl-env\lib\site-packages (from -r requirements-lock.txt (line 25)) (3.1.8)
+python.exe :
+строка:2 знак:1
++ & '../../.codex-impl-env/Scripts/python.exe' -m pip install --dry-run ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[notice] A new release of pip is available: 25.0.1 -> 26.2.1
+[notice] To update, run: C:\folder\Python\������ �� ���������\.codex-impl-env\Scripts\python.exe -m pip install --upgra
+de pip
+No broken requirements found.
