@@ -1,0 +1,32 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________ test_export_opens_and_explains_exact_saved_source_rows ____________
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x0000016409320E00>)
+
+    def test_export_opens_and_explains_exact_saved_source_rows(union_client):
+        client, _ = union_client
+        run = client.post('/api/clustering/run', json=payload(origin_fiases=['a', 'b', 'c'])).get_json()
+        response = client.post('/api/clustering/export', json=export_request(run), headers={'X-Request-ID': 'xlsx-test'})
+        assert response.status_code == 200, response.get_json()
+        assert response.mimetype == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        assert '.xlsx' in response.headers['Content-Disposition']
+        assert response.headers['X-Request-ID'] == 'xlsx-test'
+        names, sheets = open_xlsx(response.data)
+        assert names[0] == '��������' and names[-1] == '��������'
+        assert sheets[0][0] == ['�������', '�����', '������', '���� �����', '�������',
+            '���. ����', '��������� ����', '��.-���. ����', '����. ����',
+            '\u041c\u0438\u043d. \u20bd/\u043a\u043c', '\u041c\u0435\u0434\u0438\u0430\u043d\u043d\u044b\u0439 \u20bd/\u043a\u043c', '\u0421\u0440.-\u0432\u0437\u0432. \u20bd/\u043a\u043c', '\u041c\u0430\u043a\u0441. \u20bd/\u043a\u043c', '\u041f\u043e\u043a\u0440\u044b\u0442\u0438\u0435 \u044d\u043a\u043e\u043d\u043e\u043c\u0438\u043a\u0438']
+        records = [dict(zip(sheet[0], row, strict=True)) for sheet in sheets[1:-1] for row in sheet[1:]]
+        assert len(records) == len({r['source_row_id'] for r in records}) == 6
+        assert sum(r['trip_count'] for r in records) == 75
+        assert {r['origin_fias'] for r in records} == {'a', 'b'}
+        assert any(r['price'] is None for r in records)
+>       assert all(',0%' in row[-1] for row in sheets[0][1:])
+E       assert False
+E        +  where False = all(<generator object test_export_opens_and_explains_exact_saved_source_rows.<locals>.<genexpr> at 0x00000164096E3AC0>)
+
+tests\test_xlsx_export_api.py:66: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_xlsx_export_api.py::test_export_opens_and_explains_exact_saved_source_rows
+1 failed, 36 deselected in 4.48s

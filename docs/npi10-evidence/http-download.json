@@ -1,0 +1,33 @@
+{
+  "transport": "real localhost Flask HTTP",
+  "fixture": "synthetic only",
+  "origins": 123,
+  "destinations": 4,
+  "source_rows": 186,
+  "unique_row_ids": 186,
+  "machines": 255,
+  "sheets": [
+    "Кластеры",
+    "1 Origin Region → Кластер 1",
+    "2 Регион погрузки не определён ",
+    "3 B Region → Кластер 1",
+    "4 Origin Region → Кластер 2",
+    "Контекст"
+  ],
+  "bytes": 26789,
+  "sha256": "4cb9fb5003a47b2ac429729520975cb62b73cf9ac21ea270f7233702f1ff61d0",
+  "headers": {
+    "Server": "Werkzeug/3.1.8 Python/3.12.14",
+    "Date": "Sun, 11 Oct 2026 20:23:21 GMT",
+    "Content-Disposition": "attachment; filename=product-geography-0f86bbc75e37.xlsx",
+    "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "X-Request-ID": "npi10-real-http",
+    "Connection": "close"
+  },
+  "calculation_ms": 258.40270000480814,
+  "export_ms": 116.96710000251187,
+  "structural_check": "ZIP CRC, sheet XML, types/values, no formulas/macros/external links; independent stdlib reader",
+  "limits": "Synthetic counts/timings; production capacity and human Excel acceptance unverified"
+}

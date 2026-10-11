@@ -1,0 +1,21 @@
+F.                                                                       [100%]
+================================== FAILURES ===================================
+________ test_all_and_manual_cache_reuse_preserves_both_saved_intents _________
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x0000014C881D67E0>)
+
+    def test_all_and_manual_cache_reuse_preserves_both_saved_intents(union_client):
+        client, _ = union_client
+        all_request = payload()
+        all_request.pop('origin_fiases')
+        all_run = client.post('/api/clustering/run', json={**all_request, 'all_origins': True}).get_json()
+        manual = client.post('/api/clustering/run', json=all_run['analysis']['frozen_request']).get_json()
+        ambiguous = client.post('/api/clustering/export', json=export_request(all_run))
+>       assert ambiguous.status_code == 400 and ambiguous.get_json()['code'] == 'INVALID_REQUEST'
+E       assert (200 == 400)
+E        +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+
+tests\test_xlsx_export_api.py:93: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_xlsx_export_api.py::test_all_and_manual_cache_reuse_preserves_both_saved_intents
+1 failed, 1 passed, 35 deselected in 6.05s

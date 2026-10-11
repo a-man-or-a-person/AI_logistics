@@ -28,6 +28,12 @@ Product использует алгоритмы из `ml/clustering`, но не 
 
 ## Product runtime flow
 
+NPI-10 добавляет `POST /api/clustering/export`: ClusteringService находит exact saved
+result, использует общий frozen-point row access и serializer с detail API, а
+`xlsx_export.py` записывает saved table и direction rows в disk-backed XLSX.
+Serializer не рассчитывает экономику и не вызывает clustering. Generation validation
+заканчивается перед HTTP attachment; download UI остаётся отдельным NPI-11.
+
 ```mermaid
 flowchart TD
     Form[Frontend: направление, фильтры, режим] --> Options[GET options / origins]
