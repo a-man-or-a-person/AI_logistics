@@ -367,8 +367,8 @@
     },
     {
       "path": "docs/npi12-evidence/quality-gates.json",
-      "bytes": 2313,
-      "sha256": "d5be49c8b2e6698af1e9ea0560de6e973025fecb55be9d66a72ddc3ad3761d82"
+      "bytes": 2322,
+      "sha256": "9c4078a2027a5aa2b068843a556e54fe8c43821c8cadfb22e074f96f4ebc0f69"
     },
     {
       "path": "docs/npi12-evidence/README.md",
@@ -467,8 +467,8 @@
     },
     {
       "path": "docs/npi12_integrated_acceptance_report.md",
-      "bytes": 24060,
-      "sha256": "ba92b77e293d5df39705d2592fa1007ab86be8c1d195cf9cced1842fc626e996"
+      "bytes": 24061,
+      "sha256": "d8340ec213320eda0c10ff3b717107f5990294db6e4743ee499ad72451ac5df3"
     },
     {
       "path": "docs/pulse_ati_readiness.md",

@@ -222,7 +222,7 @@ Retry does not rerun clustering. Bear stays explicitly unsupported.
 outdated-frontend symptom is **REPRODUCED**, not merely inferred from an old branch.
 The existing localhost5055 server returns HTML without multi-origin/All. Its HTML,
 state.js and controller.js match the old personal checkout **byte for byte**.
-An independent literal `python run.py --port5082 --no-browser` with synthetic CSV
+An independent literal `python run.py --port 5082 --no-browser` with synthetic CSV
 returns candidate HTML/scripts byte for byte, including both current controls.
 Navigation also runs through the candidate's documented `run.main()` at5078.
 Existing5055 process was observed, preserved and never killed.

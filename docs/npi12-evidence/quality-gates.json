@@ -35,7 +35,7 @@
     "skipped": 0,
     "failures": 0,
     "seconds": 328.96,
-    "command": "REQUIRE_FRONTEND_BROWSER=1 python -m pytest -ra --junitxml=docs/npi12-evidence/pytest-results.xml --basetemp=.scratch/npi12-pytest-clean"
+    "command": "$env:REQUIRE_FRONTEND_BROWSER='1'; python -m pytest -ra --junitxml=docs/npi12-evidence/pytest-results.xml --basetemp=.scratch/npi12-pytest-clean"
   },
   "locked_install": {
     "status": "PASS",
@@ -68,7 +68,7 @@
   },
   "run_py": {
     "status": "PASS",
-    "command": "python run.py --port5082 --no-browser",
+    "command": "python run.py --port 5082 --no-browser",
     "evidence": "startup.json"
   },
   "warnings": [
