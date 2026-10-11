@@ -1,0 +1,56 @@
+.........F...................F.                                          [100%]
+================================== FAILURES ===================================
+_ test_modes_reconcile_independent_valid_denominators_and_unassigned[geo_cost] _
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x000001FB37E20F20>)
+mode = 'geo_cost'
+
+    @pytest.mark.parametrize('mode', ['geography', 'geo_cost', 'geo_volume'])
+    def test_modes_reconcile_independent_valid_denominators_and_unassigned(union_client, mode):
+        client, service = union_client
+        append_rows(service, [_row('x', 'X', origin='b', trips='20', price='4500', route_length='')])
+        run = client.post('/api/clustering/run', json=payload(mode=mode, parameters={})).get_json()
+>       _, sheets, records = exported_records(client.post('/api/clustering/export', json=export_request(run)))
+
+tests\test_xlsx_export_api.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+response = <WrapperTestResponse 91 bytes [409 CONFLICT]>
+
+    def exported_records(response):
+>       assert response.status_code == 200, response.get_json()
+E       AssertionError: {'code': 'EXPORT_INCONSISTENT_DATA', 'error': 'Saved membership is inconsistent.', 'ok': False}
+E       assert 409 == 200
+E        +  where 409 = <WrapperTestResponse streamed [409 CONFLICT]>.status_code
+
+tests\test_xlsx_export_api.py:104: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  backend.clustering_api:clustering_api.py:55 product_clustering_error request_id=fb7dec8b69c24edda0b311322a47db07 endpoint=/api/clustering/export code=EXPORT_INCONSISTENT_DATA status=409
+_ test_incomplete_data_and_writer_failures_are_safe_json[partial-EXPORT_INCONSISTENT_DATA] _
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x000001FB3B9751C0>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001FB3B977EF0>
+problem = 'partial', code = 'EXPORT_INCONSISTENT_DATA'
+
+    @pytest.mark.parametrize('problem,code', [('empty', 'EXPORT_INCONSISTENT_DATA'), ('partial', 'EXPORT_INCONSISTENT_DATA'), ('write', 'EXPORT_FAILED')])
+    def test_incomplete_data_and_writer_failures_are_safe_json(union_client, monkeypatch, problem, code):
+        import xlsxwriter
+        client, service = union_client
+        run = client.post('/api/clustering/run', json=payload()).get_json()
+        if problem in ('empty', 'partial'):
+            original = service.repository.source_rows
+            monkeypatch.setattr(service.repository, 'source_rows', lambda **kwargs: [] if problem == 'empty' else (original(**kwargs)[1:] if kwargs['destination_fias'] == 'x' else original(**kwargs)))
+        else:
+            def fail(*args):
+                raise OSError('PRIVATE C:/secret/source.csv token=secret')
+            monkeypatch.setattr(xlsxwriter.Workbook, 'close', fail)
+        response = client.post('/api/clustering/export', json=export_request(run), headers={'X-Request-ID': 'failed'})
+>       assert response.status_code == (409 if problem != 'write' else 500)
+E       assert 200 == 409
+E        +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+
+tests\test_xlsx_export_api.py:273: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_xlsx_export_api.py::test_modes_reconcile_independent_valid_denominators_and_unassigned[geo_cost]
+FAILED tests/test_xlsx_export_api.py::test_incomplete_data_and_writer_failures_are_safe_json[partial-EXPORT_INCONSISTENT_DATA]
+2 failed, 29 passed in 4.03s

@@ -1,0 +1,48 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________ test_truncated_region_apostrophe_is_a_legal_sheet_name ____________
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x0000022721BB13D0>)
+
+    def test_truncated_region_apostrophe_is_a_legal_sheet_name(union_client):
+        client, service = union_client
+        row = _row('x', 'X', origin='a', trips='1', period_id='202612')
+        row['shipment_point_region'] = 'A' * 28 + "'B"
+        append_rows(service, [row])
+        run = client.post('/api/clustering/run', json=payload()).get_json()
+>       names, _, records = exported_records(client.post('/api/clustering/export', json=export_request(run)))
+
+tests\test_xlsx_export_api.py:346: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+response = <WrapperTestResponse 89 bytes [500 INTERNAL SERVER ERROR]>
+
+    def exported_records(response):
+>       assert response.status_code == 200, response.get_json()
+E       AssertionError: {'code': 'EXPORT_FAILED', 'error': 'Unable to create a complete XLSX workbook.', 'ok': False}
+E       assert 500 == 200
+E        +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+
+tests\test_xlsx_export_api.py:107: AssertionError
+------------------------------ Captured log call ------------------------------
+ERROR    backend.services.clustering_service:clustering_service.py:1047 clustering_export_failed request_id=774ec255ff984d9c8da3e37042e7364d
+Traceback (most recent call last):
+  File "C:\folder\Python\Проект ИИ Логистика\.worktrees\npi10\backend\services\clustering_service.py", line 1036, in export
+    output = write_workbook(saved, records(), payload["table_sort"])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\folder\Python\Проект ИИ Логистика\.worktrees\npi10\backend\services\xlsx_export.py", line 113, in write_workbook
+    sheet = workbook.add_worksheet(name)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\folder\Python\Проект ИИ Логистика\.worktrees\npi10\.venv\Lib\site-packages\xlsxwriter\workbook.py", line 204, in add_worksheet
+    return self._add_sheet(name, worksheet_class=worksheet_class)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\folder\Python\Проект ИИ Логистика\.worktrees\npi10\.venv\Lib\site-packages\xlsxwriter\workbook.py", line 851, in _add_sheet
+    name = self._check_sheetname(name, isinstance(worksheet, Chartsheet))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\folder\Python\Проект ИИ Логистика\.worktrees\npi10\.venv\Lib\site-packages\xlsxwriter\workbook.py", line 915, in _check_sheetname
+    raise InvalidWorksheetName(
+xlsxwriter.exceptions.InvalidWorksheetName: Sheet name cannot start or end with an apostrophe "1 AAAAAAAAAAAAAAAAAAAAAAAAAAAA'".
+WARNING  backend.clustering_api:clustering_api.py:55 product_clustering_error request_id=774ec255ff984d9c8da3e37042e7364d endpoint=/api/clustering/export code=EXPORT_FAILED status=500
+=========================== short test summary info ===========================
+FAILED tests/test_xlsx_export_api.py::test_truncated_region_apostrophe_is_a_legal_sheet_name
+1 failed, 37 deselected in 5.57s

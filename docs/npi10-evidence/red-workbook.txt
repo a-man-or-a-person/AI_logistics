@@ -1,0 +1,19 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___________ test_export_opens_and_explains_exact_saved_source_rows ____________
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x000001BCE2502D50>)
+
+    def test_export_opens_and_explains_exact_saved_source_rows(union_client):
+        client, _ = union_client
+        run = client.post('/api/clustering/run', json=payload(origin_fiases=['a', 'b', 'c'])).get_json()
+        response = client.post('/api/clustering/export', json=export_request(run), headers={'X-Request-ID': 'xlsx-test'})
+>       assert response.status_code == 200, response.get_json()
+E       AssertionError: None
+E       assert 404 == 200
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests\test_xlsx_export_api.py:43: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_xlsx_export_api.py::test_export_opens_and_explains_exact_saved_source_rows
+1 failed in 9.50s

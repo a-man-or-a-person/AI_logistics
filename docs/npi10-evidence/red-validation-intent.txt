@@ -1,0 +1,48 @@
+..F..F                                                                   [100%]
+================================== FAILURES ===================================
+______________ test_invalid_sort_is_safe_typed_validation[sort2] ______________
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x0000022C865E0DD0>)
+sort = {'direction': 'asc', 'key': []}
+
+    @pytest.mark.parametrize('sort', [None, {}, {'key': [], 'direction': 'asc'},
+        {'key': 'price', 'direction': 'asc'}, {'key': 'trip_count', 'direction': []}])
+    def test_invalid_sort_is_safe_typed_validation(union_client, sort):
+        client, _ = union_client
+        run = client.post('/api/clustering/run', json=payload()).get_json()
+        response = client.post('/api/clustering/export', json=export_request(run, table_sort=sort))
+>       assert response.status_code == 400 and response.get_json()['code'] == 'INVALID_REQUEST'
+E       assert (500 == 400)
+E        +  where 500 = <WrapperTestResponse streamed [500 INTERNAL SERVER ERROR]>.status_code
+
+tests\test_xlsx_export_api.py:82: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  backend.clustering_api:clustering_api.py:55 product_clustering_error request_id=7e4586067ac6483087e0298972caf7f3 endpoint=/api/clustering/export code=EXPORT_FAILED status=500
+________ test_all_and_manual_cache_reuse_preserves_both_saved_intents _________
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x0000022C88204740>)
+
+    def test_all_and_manual_cache_reuse_preserves_both_saved_intents(union_client):
+        client, _ = union_client
+        all_request = payload()
+        all_request.pop('origin_fiases')
+        all_run = client.post('/api/clustering/run', json={**all_request, 'all_origins': True}).get_json()
+        manual = client.post('/api/clustering/run', json=all_run['analysis']['frozen_request']).get_json()
+        for run in (all_run, manual):
+            response = client.post('/api/clustering/export', json=export_request(run, selection_intent=run['analysis']['selection_intent']))
+            assert response.status_code == 200
+            _, sheets = open_xlsx(response.data)
+>           assert json.loads(dict(sheets[-1][1:])['selection_intent']) == run['analysis']['selection_intent']
+E           AssertionError: assert {'all_origins': True} == {'origin_fias...a', 'b', 'c']}
+E             
+E             Left contains 1 more item:
+E             {'all_origins': True}
+E             Right contains 1 more item:
+E             {'origin_fiases': ['a', 'b', 'c']}
+E             Use -v to get more diff
+
+tests\test_xlsx_export_api.py:95: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_xlsx_export_api.py::test_invalid_sort_is_safe_typed_validation[sort2]
+FAILED tests/test_xlsx_export_api.py::test_all_and_manual_cache_reuse_preserves_both_saved_intents
+2 failed, 4 passed, 1 deselected in 2.46s
