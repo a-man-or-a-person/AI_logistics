@@ -11,6 +11,8 @@ Pulse + coordinate cache
   → Geography | Geography + Cost | Geography + Volume | Bear Cost | Bear Volume
   → points + representatives + outliers + cluster table
   → synchronized map + table + inspector
+  → frozen contributing-origin summary for one destination
+  → origin selection
   → lazy paginated Pulse rows for one destination
   → cached comparison on one data snapshot
 ```
@@ -25,6 +27,7 @@ Pulse + coordinate cache
   `winner = null`;
 - `POST /api/clustering/point-rows` — snapshot-safe Pulse rows for one destination,
   newest first, in pages of at most 50;
+- `POST /api/clustering/point-origins` — origin contributions for the exact saved point;
 - `POST /api/clustering/preview` — совместимый диагностический preview.
 
 Backend принимает scalar или canonical `origin_fiases`; options использует
@@ -36,7 +39,10 @@ intent хранится отдельно от frozen resolved set. Compare ра�
 detail использует только saved explicit set и membership, без расширения или rerun.
 UI включает explicit «Все отправления»: сначала выбрать All, затем регион доставки.
 Ручные токены сохраняются при переключении; в All они скрыты, поиск отключён.
-Снятие All возвращает ручной выбор и доступные ему регионы. Summary и export отсутствуют.
+Снятие All возвращает ручной выбор и доступные ему регионы. Point origin summary
+показывается отдельно в inspector; выбор origin открывает frozen origin→point rows.
+Summary и rows имеют loading/error/retry и typed recalculation recovery. Form edits
+не меняют их контекст. Нижняя таблица сохраняется. Export отсутствует.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
 Backend переиспользует location/spatial context и result LRU; UI переключает

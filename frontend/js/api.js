@@ -111,6 +111,10 @@ export function fetchClusteringPointRows(payload, options) {
   return postClustering('point-rows', payload, options);
 }
 
+export function fetchClusteringPointOrigins(payload, options) {
+  return postClustering('point-origins', payload, options);
+}
+
 export function fetchMlClusters(params = {}) {
   return requestJson(`${API_BASE}/api/ml-cluster?${new URLSearchParams(params)}`);
 }

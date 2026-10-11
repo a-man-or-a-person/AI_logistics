@@ -7,7 +7,7 @@ import hashlib
 import logging
 import statistics
 import time
-from collections import Counter, OrderedDict
+from collections import Counter, OrderedDict, defaultdict
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -863,7 +863,7 @@ class ClusteringService:
         )
         return result
 
-    def point_rows(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
+    def _frozen_point_rows(self, payload: Any, *, require_saved: bool = False):
         if not isinstance(payload, dict):
             raise ProductClusteringError("INVALID_REQUEST", "Ожидается JSON-объект.", 400)
         required = ("data_snapshot", "destination_fias")
@@ -881,19 +881,6 @@ class ClusteringService:
         )
         if frozen.all_origins:
             raise ProductClusteringError("INVALID_REQUEST", "Detail requires frozen resolved origins.", 400)
-        offset = payload.get("offset", 0)
-        limit = payload.get("limit", 50)
-        if (
-            isinstance(offset, bool)
-            or not isinstance(offset, int)
-            or offset < 0
-            or isinstance(limit, bool)
-            or not isinstance(limit, int)
-            or limit < 1
-        ):
-            raise ProductClusteringError(
-                "INVALID_REQUEST", "offset и limit должны быть допустимыми целыми числами.", 400
-            )
         token = self._refresh_cache_generation()
         snapshot = self._data_snapshot(token)
         if payload["data_snapshot"] != snapshot:
@@ -904,7 +891,7 @@ class ClusteringService:
             )
         if self.repository is None:
             raise ProductClusteringError("INVALID_REQUEST", "Детализация Pulse недоступна.", 400)
-        rich_context = "origin_fiases" in payload or "mode" in payload or "parameters" in payload
+        rich_context = require_saved or "origin_fiases" in payload or "mode" in payload or "parameters" in payload
         saved = None
         if rich_context:
             if "mode" not in payload or "parameters" not in payload:
@@ -962,6 +949,60 @@ class ClusteringService:
                 "Данные Pulse изменились. Пересчитайте результат.",
                 409,
             ) from error
+        return frozen, token, snapshot, saved_point, rows
+
+    def point_origins(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
+        if isinstance(payload, dict) and "detail_origin_fias" in payload:
+            raise ProductClusteringError("INVALID_REQUEST", "Summary requires the complete saved origin set.", 400)
+        frozen, token, snapshot, point, rows = self._frozen_point_rows(payload, require_saved=True)
+        grouped = defaultdict(list)
+        for row in rows:
+            grouped[row.origin_fias].append(row)
+        origins = []
+        for origin, records in sorted(grouped.items()):
+            routes, _ = aggregate_clustering_records(
+                records, source_path=self.source_path, origin_fias=origin,
+                destination_region=frozen.destination_region,
+                period_types=set(frozen.period_types),
+            )
+            route = routes[0]
+            names = Counter(row.origin_name for row in records if row.origin_name)
+            origins.append({
+                "origin_fias": origin,
+                "origin_name": names.most_common(1)[0][0] if names else None,
+                "origin_regions": sorted({row.origin_region for row in records},
+                                         key=lambda region: (region is None, region or "")),
+                "source_row_count": route.record_count,
+                **{name: getattr(route, name) for name in (
+                    "trip_count", "weighted_route_length", "weighted_price", "weighted_rub_per_km",
+                    "valid_route_length_trip_count", "valid_price_trip_count", "valid_rub_per_km_trip_count",
+                )},
+                "warnings": list(route.data_quality_flags),
+            })
+        self._assert_generation(token)
+        logger.info("clustering_point_origins request_id=%s destination=%s origins=%s",
+                    request_id, point["id"], len(origins))
+        return {"data_snapshot": snapshot, "destination_fias": point["id"],
+                "cluster_id": point["cluster_id"], "status": point["status"], "origins": origins}
+
+    def point_rows(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
+        if not isinstance(payload, dict):
+            raise ProductClusteringError("INVALID_REQUEST", "Ожидается JSON-объект.", 400)
+        offset = payload.get("offset", 0)
+        limit = payload.get("limit", 50)
+        if (
+            isinstance(offset, bool)
+            or not isinstance(offset, int)
+            or offset < 0
+            or isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or limit < 1
+        ):
+            raise ProductClusteringError(
+                "INVALID_REQUEST", "offset и limit должны быть допустимыми целыми числами.", 400
+            )
+        _, token, snapshot, saved_point, rows = self._frozen_point_rows(payload)
+        destination_fias = payload["destination_fias"].strip()
         limit = min(limit, 50)
         page = rows[offset : offset + limit]
         logger.info(

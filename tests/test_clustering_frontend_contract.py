@@ -261,6 +261,11 @@ def _product_workspace_script(actions: str) -> str:
           if (path === 'compare') data = {{ok: true, results: Object.fromEntries(options.mode_capabilities.map(item => [item.id, {{...data, analysis: {{...data.analysis, mode: item.id, frozen_request: {{...data.analysis.frozen_request, mode: item.id, parameters: {{k_mode: 'auto', n_clusters: 'auto'}}}}}}}}]))}};
           if (failRun) {{status = 422; data = {{error: 'No data matches the selected filters.', code: 'NO_DATA'}};}}
         }}
+        if (path === 'point-origins') {{
+          data = {{ok: true, origins: [{{origin_fias: 'b', origin_name: 'Beta', origin_regions: ['South'],
+            trip_count: 40, weighted_route_length: 300, weighted_price: 6000,
+            valid_route_length_trip_count: 30, valid_price_trip_count: 30, warnings: []}}]}};
+        }}
         if (path === 'point-rows') {{
           data = {{ok: true, rows: [], total: 0, has_more: false}};
           if (failRows) {{status = 409; data = {{code: 'RESULT_UNAVAILABLE', error: 'Saved result evicted'}};}}
@@ -1885,7 +1890,7 @@ def test_point_rows_render_all_inspector_states_and_leave_bear_unchanged():
       const state = {{result: {{data: result}}, ui: {{selectedCluster: null, selectedPoint: 'a', pointRows: new Map([['cache-key', {{status: 'success', rows, total: 51, hasMore: true, open: false}}]])}}}};
       const handlers = {{pointRowsKey: () => 'cache-key'}};
       renderInspector(state, handlers);
-      const page = {{rows: document.querySelectorAll('.pulse-table tbody tr').length, closed: !document.querySelector('.pulse-details').open, more: Boolean(document.querySelector('[data-pulse-more]')), missingMachines: document.querySelector('.pulse-table tbody tr td:nth-child(9)').textContent, pointMachines: document.querySelector('.point-facts').textContent.includes('Машины')}};
+      const page = {{rows: document.querySelectorAll('.pulse-table tbody tr').length, closed: !document.querySelector('.pulse-details').open, more: Boolean(document.querySelector('[data-pulse-more]')), missingMachines: document.querySelector('.pulse-table tbody tr td:nth-child(11)').textContent, pointMachines: document.querySelector('.point-facts').textContent.includes('Машины')}};
       state.ui.pointRows.set('cache-key', {{status: 'loading', rows: [], total: null, hasMore: false, open: true}});
       renderInspector(state, handlers);
       const loading = document.querySelector('.pulse-state')?.getAttribute('role');
@@ -1916,3 +1921,94 @@ def test_point_rows_render_all_inspector_states_and_leave_bear_unchanged():
         "stale": True,
         "bear": {"pulse": False, "trips": True},
     }
+
+
+def test_origin_summary_selects_frozen_origin_rows_and_keeps_table():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('b'); await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const table = document.getElementById('cluster-table-panel').innerHTML;
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
+      await pause();
+      const contributor = document.querySelector('[data-origin-fias="b"]');
+      if (!contributor) throw Error('Origin summary missing');
+      contributor.focus(); contributor.click(); await pause();
+      const detail = requests.find(r => r.path === 'point-rows').payload;
+      const sameTable = table === document.getElementById('cluster-table-panel').innerHTML;
+      document.querySelector('#cluster-periods input[value="retro"]').click(); await pause();
+      document.body.dataset.result = JSON.stringify({origin: detail.detail_origin_fias,
+        origins: detail.origin_fiases, periods: detail.period_types,
+        summary: requests.filter(r => r.path === 'point-origins').length,
+        selected: document.querySelector('[data-origin-fias="b"]').getAttribute('aria-pressed'),
+        table: sameTable,
+        stale: !document.getElementById('analysis-stale').classList.contains('hidden')});
+    """))
+    assert actual == {'origin': 'b', 'origins': ['a', 'b'], 'periods': ['current'],
+                      'summary': 1, 'selected': 'true', 'table': True, 'stale': True}
+
+
+def test_origin_summary_and_detail_cancel_late_responses_and_reject_all_related_caches():
+    state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    controller = re.sub(r"^import[\s\S]*?;\n", "", _read("frontend/js/clustering/controller.js"), flags=re.MULTILINE).replace("export ", "")
+    actual = _run_node_script(f"""
+      const summaries = [], pages = [];
+      function pendingRequest(list, payload, options) {{
+        let resolve, reject; const promise = new Promise((yes,no) => {{resolve=yes; reject=no}});
+        list.push({{payload, signal: options.signal, resolve, reject}}); return promise;
+      }}
+      function fetchClusteringPointOrigins(payload, options) {{return pendingRequest(summaries,payload,options)}}
+      function fetchClusteringPointRows(payload, options) {{return pendingRequest(pages,payload,options)}}
+      function renderInspector() {{}} function focusClusteringPoint() {{}}
+      {state_module}
+      {controller}
+      renderAll = () => {{}};
+      const frozen = {{origin_fiases:['a','b','c'], destination_region:'R', mode:'geography', parameters:{{}},
+        period_types:['current'], price_types:['spot'], vehicle_types:[], tonnage_ids:[]}};
+      const result = {{data_snapshot:'s', analysis:{{frozen_request:frozen}}, cluster_table:{{supported:true}}, points:[{{id:'x'}},{{id:'y'}}]}};
+      state = {{result:{{data:result, cache:new Map()}}, ui:{{pointRows:new Map(), pointOrigins:new Map()}}}};
+      selectPoint('x'); const first = summaries[0];
+      selectPoint('y'); const cancelled = first.signal.aborted;
+      first.resolve({{origins:[{{origin_fias:'wrong'}}]}});
+      summaries[1].reject(Error('offline')); await new Promise(r=>setTimeout(r,0));
+      const error = state.ui.pointOrigins.get(pointOriginsKey()).status;
+      const retry = loadPointOrigins(); summaries[2].resolve({{origins:[{{origin_fias:'b'}}]}}); await retry;
+      state.ui.selectedOrigin='a'; const late = loadPointRows();
+      state.ui.selectedOrigin='b'; const next = loadPointRows();
+      pages[0].resolve({{rows:[{{source_row_id:'wrong'}}],total:1,has_more:false}}); await late;
+      pages[1].resolve({{rows:[{{source_row_id:'b-1'}}],total:1,has_more:false}}); await next;
+      const noLeak = pointRowsForSelection().rows.map(r=>r.source_row_id);
+      const originKey = pointRowsKey();
+      rejectUnavailableResult(state,result);
+      const unavailable = [state.ui.pointRows.get(originKey).status, state.ui.pointOrigins.get(pointOriginsKey()).status];
+      rejectDataSnapshot(state,'s');
+      const stale = [state.ui.pointRows.get(originKey).status, state.ui.pointOrigins.get(pointOriginsKey()).status];
+      console.log(JSON.stringify({{cancelled,error,noLeak,unavailable,stale,
+        origins:pages[1].payload.origin_fiases, detail:pages[1].payload.detail_origin_fias,
+        summaryRows:state.ui.pointOrigins.get(pointOriginsKey()).origins}}));
+    """)
+    assert actual == {'cancelled': True, 'error': 'error', 'noLeak': ['b-1'],
+                      'unavailable': ['unavailable', 'unavailable'], 'stale': ['stale', 'stale'],
+                      'origins': ['a', 'b', 'c'], 'detail': 'b', 'summaryRows': [{'origin_fias': 'b'}]}
+
+
+def test_cached_origin_selection_renders_the_selected_origin_without_refetch():
+    script = _product_workspace_script("""
+      await choose('b'); await choose('a');
+      const region=document.getElementById('cluster-region'); region.value='R';
+      region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}})); await pause();
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      document.querySelector('[data-origin-fias="a"]').click(); await pause();
+      const before=requests.filter(r=>r.path==='point-rows').length;
+      document.querySelector('[data-origin-fias="b"]').focus();
+      document.querySelector('[data-origin-fias="b"]').click(); await pause();
+      document.body.dataset.result=JSON.stringify({selected:document.querySelector('[data-origin-fias="b"]').getAttribute('aria-pressed'),
+        context:document.querySelector('.pulse-details').textContent.includes('b → x'),
+        requestFree:before===requests.filter(r=>r.path==='point-rows').length,
+        focus:document.activeElement.dataset.originFias});
+    """)
+    script = script.replace("origins: [{origin_fias: 'b'", "origins: [{origin_fias:'a',origin_name:'Alpha',trip_count:10,warnings:[]},{origin_fias: 'b'")
+    assert _run_browser_script(script) == {'selected':'true','context':True,'requestFree':True,'focus':'b'}

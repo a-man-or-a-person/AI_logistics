@@ -98,6 +98,8 @@ export function createClusteringState(options = {}) {
       tableOpen: false,
       tableSort: { key: 'trip_count', direction: 'desc' },
       pointRows: new Map(),
+      pointOrigins: new Map(),
+      selectedOrigin: null,
     },
   };
 }
@@ -179,12 +181,15 @@ export function setResult(state, data, request) {
   }
   const cache = state.result.cache || new Map();
   cache.set(requestSignature(request), data);
-  for (const [key, detail] of state.ui.pointRows || []) {
-    if (detail.status === 'unavailable') state.ui.pointRows.delete(key);
+  for (const cache of [state.ui.pointRows, state.ui.pointOrigins]) {
+    for (const [key, detail] of cache || []) {
+      if (detail.status === 'unavailable') cache.delete(key);
+    }
   }
   state.result = { status: data.status || 'success', data, error: null, requestSnapshot: clone(request), cache };
   state.ui.selectedCluster = null;
   state.ui.selectedPoint = null;
+  state.ui.selectedOrigin = null;
 }
 
 export function rejectUnavailableResult(state, result) {
@@ -207,8 +212,8 @@ export function rejectUnavailableResult(state, result) {
       delete state.comparison.results[mode];
     }
   }
-  for (const [key, detail] of state.ui.pointRows) {
-    const {data_snapshot, destination_fias, ...context} = JSON.parse(key);
+  for (const [key, detail] of [...state.ui.pointRows, ...(state.ui.pointOrigins || [])]) {
+    const {data_snapshot, destination_fias, detail_origin_fias, ...context} = JSON.parse(key);
     if (data_snapshot === result.data_snapshot && semanticallyEqual(context, result.analysis.frozen_request)) {
       Object.assign(detail, {status: 'unavailable', rows: [], total: null, hasMore: false, error: null});
     }
@@ -228,7 +233,7 @@ export function rejectDataSnapshot(state, snapshot) {
   for (const [mode, result] of Object.entries(state.comparison?.results || {})) {
     if (result.data_snapshot === snapshot) delete state.comparison.results[mode];
   }
-  for (const [key, detail] of state.ui.pointRows) {
+  for (const [key, detail] of [...state.ui.pointRows, ...(state.ui.pointOrigins || [])]) {
     if (JSON.parse(key).data_snapshot === snapshot) {
       Object.assign(detail, {status: 'stale', rows: [], total: null, hasMore: false, error: null});
     }
