@@ -1,20 +1,20 @@
-F                                                                        [100%]
-================================== FAILURES ===================================
-_____ test_point_summary_reconciles_contributors_with_saved_pooled_point ______
-
-union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x000001DB58264380>)
-
-    def test_point_summary_reconciles_contributors_with_saved_pooled_point(union_client):
-        client, _ = union_client
-        run = client.post('/api/clustering/run', json=payload(origin_fiases=['a', 'b', 'c'])).get_json()
-        response = client.post('/api/clustering/point-origins', json={
-            **run['analysis']['frozen_request'], 'data_snapshot': run['data_snapshot'],
-            'destination_fias': 'x'}, headers={'X-Request-ID': 'summary'})
->       assert response.status_code == 200, response.get_json()
-E       AssertionError: None
-E       assert 404 == 200
-E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
-
-tests\test_point_origins_api.py:15: AssertionError
-=========================== short test summary info ===========================
-FAILED tests/test_point_origins_api.py::test_point_summary_reconciles_contributors_with_saved_pooled_point
+F                                                                        [100%]
+================================== FAILURES ===================================
+_____ test_point_summary_reconciles_contributors_with_saved_pooled_point ______
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x000001DB58264380>)
+
+    def test_point_summary_reconciles_contributors_with_saved_pooled_point(union_client):
+        client, _ = union_client
+        run = client.post('/api/clustering/run', json=payload(origin_fiases=['a', 'b', 'c'])).get_json()
+        response = client.post('/api/clustering/point-origins', json={
+            **run['analysis']['frozen_request'], 'data_snapshot': run['data_snapshot'],
+            'destination_fias': 'x'}, headers={'X-Request-ID': 'summary'})
+>       assert response.status_code == 200, response.get_json()
+E       AssertionError: None
+E       assert 404 == 200
+E        +  where 404 = <WrapperTestResponse streamed [404 NOT FOUND]>.status_code
+
+tests\test_point_origins_api.py:15: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_point_origins_api.py::test_point_summary_reconciles_contributors_with_saved_pooled_point

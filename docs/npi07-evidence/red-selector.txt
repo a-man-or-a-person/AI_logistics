@@ -1,18 +1,18 @@
-F                                                                        [100%]
-================================== FAILURES ===================================
-__________ test_summary_does_not_accept_the_row_only_origin_selector __________
-
-union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x000001C0D4379760>)
-
-    def test_summary_does_not_accept_the_row_only_origin_selector(union_client):
-        client, _ = union_client
-        run = client.post('/api/clustering/run', json=payload()).get_json()
-        response = client.post('/api/clustering/point-origins', json={
-            **detail_request(run), 'detail_origin_fias': 'a'})
->       assert response.status_code == 400
-E       assert 200 == 400
-E        +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
-
-tests\test_point_origins_api.py:54: AssertionError
-=========================== short test summary info ===========================
-FAILED tests/test_point_origins_api.py::test_summary_does_not_accept_the_row_only_origin_selector
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________ test_summary_does_not_accept_the_row_only_origin_selector __________
+
+union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clustering_service.ClusteringService object at 0x000001C0D4379760>)
+
+    def test_summary_does_not_accept_the_row_only_origin_selector(union_client):
+        client, _ = union_client
+        run = client.post('/api/clustering/run', json=payload()).get_json()
+        response = client.post('/api/clustering/point-origins', json={
+            **detail_request(run), 'detail_origin_fias': 'a'})
+>       assert response.status_code == 400
+E       assert 200 == 400
+E        +  where 200 = <WrapperTestResponse streamed [200 OK]>.status_code
+
+tests\test_point_origins_api.py:54: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_point_origins_api.py::test_summary_does_not_accept_the_row_only_origin_selector

@@ -57,7 +57,9 @@ Review-stage RED/GREEN: [cached selection RED](npi07-evidence/red-cache.txt) rep
 
 ## Reviews and publication
 
-Independent Standards/Spec and Ponytail review results, dispositions and exact final-HEAD Actions gate are recorded after review/publication in this report and the PR. No automatic merge. A previous-HEAD green does not satisfy the final gate.
+Independent final-source review at `d85f275`: [Standards](npi07-evidence/standards-review.md) **0 blockers /0 outstanding advisories**; cancellation naming advisory resolved. [Spec](npi07-evidence/spec-review.md) **0 remaining blockers**, cached-reselection finding fixed with genuine RED/GREEN and re-reviewed. [Ponytail](npi07-evidence/ponytail-review.md): **Ship**, cache display/focus and complete-summary selector corrections verified. Independent reviewers inspected connected code/evidence; they did not claim independent full-suite/live reruns. Final full suite after focus correction:464 passed in67.88s,59 frontend,zero skipped. Reported green-api/green-ui logs are earlier focused gates; full/JUnit are authoritative final results.
+
+Final publication only updates evidence/docs after that reviewed source. Exact final-HEAD required GitHub Actions verification/run/job links are recorded in the PR and completion report after publication, never inferred from a previous HEAD. No automatic merge.
 
 ## Limitations
 

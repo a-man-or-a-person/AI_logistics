@@ -1,42 +1,42 @@
-F                                                                        [100%]
-================================== FAILURES ===================================
-_______ test_origin_summary_selects_frozen_origin_rows_and_keeps_table ________
-
-    def test_origin_summary_selects_frozen_origin_rows_and_keeps_table():
-        actual = _run_browser_script(_product_workspace_script("""
-          await choose('b'); await choose('a');
-          const region = document.getElementById('cluster-region');
-          region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
-          document.getElementById('btn-run-clustering').click(); await pause();
-          const table = document.getElementById('cluster-table-panel').innerHTML;
-          window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
-          await pause();
-          const contributor = document.querySelector('[data-origin-fias="b"]');
-          if (!contributor) throw Error('Origin summary missing');
-          contributor.focus(); contributor.click(); await pause();
-          const detail = requests.find(r => r.path === 'point-rows').payload;
-          const sameTable = table === document.getElementById('cluster-table-panel').innerHTML;
-          document.querySelector('#cluster-periods input[value="retro"]').click(); await pause();
-          document.body.dataset.result = JSON.stringify({origin: detail.detail_origin_fias,
-            origins: detail.origin_fiases, periods: detail.period_types,
-            summary: requests.filter(r => r.path === 'point-origins').length,
-            selected: document.querySelector('[data-origin-fias="b"]').getAttribute('aria-pressed'),
-            table: sameTable,
-            stale: !document.getElementById('analysis-stale').classList.contains('hidden')});
-        """))
->       assert actual == {'origin': 'b', 'origins': ['a', 'b'], 'periods': ['current'],
-                          'summary': 1, 'selected': 'true', 'table': True, 'stale': True}
-E       AssertionError: assert {'error': 'Er...mary missing'} == {'origin': 'b...: 'true', ...}
-E         
-E         Left contains 1 more item:
-E         {'error': 'Error: Origin summary missing'}
-E         Right contains 7 more items:
-E         {'origin': 'b',
-E          'origins': ['a', 'b'],
-E          'periods': ['current'],...
-E         
-E         ...Full output truncated (5 lines hidden), use '-vv' to show
-
-tests\test_clustering_frontend_contract.py:1948: AssertionError
-=========================== short test summary info ===========================
-FAILED tests/test_clustering_frontend_contract.py::test_origin_summary_selects_frozen_origin_rows_and_keeps_table
+F                                                                        [100%]
+================================== FAILURES ===================================
+_______ test_origin_summary_selects_frozen_origin_rows_and_keeps_table ________
+
+    def test_origin_summary_selects_frozen_origin_rows_and_keeps_table():
+        actual = _run_browser_script(_product_workspace_script("""
+          await choose('b'); await choose('a');
+          const region = document.getElementById('cluster-region');
+          region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+          document.getElementById('btn-run-clustering').click(); await pause();
+          const table = document.getElementById('cluster-table-panel').innerHTML;
+          window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
+          await pause();
+          const contributor = document.querySelector('[data-origin-fias="b"]');
+          if (!contributor) throw Error('Origin summary missing');
+          contributor.focus(); contributor.click(); await pause();
+          const detail = requests.find(r => r.path === 'point-rows').payload;
+          const sameTable = table === document.getElementById('cluster-table-panel').innerHTML;
+          document.querySelector('#cluster-periods input[value="retro"]').click(); await pause();
+          document.body.dataset.result = JSON.stringify({origin: detail.detail_origin_fias,
+            origins: detail.origin_fiases, periods: detail.period_types,
+            summary: requests.filter(r => r.path === 'point-origins').length,
+            selected: document.querySelector('[data-origin-fias="b"]').getAttribute('aria-pressed'),
+            table: sameTable,
+            stale: !document.getElementById('analysis-stale').classList.contains('hidden')});
+        """))
+>       assert actual == {'origin': 'b', 'origins': ['a', 'b'], 'periods': ['current'],
+                          'summary': 1, 'selected': 'true', 'table': True, 'stale': True}
+E       AssertionError: assert {'error': 'Er...mary missing'} == {'origin': 'b...: 'true', ...}
+E         
+E         Left contains 1 more item:
+E         {'error': 'Error: Origin summary missing'}
+E         Right contains 7 more items:
+E         {'origin': 'b',
+E          'origins': ['a', 'b'],
+E          'periods': ['current'],...
+E         
+E         ...Full output truncated (5 lines hidden), use '-vv' to show
+
+tests\test_clustering_frontend_contract.py:1948: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_origin_summary_selects_frozen_origin_rows_and_keeps_table
