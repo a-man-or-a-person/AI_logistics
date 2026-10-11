@@ -61,6 +61,13 @@ Backend переиспользует location/spatial context и result LRU; UI 
 
 ## Frontend
 
+NPI-09: подпись карты у реального medoid показывает имя/FIAS сохранённой точки;
+cluster inspector показывает тот же «Временный ориентир (medoid)» с объяснением.
+При отсутствии имени явно показывается «Название недоступно» и FIAS. Подписи
+используют существующий layer toggle; point/cluster selection и drill-up сохранены.
+Cached comparison выбирает представителя активного saved варианта; form edits и
+rejected source сохраняют frozen display до успешного нового расчёта.
+
 Верхняя навигация разделяет «Карту данных» и «Кластеризацию». Product workspace
 имеет три зоны: Controls → Map → Inspector.
 

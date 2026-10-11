@@ -125,6 +125,74 @@ def _run_node_script(script: str) -> dict:
     return json.loads(completed.stdout)
 
 
+@pytest.mark.parametrize("mode", ["geography", "geo_cost", "geo_volume", "bear_zones", "bear_volume_zones"])
+@pytest.mark.parametrize("name,expected", [
+    ("деревня Ориентир <&>", "деревня Ориентир <&> · FIAS: member-b"),
+    ("<missing>", "Название недоступно · FIAS: member-b"),
+    ("", "Название недоступно · FIAS: member-b"),
+    ("Synthetic" * 30, "Synthetic" * 30 + " · FIAS: member-b"),
+])
+def test_saved_medoid_name_and_id_are_visible_in_cluster_inspector(mode, name, expected):
+    representative_id = "01234567-89ab-cdef-0123-456789abcdef"
+    expected = expected.replace("member-b", representative_id)
+    formatters = _read("frontend/js/clustering/formatters.js").replace("export ", "")
+    inspector = re.sub(r"^import .*?;\n", "", _read("frontend/js/clustering/inspector.js"), flags=re.MULTILINE).replace("export ", "")
+    html = re.search(r"<body[^>]*>([\s\S]*?)</body>", _read("frontend/index.html"))[1]
+    html = re.sub(r"<script[\s\S]*?</script>", "", html)
+    actual = _run_browser_script(f"""
+      document.head.innerHTML += '<style>' + {json.dumps(_read('frontend/css/style.css'))} + '</style>';
+      document.body.innerHTML = {json.dumps(html)};
+      {formatters}
+      {inspector}
+      const cluster = {{cluster_id:0, point_ids:['member-a','member-b'], point_count:2,
+        medoid_point_id:{json.dumps(representative_id)}, representative:{{type:'medoid', point_id:{json.dumps(representative_id)}, name:{json.dumps(name)}}}}};
+      const result = {{status:'success', analysis:{{mode:{json.dumps(mode)}, parameters:{{}}, filters:{{}}}},
+        clusters:[cluster], points:[], data_quality:{{}}, metrics:{{}}, graph_metrics:{{}}}};
+      const state = {{result:{{data:result}}, form:{{mode:'unrelated', destinationRegion:'Changed'}}, ui:{{selectedCluster:0}}}};
+      renderInspector(state);
+      const row = document.querySelector('#cluster-detail-metrics .metric-row');
+      document.body.dataset.result = JSON.stringify({{label:row.querySelector('span').textContent,
+        value:row.querySelector('strong').textContent, injected:!!row.querySelector('strong > *'),
+        fits:row.scrollWidth <= row.clientWidth}});
+    """)
+    assert actual["value"] == expected
+    assert "Временный ориентир (medoid)" in actual["label"]
+    assert actual["injected"] is False
+    assert actual["fits"] is True
+
+
+@pytest.mark.parametrize("mode,prefix", [("geography", "C1"), ("geo_cost", "C1"), ("geo_volume", "C1"), ("bear_zones", "B1"), ("bear_volume_zones", "V1")])
+@pytest.mark.parametrize("name,expected", [("село Ориентир", "село Ориентир"), ("<missing>", "Название недоступно")])
+def test_map_medoid_label_is_at_saved_member_not_centroid(mode, prefix, name, expected):
+    formatters = _read("frontend/js/clustering/formatters.js").replace("export ", "")
+    map_module = re.sub(r"^import .*?;\n", "", _read("frontend/js/map.js"), flags=re.MULTILINE).replace("export ", "")
+    actual = _run_browser_script(f"""
+      {_read('frontend/js/ol.js')}
+      {formatters}
+      {map_module}
+      document.body.innerHTML = '<div id="map" style="width:800px;height:600px"></div><div id="popup"><div id="popup-content"></div><button id="popup-closer"></button></div>';
+      const map = initMap('map');
+      const points = [{{id:'member-a', lat:55, lon:37, cluster_id:0}},
+        {{id:'member-b', lat:55, lon:37.02, cluster_id:0}},
+        {{id:'unresolved', lat:null, lon:null, cluster_id:null}}];
+      const cluster = {{cluster_id:0, point_ids:['member-a','member-b'], medoid_point_id:'member-b',
+        centroid:{{x:0,y:0}}, representative:{{point_id:'member-b', name:{json.dumps(name)}, lat:55, lon:37.02}}}};
+      const result = {{analysis:{{mode:{json.dumps(mode)}}}, points, clusters:[cluster]}};
+      renderClusteringPoints(result);
+      const layer = map.getLayers().getArray().find(l => l.getSource()?.getFeatures?.().some(f => f.get('isProductLabel')));
+      const label = layer.getSource().getFeatures().find(f => f.get('isProductLabel'));
+      const style = layer.getStyle()(label);
+      const coordinates = ol.proj.toLonLat(label.getGeometry().getCoordinates());
+      const text = style.getText().getText();
+      renderClusteringPoints({{...result, clusters:[]}});
+      document.body.dataset.result = JSON.stringify({{text, coordinates,
+        labelsAfterEmpty:layer.getSource().getFeatures().filter(f => f.get('isProductLabel')).length}});
+    """)
+    assert actual["text"] == f"{prefix} · medoid\n{expected} · FIAS: member-b"
+    assert actual["coordinates"] == pytest.approx([37.02, 55])
+    assert actual["labelsAfterEmpty"] == 0
+
+
 
 def test_all_intent_is_explicit_and_resolution_does_not_make_form_stale():
     module = _read("frontend/js/clustering/state.js").replace("export ", "")
