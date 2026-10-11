@@ -44,3 +44,33 @@ def test_cluster_economics_use_trip_count_weight():
     assert result.clusters[0].trip_count == 4
     assert result.clusters[0].weighted_price == 1750
     assert result.clusters[0].weighted_rub_per_km == 17.5
+
+
+def test_medoid_is_unweighted_real_member_not_centroid_or_largest_volume():
+    # Distance sums at x=0,2,10 are 12,10,18; centroid=4, largest volume is x=10.
+    points = [ClusterPoint("a", "A", "R", 0, 0, 1),
+              ClusterPoint("b", "село B", "R", 2, 0, 1),
+              ClusterPoint("c", "C", "R", 10, 0, 999),
+              ClusterPoint("noise", "N", "R", 2, 0, 1000)]
+    for _ in range(3):
+        result = summarize_assignments(points, {"a":0, "b":0, "c":0, "noise":-1}, algorithm="test", parameters={})
+        summary = result.clusters[0]
+        assert summary.medoid_point_id == "b"
+        assert summary.medoid == (2, 0)
+        assert summary.centroid == (4, 0)
+        assert summary.point_ids == ("a", "b", "c")
+
+
+@pytest.mark.parametrize("coordinates", [[(0, 0)], [(0, 0), (2, 0)], [(0, 0), (0, 0)]])
+def test_medoid_singleton_and_ties_keep_first_existing_order(coordinates):
+    points = [ClusterPoint(str(i), "P", "R", x, y) for i, (x, y) in enumerate(coordinates)]
+    for _ in range(3):
+        summary = summarize_assignments(points, {p.id:0 for p in points}, algorithm="test", parameters={}).clusters[0]
+        assert summary.medoid_point_id == "0"
+        assert summary.medoid == (0, 0)
+
+
+def test_no_assigned_members_means_no_representative():
+    result = summarize_assignments([ClusterPoint("a", "A", "R", 0, 0)], {"a":-1}, algorithm="test", parameters={})
+    assert result.clusters == ()
+    assert result.noise_point_ids == ("a",)

@@ -13,6 +13,12 @@ export const decimal = (value, digits = 1) => value == null ? '—' : Number(val
 export const percent = value => value == null ? '—' : `${decimal(Number(value) * 100, 0)}%`;
 export const km = value => value == null ? '—' : `${decimal(value, 1)} км`;
 export const rubKm = value => value == null ? '—' : `${decimal(value, 1)} ₽/км`;
+export function representativeLabel(cluster) {
+  const name = cluster.representative?.name?.trim();
+  const id = cluster.representative?.point_id || cluster.medoid_point_id;
+  return `${name && name !== '<missing>' ? name : 'Название недоступно'} · FIAS: ${id ?? '—'}`;
+}
+
 export const clusterLabel = (cluster, mode) => {
   if (mode === 'bear_zones') {
     return cluster.cluster_type === 'expensive_singleton'
