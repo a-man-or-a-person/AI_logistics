@@ -20,6 +20,7 @@ Pulse + coordinate cache
 ## API
 
 - `GET /api/clustering/options` — режимы, фильтры, K bounds, defaults и Bear thresholds;
+- `GET/POST /api/clustering/revision` — uncached metadata revision и наличие frozen saved results;
 - `GET /api/clustering/origins?q=&limit=` — searchable origin catalog по FIAS;
 - `POST /api/clustering/run` — canonical point result with `data_snapshot` and a compact
   `cluster_table` for Geography, Geo+Cost and Geo+Volume;
@@ -45,6 +46,12 @@ Summary и rows имеют loading/error/retry и typed recalculation recovery. 
 не меняют их контекст. Нижняя таблица сохраняется. Export отсутствует.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
+Перед frontend cache reuse при новом Calculate/Compare revision check подтверждает
+generation и exact saved-result lifetime; при смене источника/eviction cache отклоняется.
+Failed validation показывает ошибку, старый map/table остаётся frozen. All заново
+разрешается только новым расчётом. Внутреннее переключение сравнения сохраняет frozen
+navigation без новых запросов. Revision не является cryptographic content identity;
+подробности и ограничения — в Product contract.
 Backend переиспользует location/spatial context и result LRU; UI переключает
 сохранённые варианты на карте без повторных запросов.
 

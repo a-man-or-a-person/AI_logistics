@@ -141,6 +141,7 @@ def test_unchanged_recalculation_recovers_after_real_snapshot_conflict(table_ser
       const runClustering = (payload, options) => post('run', payload, options);
       const fetchClusteringPointRows = (payload, options) => post('point-rows', payload, options);
       const runClusteringComparison = payload => post('compare', payload);
+      const fetchClusteringRevision = (results, options) => post('revision', {{results}}, options);
       const elements = new Map();
       globalThis.document = {{getElementById: id => {{
         if (!elements.has(id)) elements.set(id, {{textContent: '', disabled: false,

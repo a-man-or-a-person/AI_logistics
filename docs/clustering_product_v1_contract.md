@@ -186,6 +186,42 @@ All разрешается один раз перед пятью вариант�
 Координаты берутся из существующего `backend/cache/coords_cache.json`.
 Неразрешённые координаты учитываются в data quality и исключаются из ML.
 
+## Проверка актуальности frontend cache
+
+Перед reuse при новом Calculate/Compare frontend вызывает read-only
+`POST /api/clustering/revision` с `{"results": [frozen_request + data_snapshot, ...]}`.
+Допускается до 6 контекстов: пять вариантов сравнения и отображаемый результат.
+All здесь запрещён: передаются только сохранённые resolved origins, mode/parameters
+и четыре filters. Ответ: `{"ok": true, "data_snapshot": "opaque revision", "available": [true, ...]}`,
+где available соответствует каждому входному контексту и означает наличие exact
+saved result текущего generation в памяти. `GET /revision` возвращает тот же revision
+и пустой available. Все ответы, включая ошибки, имеют `Cache-Control: no-store`;
+frontend также использует fetch cache no-store.
+
+Revision использует существующий SHA-256 от metadata token Pulse и coordinate cache
+(resolved path, size, mtime_ns); пути и metadata endpoint не публикует. Это fingerprint
+метаданных, **не hash содержимого**: изменение с тем же path/size/mtime не обнаруживается.
+Проверка делает stat, без CSV parsing, content hashing, All expansion или clustering.
+Generation проверяется повторно перед ответом; race даёт STALE_DATA_SNAPSHOT409,
+ошибка чтения — INTERNAL_ERROR500. Проверка сбрасывает устаревшие in-memory caches,
+но не изменяет исходные данные и не продлевает LRU lifetime saved result.
+
+Несовпадение revision применяет существующую P1 invalidation ко всем frontend result,
+comparison, origin-summary и point-row entries старого snapshot. Отсутствие exact result
+при том же revision применяет RESULT_UNAVAILABLE recovery только к этому result.
+Restart не обязан менять revision: наличие saved result проверяется отдельно.
+Старый map/table остаётся frozen и stale до успешного нового run/compare; All заново
+разрешается backend при расчёте. Ошибка revision check оставляет frozen display,
+показывает ошибку и не публикует unverified cache как новый расчёт. Отменённые ответы
+не публикуют результаты и не инвалидируют новый workspace.
+
+Внутреннее переключение уже показанных вариантов Compare остаётся frozen navigation
+без нового clustering/revision request. Проверка фиксирует актуальность на момент
+ответа; последующее изменение источника/eviction может произойти после неё.
+Detail сохраняет собственную generation/exact-result validation, без скрытого rerun.
+Постоянный background polling, persistent result store и multi-worker cache coherence
+не добавляются.
+
 ## Совместимость
 
 Frontend поддерживает explicit multi-select по FIAS, один регион назначения и общие
