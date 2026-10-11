@@ -7,7 +7,7 @@ import threading
 import uuid
 from typing import Any
 
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, g, jsonify, request, send_file
 
 from backend.services.clustering_service import (
     ClusteringRequest,
@@ -219,3 +219,24 @@ def clustering_point_origins():
         return _error(error)
     except Exception:
         return _internal_error("/api/clustering/point-origins")
+
+
+@clustering_blueprint.post("/export")
+def clustering_export():
+    output = None
+    try:
+        output, filename = get_clustering_service().export(_json_payload(), request_id=g.clustering_request_id)
+        response = send_file(output, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                             as_attachment=True, download_name=filename, conditional=False)
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.call_on_close(output.close)
+        return response
+    except ProductClusteringError as error:
+        if output is not None:
+            output.close()
+        return _error(error)
+    except Exception:
+        if output is not None:
+            output.close()
+        return _error(ProductClusteringError("EXPORT_FAILED", "Unable to download XLSX.", 500))

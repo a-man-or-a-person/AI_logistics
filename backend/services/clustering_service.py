@@ -24,6 +24,7 @@ from backend.product_modes import (
     default_product_mode_catalog,
 )
 from backend.services.boundary_provider import BoundaryProvider
+from backend.services.xlsx_export import validate_sort, write_workbook
 from ml.clustering.base import ClusterPoint, ClusterResult
 from ml.clustering.economics import relative_rate_delta, weighted_mean
 from ml.data.clustering_dataset import aggregate_clustering_records
@@ -721,6 +722,7 @@ class ClusteringService:
             point.update(
                 {
                     "weighted_route_length": location.weighted_route_length,
+                    "source_row_count": location.record_count,
                     "valid_route_length_trip_count": location.valid_route_length_trip_count,
                     "valid_price_trip_count": location.valid_price_trip_count,
                     "valid_rub_per_km_trip_count": location.valid_rub_per_km_trip_count,
@@ -842,11 +844,15 @@ class ClusteringService:
                 "hit" if location_cache_hit else "miss",
                 (time.perf_counter() - started) * 1000,
             )
-            response = copy.deepcopy(cached)
-            response["analysis"]["selection_intent"] = (
+            intent = (
                 {"all_origins": True} if request.all_origins
                 else {"origin_fiases": list(request.origin_fiases)}
             )
+            if intent not in cached["_selection_intents"]:
+                cached["_selection_intents"].append(intent)
+            response = copy.deepcopy(cached)
+            response.pop("_selection_intents")
+            response["analysis"]["selection_intent"] = intent
             self._assert_generation(token)
             return response
         try:
@@ -862,6 +868,7 @@ class ClusteringService:
             )
             raise
         cached_result = copy.deepcopy(result)
+        cached_result["_selection_intents"] = [cached_result["analysis"]["selection_intent"]]
         self._assert_generation(token)
         self._result_cache[cache_key] = cached_result
         while len(self._result_cache) > RESULT_CACHE_SIZE:
@@ -976,6 +983,70 @@ class ClusteringService:
             ) from error
         return frozen, token, snapshot, saved_point, rows
 
+    def export(self, payload: Any, *, request_id: str = "-"):
+        if not isinstance(payload, dict) or any(name not in payload for name in (
+            "mode", "parameters", "period_types", "price_types", "vehicle_types",
+            "tonnage_ids", "data_snapshot", "table_sort",
+        )) or not isinstance(payload["data_snapshot"], str) or not payload["data_snapshot"]:
+            raise ProductClusteringError("INVALID_REQUEST", "Complete frozen export context is required.", 400)
+        validate_sort(payload["table_sort"])
+        frozen = ClusteringRequest.from_payload(payload, product_mode_catalog=self.product_mode_catalog)
+        if frozen.all_origins or "detail_origin_fias" in payload:
+            raise ProductClusteringError("INVALID_REQUEST", "Export requires the complete resolved origin set.", 400)
+        output = None
+        try:
+            token = self._refresh_cache_generation()
+            if payload["data_snapshot"] != self._data_snapshot(token):
+                raise ProductClusteringError("STALE_DATA_SNAPSHOT", "Данные изменились. Пересчитайте результат.", 409)
+            saved = self._result_cache.get((token, frozen))
+            if saved is None:
+                raise ProductClusteringError("RESULT_UNAVAILABLE", "Saved result unavailable. Recalculate.", 409)
+            intent = payload.get("selection_intent", saved["analysis"]["selection_intent"])
+            if intent not in saved["_selection_intents"]:
+                raise ProductClusteringError("INVALID_REQUEST", "Selection intent does not match a saved calculation.", 400)
+            saved = {**saved, "analysis": {**saved["analysis"], "selection_intent": intent}}
+            if not saved["cluster_table"]["supported"]:
+                raise ProductClusteringError("EXPORT_UNSUPPORTED", "This mode does not support export.", 422)
+            if not saved["cluster_table"]["rows"]:
+                raise ProductClusteringError("NO_DATA", "No cluster rows to export.", 422)
+            if self.repository is None:
+                raise ProductClusteringError("EXPORT_FAILED", "Source rows unavailable.", 500)
+
+            def records():
+                expected = {point_id: row["cluster_id"] for row in saved["cluster_table"]["rows"]
+                            for point_id in row["point_ids"]}
+                assigned = {point["id"]: point["cluster_id"] for point in saved["points"]
+                            if point["cluster_id"] is not None and point["cluster_id"] >= 0}
+                if expected != assigned or len(expected) != sum(len(row["point_ids"]) for row in saved["cluster_table"]["rows"]):
+                    raise ProductClusteringError("EXPORT_INCONSISTENT_DATA", "Saved membership is inconsistent.", 409)
+                for point in saved["points"]:
+                    if point["cluster_id"] is None or point["cluster_id"] < 0:
+                        continue
+                    try:
+                        _, _, snapshot, _, rows = self._frozen_point_rows({**payload, "destination_fias": point["id"]}, require_saved=True)
+                    except ProductClusteringError as error:
+                        if error.code == "UNKNOWN_DESTINATION_POINT":
+                            raise ProductClusteringError("EXPORT_INCONSISTENT_DATA", "Assigned source rows unavailable.", 409) from error
+                        raise
+                    if len(rows) != point["source_row_count"] or len({row.source_row_number for row in rows}) != len(rows):
+                        raise ProductClusteringError("EXPORT_INCONSISTENT_DATA", "Assigned source rows are incomplete or duplicated.", 409)
+                    for row in rows:
+                        yield self._source_row_json(row, snapshot, point)
+
+            output = write_workbook(saved, records(), payload["table_sort"])
+            self._assert_generation(token)
+            logger.info("clustering_export request_id=%s mode=%s clusters=%s", request_id, frozen.mode, len(saved["cluster_table"]["rows"]))
+            return output, f"product-{frozen.mode}-{saved['data_snapshot'][:12]}.xlsx"
+        except ProductClusteringError:
+            if output is not None:
+                output.close()
+            raise
+        except Exception as error:
+            if output is not None:
+                output.close()
+            logger.exception("clustering_export_failed request_id=%s", request_id)
+            raise ProductClusteringError("EXPORT_FAILED", "Unable to create a complete XLSX workbook.", 500) from error
+
     def point_origins(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
         if isinstance(payload, dict) and "detail_origin_fias" in payload:
             raise ProductClusteringError("INVALID_REQUEST", "Summary requires the complete saved origin set.", 400)
@@ -1010,6 +1081,36 @@ class ClusteringService:
         return {"data_snapshot": snapshot, "destination_fias": point["id"],
                 "cluster_id": point["cluster_id"], "status": point["status"], "origins": origins}
 
+    @staticmethod
+    def _source_row_json(row, snapshot, point):
+        return {
+            "source_row_id": hashlib.blake2b(
+                f"{snapshot}:{row.source_row_number}".encode(), digest_size=8
+            ).hexdigest(),
+            **({
+                "origin_fias": row.origin_fias,
+                "origin_name": row.origin_name,
+                "origin_region": row.origin_region,
+                "destination_fias": row.destination_fias,
+                "destination_name": row.destination_name,
+                "destination_region": row.destination_region,
+                "cluster_id": point["cluster_id"],
+                "status": point["status"],
+            } if point is not None else {}),
+            "period_id": row.period_id,
+            "source_timestamp": row.tech_ts.isoformat() if row.tech_ts else None,
+            "period_type": row.period_type,
+            "price_type": row.price_type,
+            "vehicle_type": row.vehicle_type,
+            "tonnage_id": row.tonnage_id,
+            "price": row.price,
+            "route_length": row.route_length,
+            "rub_per_km": row.rub_per_km,
+            "trip_count": row.trip_count,
+            "warnings": list(row.validation_errors),
+        }
+
+
     def point_rows(self, payload: Any, *, request_id: str = "-") -> dict[str, Any]:
         if not isinstance(payload, dict):
             raise ProductClusteringError("INVALID_REQUEST", "Ожидается JSON-объект.", 400)
@@ -1042,32 +1143,7 @@ class ClusteringService:
             "limit": limit,
             "has_more": offset + len(page) < len(rows),
             "rows": [
-                {
-                    "source_row_id": hashlib.blake2b(
-                        f"{snapshot}:{row.source_row_number}".encode(), digest_size=8
-                    ).hexdigest(),
-                    **({
-                        "origin_fias": row.origin_fias,
-                        "origin_name": row.origin_name,
-                        "origin_region": row.origin_region,
-                        "destination_fias": row.destination_fias,
-                        "destination_name": row.destination_name,
-                        "destination_region": row.destination_region,
-                        "cluster_id": saved_point["cluster_id"],
-                        "status": saved_point["status"],
-                    } if saved_point is not None else {}),
-                    "period_id": row.period_id,
-                    "source_timestamp": row.tech_ts.isoformat() if row.tech_ts else None,
-                    "period_type": row.period_type,
-                    "price_type": row.price_type,
-                    "vehicle_type": row.vehicle_type,
-                    "tonnage_id": row.tonnage_id,
-                    "price": row.price,
-                    "route_length": row.route_length,
-                    "rub_per_km": row.rub_per_km,
-                    "trip_count": row.trip_count,
-                    "warnings": list(row.validation_errors),
-                }
+                self._source_row_json(row, snapshot, saved_point)
                 for row in page
             ],
         }

@@ -159,7 +159,7 @@ Zero-match origins остаются в analysis.origin_coverage, не созда
 Summary и detail используют общий frozen-row доступ, точную saved membership и
 typed errors; нет All expansion или rerun. Inspector показывает summary отдельно,
 origin buttons доступны клавиатурой и открывают lazy50 rows с source attribution.
-XLSX пока отсутствует.
+XLSX доступен через backend API ниже; кнопка download относится к NPI-11.
 
 Нормальные result states: `success`, `no_bears`. Нарушение связности не выдаётся
 как успешный результат, а возвращает typed error `CONNECTIVITY_VIOLATION`.
@@ -243,3 +243,45 @@ Point-to-origin details keep the saved resolved origins, region, filters, mode/p
 and snapshot. Same-context loaded summaries/pages remain reusable. New calculations
 still validate revision/result presence; STALE_DATA_SNAPSHOT and RESULT_UNAVAILABLE
 never cause a silent result substitution during navigation.
+
+## CURRENT saved XLSX export (NPI-10)
+
+`POST /api/clustering/export` принимает полный `analysis.frozen_request`,
+`data_snapshot` и `table_sort: {key, direction}`. Scalar origin совместим;
+All нужно передавать как уже разрешённый frozen origin set. Mode, parameters
+и все четыре filter lists обязательны. Никакого нового расчёта при export нет.
+Необязательный `selection_intent` копируется из saved `analysis.selection_intent`:
+backend принимает только provenance, уже наблюдавшийся для этого exact результата.
+Это сохраняет оба намерения после shared cache reuse All/explicit. Без него
+используется provenance первого сохранения; NPI-11 должен передавать intent явно.
+
+Sort key — любой существующий столбец таблицы: `cluster_id`, `point_count`,
+`trip_count`, `trip_share`, `weighted_route_length`, `price.min/median/weighted/max`,
+`rub_per_km.min/median/weighted/max`, `economic_coverage`; direction — `asc`/`desc`.
+Сортировка числовая, null last, tie по canonical cluster ID.
+
+Первый лист «Кластеры» повторяет 14 headers и все saved table rows. Далее идут
+непустые направления actual source row region → saved cluster; строки сохраняют
+source-row IDs и normalized поля detail плюс origin/region/destination и visible
+cluster label. В конце «Контекст» содержит frozen request/intent/origins/zero-match,
+Pulse/snapshot, методику, единицы, coverage, exclusions, mappings и время export UTC.
+Missing-region identity отличается от реального одноимённого source label.
+Unassigned points, включая canonical `-1` spatial outliers, исключены с counts/reasons.
+Point JSON аддитивно включает `source_row_count` для проверки полноты detail.
+
+Числа сохраняются без UI rounding, formats задают отображение; пропуски — blank,
+zero — numeric. Идентификаторы и source timestamps — literal text, timezone сохранён.
+Формулы, hyperlinks, macros и external links не генерируются из source strings.
+XlsxWriter 3.2.9 записывает последовательные строки с constant memory в временные
+файлы; готовый HTTP attachment disk-backed. Ошибка cell/row/resource/write limits
+отменяет весь workbook; arbitrary caps или silent truncation отсутствуют.
+
+Generation source+coordinates проверяется до чтения, каждым frozen-point read
+и после complete file. Metadata fingerprint сохраняет существующие ограничения;
+это не content hash и не lease на время последующей передачи HTTP.
+Typed JSON: invalid context/sort `INVALID_REQUEST`400; stale `STALE_DATA_SNAPSHOT`409;
+evicted/restarted exact result `RESULT_UNAVAILABLE`409; Bear `EXPORT_UNSUPPORTED`422;
+empty table `NO_DATA`422; missing/incomplete/duplicate rows or membership conflict
+`EXPORT_INCONSISTENT_DATA`409; operational failure `EXPORT_FAILED`500.
+Успех: XLSX MIME, `.xlsx` attachment, `X-Request-ID`, `Cache-Control: no-store`,
+`X-Content-Type-Options: nosniff`. Ошибки не содержат private paths/source dumps.
