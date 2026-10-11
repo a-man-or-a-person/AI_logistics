@@ -9,4 +9,3 @@ No blocking Standards findings. Two observations were addressed: CONTEXT now
 distinguishes CURRENT backend from NEXT download UI; detail transforms/formats
 use field names instead of positional column indices. Re-review: no new findings.
 Tooling and tests were verified by the implementation agent, not claimed by reviewer.
-

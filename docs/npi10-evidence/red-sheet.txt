@@ -12,7 +12,7 @@ union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clusterin
         run = client.post('/api/clustering/run', json=payload()).get_json()
 >       names, _, records = exported_records(client.post('/api/clustering/export', json=export_request(run)))
 
-tests\test_xlsx_export_api.py:346: 
+tests\test_xlsx_export_api.py:346:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 response = <WrapperTestResponse 89 bytes [500 INTERNAL SERVER ERROR]>

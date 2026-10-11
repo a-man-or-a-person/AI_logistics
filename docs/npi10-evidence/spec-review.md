@@ -17,4 +17,3 @@ Final re-review: both resolved; no remaining blocking Spec findings identified.
 Headers, visible IDs, sorting, saved membership, numeric serialization and generation
 checks align with R2. No independent economic calculator. Full suite and desktop
 acceptance were not rerun by the reviewer; production capacity remains unverified.
-

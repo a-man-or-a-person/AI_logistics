@@ -23,13 +23,13 @@ Requirement already satisfied: shapely==2.0.4 in c:\folder\python\проект �
 Requirement already satisfied: threadpoolctl==3.6.0 in c:\folder\python\проект ии логистика\.worktrees\npi10\.venv\lib\site-packages (from -r requirements-lock.txt (line 24)) (3.6.0)
 Requirement already satisfied: Werkzeug==3.1.8 in c:\folder\python\проект ии логистика\.worktrees\npi10\.venv\lib\site-packages (from -r requirements-lock.txt (line 25)) (3.1.8)
 Requirement already satisfied: XlsxWriter==3.2.9 in c:\folder\python\проект ии логистика\.worktrees\npi10\.venv\lib\site-packages (from -r requirements-lock.txt (line 26)) (3.2.9)
-python.exe : 
+python.exe :
 строка:2 знак:97
 + ... ownload.py; & .venv\Scripts\python.exe -m pip install -r requirements ...
 +                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
- 
+
 [notice] A new release of pip is available: 25.0.1 -> 26.2.1
-[notice] To update, run: C:\folder\Python\Проект ИИ Логистика\.worktrees\npi10\.venv\Scripts\python.exe -m pip install 
+[notice] To update, run: C:\folder\Python\Проект ИИ Логистика\.worktrees\npi10\.venv\Scripts\python.exe -m pip install
 --upgrade pip

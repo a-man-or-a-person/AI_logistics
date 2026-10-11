@@ -11,4 +11,3 @@ Field-based serialization and ambiguous-intent validation introduced no new find
 Not checked by reviewer: pytest rerun or desktop Excel. Export uses existing
 per-destination frozen-row access, which scans the regional source slice for each
 assigned destination; production All latency has no verified SLA/load fixture.
-

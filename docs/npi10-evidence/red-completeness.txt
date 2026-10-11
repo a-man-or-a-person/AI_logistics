@@ -12,7 +12,7 @@ mode = 'geo_cost'
         run = client.post('/api/clustering/run', json=payload(mode=mode, parameters={})).get_json()
 >       _, sheets, records = exported_records(client.post('/api/clustering/export', json=export_request(run)))
 
-tests\test_xlsx_export_api.py:152: 
+tests\test_xlsx_export_api.py:152:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 response = <WrapperTestResponse 91 bytes [409 CONFLICT]>

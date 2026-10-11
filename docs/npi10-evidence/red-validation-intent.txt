@@ -34,7 +34,7 @@ union_client = (<FlaskClient <Flask 'backend.app'>>, <backend.services.clusterin
             _, sheets = open_xlsx(response.data)
 >           assert json.loads(dict(sheets[-1][1:])['selection_intent']) == run['analysis']['selection_intent']
 E           AssertionError: assert {'all_origins': True} == {'origin_fias...a', 'b', 'c']}
-E             
+E
 E             Left contains 1 more item:
 E             {'all_origins': True}
 E             Right contains 1 more item:
