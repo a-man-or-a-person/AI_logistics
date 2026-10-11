@@ -1,0 +1,20 @@
+01:22:44 [INFO] run: ============================================================
+01:22:44 [INFO] run:   ЛОГИСТИКА AI — КАРТА ПЕРЕВОЗОК
+01:22:44 [INFO] run: ============================================================
+01:22:44 [INFO] run: Предварительная загрузка CSV данных...
+01:22:44 [INFO] backend.data_processor: Загружаем данные из [LOCAL_WORKSPACE]\.scratch\npi12-navigation-evidence\synthetic.csv...
+01:22:44 [INFO] backend.data_processor: Загружено строк: 121, городов отгрузки: 35, городов доставки: 12
+01:22:44 [INFO] run: ✓ Данные загружены: 121 строк, 35 городов отгрузки, 12 городов доставки
+01:22:44 [INFO] run: Запускаем сервер: http://127.0.0.1:5082
+ * Serving Flask app 'backend.app'
+ * Debug mode: off
+01:22:46 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5082
+01:22:46 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+01:22:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:22:46] "GET / HTTP/1.1" 200 -
+01:22:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:22:46] "GET / HTTP/1.1" 200 -
+01:22:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:22:46] "[36mGET / HTTP/1.1[0m" 304 -
+01:22:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:22:46] "GET /js/clustering/state.js HTTP/1.1" 200 -
+01:22:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:22:46] "[36mGET /js/clustering/state.js HTTP/1.1[0m" 304 -
+01:22:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:22:46] "GET /js/clustering/controller.js HTTP/1.1" 200 -
+01:22:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:22:46] "[36mGET /js/clustering/controller.js HTTP/1.1[0m" 304 -

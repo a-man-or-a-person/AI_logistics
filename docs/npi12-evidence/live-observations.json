@@ -1,0 +1,230 @@
+[
+  {
+    "environment": {
+      "protocolVersion": "1.3",
+      "product": "Edg/155.0.4283.45",
+      "revision": "@50f24ef2aa5369a074b8888b7db82d9c0652d642",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "jsVersion": "15.5.9.4"
+    },
+    "base": "http://127.0.0.1:54060",
+    "headed": true,
+    "fixture": "synthetic only"
+  },
+  {
+    "name": "01-keyboard-sorted-collapsed-all",
+    "facts": {
+      "status": "Файл product-geography-44b993285668.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": true
+    }
+  },
+  {
+    "name": "02-form-edited-frozen-geography",
+    "facts": {
+      "status": "Файл product-geography-44b993285668.xlsx передан браузеру для сохранения. Форма изменена: XLSX использует исходные параметры сохранённого результата.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": true
+    }
+  },
+  {
+    "name": "mode-geo_cost-download",
+    "facts": {
+      "status": "Файл product-geo_cost-44b993285668.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "mode-geo_volume-download",
+    "facts": {
+      "status": "Файл product-geo_volume-44b993285668.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "mode-geography-download",
+    "facts": {
+      "status": "Файл product-geography-44b993285668.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "mode-bear_zones-unsupported",
+    "facts": {
+      "status": "XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).",
+      "focus": "compare-modes",
+      "tableHidden": true,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "mode-bear_volume_zones-unsupported",
+    "facts": {
+      "status": "XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).",
+      "focus": "compare-modes",
+      "tableHidden": true,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "03-cached-cost-after-bear-edit",
+    "facts": {
+      "status": "Файл product-geo_cost-44b993285668.xlsx передан браузеру для сохранения. Форма изменена: XLSX использует исходные параметры сохранённого результата.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "04-equivalent-manual-intent",
+    "facts": {
+      "status": "Файл product-geography-44b993285668.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "05-writer-error-retry",
+    "facts": {
+      "status": "EXPORT_FAILED: Unable to create a complete XLSX workbook. · Запрос: e3115188b7d14d5c88cfb364b1158585",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "06-connection-error",
+    "facts": {
+      "status": "EXPORT_CONNECTION_ERROR: Нет соединения с сервером. Повторите загрузку XLSX.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "pending-cancel",
+    "facts": {
+      "status": "Подготавливаем XLSX…",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "cancelled-cancel",
+    "facts": {
+      "status": "Загрузка отменена.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "pending-hide",
+    "facts": {
+      "status": "Подготавливаем XLSX…",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "cancelled-hide",
+    "facts": {
+      "status": "Загрузка отменена.",
+      "focus": "",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "pending-run",
+    "facts": {
+      "status": "Подготавливаем XLSX…",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "cancelled-run",
+    "facts": {
+      "status": "Полная таблица и строки Pulse сохранённого результата.",
+      "focus": "",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "07-source-changed-during-generation",
+    "facts": {
+      "status": "STALE_DATA_SNAPSHOT: Data generation changed. Recalculate the result. · Запрос: b330fc41f62b480685e29294e1ca1d33 Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "08-fresh-recovery",
+    "facts": {
+      "status": "Файл product-geo_volume-62bc7ff8b4fe.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "09-source-changed-before-export",
+    "facts": {
+      "status": "STALE_DATA_SNAPSHOT: Данные изменились. Пересчитайте результат. · Запрос: 397c8c2d780b4bacadc6631b08cb14ee Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "10-restart-unavailable",
+    "facts": {
+      "status": "RESULT_UNAVAILABLE: Saved result unavailable. Recalculate. · Запрос: b94b298654eb46b68897caa8317f8aa2 Сохранённый результат недоступен. Пересчитайте результат.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "11-restart-recovery",
+    "facts": {
+      "status": "Файл product-geo_volume-804d0508ba98.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "12-null-route-zero-precision-literal-colliding-names",
+    "facts": {
+      "status": "Файл product-geography-e4a9b7619912.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  },
+  {
+    "name": "13-supplied-pulse-forecast-combined-periods",
+    "facts": {
+      "status": "Файл product-geography-e4a9b7619912.xlsx передан браузеру для сохранения.",
+      "focus": "btn-export-clustering",
+      "tableHidden": false,
+      "collapsed": false
+    }
+  }
+]

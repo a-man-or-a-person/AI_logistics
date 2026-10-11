@@ -170,7 +170,9 @@ rejected; an unassigned point retains null cluster. Eviction/restart yields
 `UNKNOWN_DESTINATION_POINT` (422). Snapshot alone is insufficient: result identity
 includes generation, canonical origins/filters/region/mode/normalized parameters
 and the cached result's actual membership/exclusions. Preview/run/compare also reject
-generation races before success/cache publication. No export endpoint is implemented.
+generation races before success/cache publication. `POST /api/clustering/export` uses
+the complete saved request, snapshot, observed selection intent and membership;
+it exports every assigned source row and checks generation again before completion.
 Evidence: service `point_rows`, `_location_cache_key`, `_assert_generation` and `run`.
 
 Detail IDs are BLAKE2b (8-byte digest) of `snapshot:source_row_number`, with CSV
@@ -188,25 +190,26 @@ Evidence: repository `_newest_first`, `_reload`, `source_rows`; service `point_r
 
 Form edits preserve the displayed frozen result. PR #5 handles rejected-generation
 recovery/invalidation; PR #6 synchronizes cached-mode form controls. These repairs
-remain intact alongside the backend origin-set contract. Summary/export are deferred. Evidence:
+remain intact alongside the backend origin-set contract. Origin summary and origin-specific
+rows reuse the same frozen access; XLSX groups actual source-row origin regions by
+saved cluster without reclustering. Evidence:
 [controller](../frontend/js/clustering/controller.js), [controls](../frontend/js/clustering/controls.js).
 
-## CURRENT explicit origins / NEXT regional All and consumers
+## CURRENT explicit origins, regional All and frozen consumers
 
-NPI-02 implements exactly one selector: legacy scalar origin or nonempty
-`origin_fiases` with one destination region. Canonical origins are sorted and
+Product accepts exactly one selector: legacy scalar origin, nonempty
+`origin_fiases`, or `all_origins: true`, with one destination region. Canonical origins are sorted and
 deduplicated; empty/conflicting selection never means All. Frozen analysis retains
 resolved origins, explicit selection intent, catalog labels and per-origin zero-match
-row/trip counts. Regional `all_origins` is rejected until its own ticket.
-NEXT All resolves the complete
+row/trip counts. Regional All resolves the complete
 region-serving catalog before segment filters, not the search page, in the same
 source generation as the read. Keep intent, resolved origins and zero-match origins.
 
 Pool selected rows by destination FIAS before coordinates/graph, retaining row
-origin and actual origin region. Region is attribution, not graph grain. Future
+origin and actual origin region. Region is attribution, not graph grain. Saved
 result identity includes generation, normalized frozen request, mode/parameters
-and saved membership; rich detail does not rerun clustering. NEXT summary/export
-must reuse that binding without re-expanding All or trusting client membership.
+and saved membership; rich detail does not rerun clustering. Summary/export
+reuse that binding without re-expanding All or trusting client membership.
 Preserve additive metric-valid weights/coverage, five modes,
 missing-data diagnostics and Product/RESEARCH/LEGACY separation. Implementation and
 downstream UI/workbook evidence belong to NPI-02 onward and NPI-12, not NPI-01.

@@ -1,0 +1,214 @@
+
+=================================== ERRORS ====================================
+________________ ERROR collecting tests/test_api_validation.py ________________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_api_validation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_api_validation.py:3: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+____________ ERROR collecting tests/test_clustering_product_api.py ____________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_clustering_product_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_clustering_product_api.py:10: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+____________ ERROR collecting tests/test_geography_product_mode.py ____________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_geography_product_mode.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_geography_product_mode.py:6: in <module>
+    from backend.services.clustering_service import ProductClusteringError
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+__________ ERROR collecting tests/test_medoid_representative_api.py ___________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_medoid_representative_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_medoid_representative_api.py:5: in <module>
+    from test_clustering_product_api import _row
+tests\test_clustering_product_api.py:10: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+_______________ ERROR collecting tests/test_origin_union_api.py _______________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_origin_union_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_origin_union_api.py:7: in <module>
+    from test_clustering_product_api import _row
+tests\test_clustering_product_api.py:10: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+______________ ERROR collecting tests/test_point_origins_api.py _______________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_point_origins_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_point_origins_api.py:6: in <module>
+    import test_origin_union_api
+tests\test_origin_union_api.py:7: in <module>
+    from test_clustering_product_api import _row
+tests\test_clustering_product_api.py:10: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+____________ ERROR collecting tests/test_product_cluster_table.py _____________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_product_cluster_table.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_product_cluster_table.py:12: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+_____________ ERROR collecting tests/test_product_mode_catalog.py _____________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_product_mode_catalog.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_product_mode_catalog.py:14: in <module>
+    from backend.services.clustering_service import ClusteringService
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+_______________ ERROR collecting tests/test_regional_all_api.py _______________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_regional_all_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_regional_all_api.py:6: in <module>
+    import test_origin_union_api
+tests\test_origin_union_api.py:7: in <module>
+    from test_clustering_product_api import _row
+tests\test_clustering_product_api.py:10: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+_______________ ERROR collecting tests/test_xlsx_export_api.py ________________
+ImportError while importing test module 'C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_xlsx_export_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+[USER_HOME]\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_xlsx_export_api.py:9: in <module>
+    import test_origin_union_api
+tests\test_origin_union_api.py:7: in <module>
+    from test_clustering_product_api import _row
+tests\test_clustering_product_api.py:10: in <module>
+    from backend.app import app
+backend\app.py:12: in <module>
+    from backend.clustering_api import clustering_blueprint
+backend\clustering_api.py:12: in <module>
+    from backend.services.clustering_service import (
+backend\services\__init__.py:4: in <module>
+    from backend.services.clustering_service import (
+backend\services\clustering_service.py:27: in <module>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+backend\services\xlsx_export.py:11: in <module>
+    import xlsxwriter
+E   ModuleNotFoundError: No module named 'xlsxwriter'
+- generated xml file: C:\folder\Python\������ �� ���������\.worktrees\npi12\docs\npi12-evidence\pytest-results.xml -
+=========================== short test summary info ===========================
+ERROR tests/test_api_validation.py
+ERROR tests/test_clustering_product_api.py
+ERROR tests/test_geography_product_mode.py
+ERROR tests/test_medoid_representative_api.py
+ERROR tests/test_origin_union_api.py
+ERROR tests/test_point_origins_api.py
+ERROR tests/test_product_cluster_table.py
+ERROR tests/test_product_mode_catalog.py
+ERROR tests/test_regional_all_api.py
+ERROR tests/test_xlsx_export_api.py
+!!!!!!!!!!!!!!!!!! Interrupted: 10 errors during collection !!!!!!!!!!!!!!!!!!!
+10 errors in 16.30s

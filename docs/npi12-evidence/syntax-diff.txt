@@ -1,0 +1,1 @@
+Ruff exit=0; JS syntax and diff check PASS

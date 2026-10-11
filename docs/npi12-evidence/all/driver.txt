@@ -1,0 +1,23 @@
+{"scenario":"01-empty-manual","facts":{"implicitAll":false}}
+{"scenario":"02-all-needs-region","facts":{"runRequests":0}}
+{"scenario":"03-all-map-table","facts":{"origins":36,"destinations":12,"sourceRows":456,"machines":876,"suggestionLimit":30,"zeroMatch":[{"fias_id":"synthetic-o35","source_row_count":0,"trip_count":0,"zero_match":true}],"request":{"all_origins":true,"destination_region":"Region A","period_types":["current"],"price_types":["spot"],"vehicle_types":["tent"],"tonnage_ids":["20"],"mode":"geography","parameters":{"k_mode":"auto","n_clusters":"auto"}},"response":{"intent":{"all_origins":true},"frozen":{"destination_region":"Region A","mode":"geography","origin_fiases":["synthetic-o00","synthetic-o01","synthetic-o02","synthetic-o03","synthetic-o04","synthetic-o05","synthetic-o06","synthetic-o07","synthetic-o08","synthetic-o09","synthetic-o10","synthetic-o11","synthetic-o12","synthetic-o13","synthetic-o14","synthetic-o15","synthetic-o16","synthetic-o17","synthetic-o18","synthetic-o19","synthetic-o20","synthetic-o21","synthetic-o22","synthetic-o23","synthetic-o24","synthetic-o25","synthetic-o26","synthetic-o27","synthetic-o28","synthetic-o29","synthetic-o30","synthetic-o31","synthetic-o32","synthetic-o33","synthetic-o34","synthetic-o35"],"parameters":{"k_mode":"auto","n_clusters":"auto"},"period_types":["current"],"price_types":["spot"],"tonnage_ids":["20"],"vehicle_types":["tent"]},"snapshot":"0d622f6d37f73466b589b5ab2acaf859487812065a6e73f1eec0d24761916eb0"}}}
+{"scenario":"04-equivalent-explicit-set","facts":{"suggestions":30,"identicalPointsClustersTable":true}}
+{"scenario":"05-frozen-detail-region-edit","facts":{"request":{"destination_region":"Region A","mode":"geography","origin_fiases":["synthetic-o00","synthetic-o01","synthetic-o02","synthetic-o03","synthetic-o04","synthetic-o05","synthetic-o06","synthetic-o07","synthetic-o08","synthetic-o09","synthetic-o10","synthetic-o11","synthetic-o12","synthetic-o13","synthetic-o14","synthetic-o15","synthetic-o16","synthetic-o17","synthetic-o18","synthetic-o19","synthetic-o20","synthetic-o21","synthetic-o22","synthetic-o23","synthetic-o24","synthetic-o25","synthetic-o26","synthetic-o27","synthetic-o28","synthetic-o29","synthetic-o30","synthetic-o31","synthetic-o32","synthetic-o33","synthetic-o34","synthetic-o35"],"parameters":{"k_mode":"auto","n_clusters":"auto"},"period_types":["current"],"price_types":["spot"],"tonnage_ids":["20"],"vehicle_types":["tent"],"data_snapshot":"0d622f6d37f73466b589b5ab2acaf859487812065a6e73f1eec0d24761916eb0","destination_fias":"synthetic-00","offset":0,"limit":50},"noAllResolution":true}}
+{"scenario":"06-region-switch","facts":{"region":"Region B","origins":["synthetic-foreign"]}}
+{"scenario":"07-cached-all-p2","facts":{"fiveModes":true,"requestFreeSwitches":true,"allLabel":true,"archiveEditMode":"geography"}}
+{"scenario":"08-no-data-frozen","facts":{"error":"NO_DATA","previousContextPreserved":true}}
+{"scenario":"09-source-added-frozen-set","facts":{"savedOrigins":36,"newOriginExcluded":true,"error":"STALE_DATA_SNAPSHOT"}}
+{"scenario":"10-failed-fresh-run","facts":{"oldResultVisible":true,"stale":true}}
+{"scenario":"11-fresh-all-generation","facts":{"origins":37,"newSnapshot":"a273773e27f6aba04f5a4605e7204f9d00bb4e1ef497e12eec1c6cab0ee6e940","oldSnapshot":"0d622f6d37f73466b589b5ab2acaf859487812065a6e73f1eec0d24761916eb0"}}
+{"scenario":"12-evicted-frozen-result","facts":{"error":"RESULT_UNAVAILABLE"}}
+{"scenario":"13-eviction-recalculation","facts":{"origins":37}}
+Keyboard focus: <button class="combo-option" type="button" role="option" aria-selected="false" data-origin-index="0">
+      <strong>Synthetic Origin 00</strong><small>Synthetic Origin Region · synthetic-o00</small>
+    </button>
+{"scenario":"14-back-to-manual","facts":{"request":{"origin_fiases":["synthetic-o00","synthetic-o01"],"destination_region":"Region A","period_types":["current"],"price_types":["spot"],"vehicle_types":[],"tonnage_ids":[],"mode":"geography","parameters":{"k_mode":"auto","n_clusters":"auto"}},"explicitLabel":true}}
+{"scenario":"15-keyboard-all","facts":{"spaceToggle":true,"manualSelectionRetained":true}}
+{"scenario":"15b-keyboard-calculate","facts":{"all":true,"keyboardSubmit":true}}
+{"scenario":"17-reset","facts":{"all":false,"origins":0}}
+{"scenario":"16-layout-1366","facts":{"left":20,"right":288.8000183105469,"width":1366}}
+{"scenario":"16-layout-1100","facts":{"left":20,"right":288.8000183105469,"width":1100}}
+{"scenario":"16-layout-390","facts":{"left":20,"right":360,"width":390}}

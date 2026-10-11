@@ -1,0 +1,71 @@
+{
+  "personal_branch": "chore/automated-quality-guardrails",
+  "personal_head": "f69e64cf2a54942f34298e4cc942141a51fd63c5",
+  "candidate_head": "596d9fb4276db04c72c569b922c63e74d500035d",
+  "default_port": 5055,
+  "direct_backend_default_port": 5000,
+  "existing_server_5055": [
+    {
+      "url": "/",
+      "http_status": 200,
+      "sha256": "bd0264a6d5982e01b0242fe897ccb718fc4c5b0f72bdb8f4206825da6d86a3c4",
+      "matches_checkout_bytes": true,
+      "cache_control": "no-cache",
+      "etag": "\"1791366752.929247-17576-3101763441\"",
+      "multi_origin": false,
+      "regional_all": false,
+      "conditional_status": 304
+    },
+    {
+      "url": "/js/clustering/state.js",
+      "http_status": 200,
+      "sha256": "fa76cfc7a1e97edca88aa0822a15161130eb01fe37a1347cddb89f9d898db344",
+      "matches_checkout_bytes": true,
+      "cache_control": "no-cache",
+      "etag": "\"1791382625.6498303-7581-3036556362\"",
+      "conditional_status": 304
+    },
+    {
+      "url": "/js/clustering/controller.js",
+      "http_status": 200,
+      "sha256": "78bdd5443faafcde9455d1921d35b0803cde22e54c63fc235e2b2a008a6b82a4",
+      "matches_checkout_bytes": true,
+      "cache_control": "no-cache",
+      "etag": "\"1791409661.1217349-24594-2582982253\"",
+      "conditional_status": 304
+    }
+  ],
+  "candidate_startup_seconds": 2.321976199999881,
+  "candidate_server_5082": [
+    {
+      "url": "/",
+      "http_status": 200,
+      "sha256": "021f33a0fc8e082a2359f30f179f40cab3e9816f6c7b56fd72014e1565df9d15",
+      "matches_checkout_bytes": true,
+      "cache_control": "no-cache",
+      "etag": "\"1791756587.6945486-18627-2390568423\"",
+      "multi_origin": true,
+      "regional_all": true,
+      "conditional_status": 304
+    },
+    {
+      "url": "/js/clustering/state.js",
+      "http_status": 200,
+      "sha256": "f6a0e2871a7117517c416eccc3d1653e6a5da1a80e97069f697b7588217cec0f",
+      "matches_checkout_bytes": true,
+      "cache_control": "no-cache",
+      "etag": "\"1791756587.7144637-10945-3626119872\"",
+      "conditional_status": 304
+    },
+    {
+      "url": "/js/clustering/controller.js",
+      "http_status": 200,
+      "sha256": "ad5c0b068fbed014024a0cd6e2163b8a12412cf281a2641e64ca38d88162b0f3",
+      "matches_checkout_bytes": true,
+      "cache_control": "no-cache",
+      "etag": "\"1791756587.7048264-41545-3714528483\"",
+      "conditional_status": 304
+    }
+  ],
+  "finding": "REPRODUCED: port 5055 serves exact static bytes of the older personal checkout; isolated candidate run.py serves current controls."
+}

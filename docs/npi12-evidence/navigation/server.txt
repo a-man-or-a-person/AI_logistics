@@ -1,0 +1,105 @@
+NPI12_DOCUMENTED_ENTRYPOINT [LOCAL_WORKSPACE]\run.py
+01:17:03 [INFO] run: ============================================================
+01:17:03 [INFO] run:   ЛОГИСТИКА AI — КАРТА ПЕРЕВОЗОК
+01:17:03 [INFO] run: ============================================================
+01:17:03 [INFO] run: Предварительная загрузка CSV данных...
+01:17:03 [INFO] backend.data_processor: Загружаем данные из [LOCAL_WORKSPACE]\.scratch\npi12-navigation-evidence\synthetic.csv...
+01:17:03 [INFO] backend.data_processor: Загружено строк: 119, городов отгрузки: 34, городов доставки: 12
+01:17:03 [INFO] run: ✓ Данные загружены: 119 строк, 34 городов отгрузки, 12 городов доставки
+01:17:03 [INFO] run: Запускаем сервер: http://127.0.0.1:5078
+ * Serving Flask app 'backend.app'
+ * Debug mode: off
+01:17:03 [INFO] werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5078
+01:17:03 [INFO] werkzeug: [33mPress CTRL+C to quit[0m
+01:17:04 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:04] "GET / HTTP/1.1" 200 -
+01:17:05 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:05] "GET / HTTP/1.1" 200 -
+01:17:05 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:05] "GET /css/ol.css HTTP/1.1" 200 -
+01:17:05 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:05] "GET /css/style.css HTTP/1.1" 200 -
+01:17:05 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:05] "GET /js/ol.js HTTP/1.1" 200 -
+01:17:05 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:05] "GET /js/app.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/api.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/clustering/controller.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/filters.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/map.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/clustering/state.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/clustering/inspector.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/clustering/comparison.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/clustering/controls.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/clustering/formatters.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /js/clustering/table.js HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /api/regions HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /api/clustering/options HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /api/clustering/origins?q=&limit=30 HTTP/1.1" 200 -
+01:17:06 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:06] "GET /api/clustering/options HTTP/1.1" 200 -
+01:17:07 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:07] "GET /api/clustering/options HTTP/1.1" 200 -
+01:17:07 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:07] "GET /api/clustering/options?all_origins=true&destination_region=Region+A HTTP/1.1" 200 -
+01:17:08 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30') destination=Region A routes=12 resolved=12 request_id=e08d72a6f4eb4b46942b6fc11d13042d filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=117 repository_cache=hit location_cache=miss result_cache=miss graph_cache=miss calculation_ms=260.91
+01:17:08 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:08] "POST /api/clustering/run HTTP/1.1" 200 -
+01:17:11 [INFO] backend.services.clustering_service: clustering_point_origins request_id=f929196b01af44f08901300721e81901 destination=synthetic-00 origins=33
+01:17:11 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:11] "POST /api/clustering/point-origins HTTP/1.1" 200 -
+01:17:11 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:11] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:12 [INFO] backend.services.clustering_service: clustering_point_rows request_id=2e11149311144c63952121150de95cea destination=synthetic-00 offset=0 rows=50
+01:17:12 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:12] "POST /api/clustering/point-rows HTTP/1.1" 200 -
+01:17:12 [INFO] backend.services.clustering_service: clustering_point_rows request_id=1edbcf54967f4eebbbb3580252bdf55e destination=synthetic-00 offset=50 rows=11
+01:17:12 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:12] "POST /api/clustering/point-rows HTTP/1.1" 200 -
+01:17:14 [INFO] backend.services.clustering_service: clustering_point_rows request_id=ea8223c2c0e946b49f5de6ded4481815 destination=synthetic-00 offset=0 rows=3
+01:17:14 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:14] "POST /api/clustering/point-rows HTTP/1.1" 200 -
+01:17:16 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:16] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:21 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:21] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:21 [INFO] backend.services.clustering_service: clustering_point_origins request_id=7c61cd9636d94f8a97ede01883d48b9b destination=synthetic-01 origins=2
+01:17:21 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:21] "POST /api/clustering/point-origins HTTP/1.1" 200 -
+01:17:26 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:26] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:27 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:27] "GET /api/clustering/options HTTP/1.1" 200 -
+01:17:28 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:28] "GET /api/clustering/origins?q=Synthetic+a&limit=30 HTTP/1.1" 200 -
+01:17:29 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:29] "GET /api/clustering/options?origin_fiases=a HTTP/1.1" 200 -
+01:17:29 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:29] "GET /api/clustering/options HTTP/1.1" 200 -
+01:17:31 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:31] "GET /api/clustering/options HTTP/1.1" 200 -
+01:17:31 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:31] "GET /api/clustering/options?all_origins=true&destination_region=Region+A HTTP/1.1" 200 -
+01:17:31 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:31] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:32 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:32] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:17:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:33] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:17:33 [INFO] backend.services.clustering_service: clustering request_id=9cce8f5b3f634977ab0f76752922155d mode=geography origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30') destination=Region A filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=117 points=12 resolved=12 repository_cache=hit location_cache=hit graph_cache=not_used result_cache=hit calculation_ms=21.32
+01:17:33 [INFO] backend.services.clustering_service: clustering mode=geo_cost origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30') destination=Region A routes=12 resolved=12 request_id=9cce8f5b3f634977ab0f76752922155d filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=117 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=86.94
+01:17:33 [INFO] backend.services.clustering_service: clustering mode=geo_volume origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30') destination=Region A routes=12 resolved=12 request_id=9cce8f5b3f634977ab0f76752922155d filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=117 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=62.95
+01:17:33 [INFO] backend.services.clustering_service: clustering mode=bear_zones origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30') destination=Region A routes=12 resolved=12 request_id=9cce8f5b3f634977ab0f76752922155d filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=117 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=43.53
+01:17:33 [INFO] backend.services.clustering_service: clustering mode=bear_volume_zones origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30') destination=Region A routes=12 resolved=12 request_id=9cce8f5b3f634977ab0f76752922155d filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=117 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=37.57
+01:17:33 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:33] "POST /api/clustering/compare HTTP/1.1" 200 -
+01:17:36 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:36] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:37 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:37] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:17:38 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30') destination=Region A routes=12 resolved=12 request_id=f20e96f901f94eeda0467907d2b07bec filters={'period_types': ['current', 'retro'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=118 repository_cache=hit location_cache=miss result_cache=miss graph_cache=hit calculation_ms=194.30
+01:17:38 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:38] "POST /api/clustering/run HTTP/1.1" 200 -
+01:17:39 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:39] "POST /fixture/add-origin HTTP/1.1" 200 -
+01:17:40 [WARNING] backend.clustering_api: product_clustering_error request_id=ecce0707cd6242cd8ffea130cdc91111 endpoint=/api/clustering/point-origins code=STALE_DATA_SNAPSHOT status=409
+01:17:40 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:40] "[31m[1mPOST /api/clustering/point-origins HTTP/1.1[0m" 409 -
+01:17:41 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:41] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:17:41 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:41] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:42 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:42] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:17:43 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30', 'new') destination=Region A routes=12 resolved=12 request_id=c4c1cd3c109a4b91a0c6c087df9a3f94 filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=118 repository_cache=hit location_cache=miss result_cache=miss graph_cache=miss calculation_ms=157.45
+01:17:43 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:43] "POST /api/clustering/run HTTP/1.1" 200 -
+01:17:44 [INFO] backend.services.clustering_service: clustering_point_origins request_id=432f5abacbf24dc780b5ba1b1ba48faf destination=synthetic-00 origins=34
+01:17:44 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:44] "POST /api/clustering/point-origins HTTP/1.1" 200 -
+01:17:45 [INFO] backend.services.clustering_service: clustering_point_rows request_id=c314249022904b358c0092ef52265d8f destination=synthetic-00 offset=0 rows=50
+01:17:45 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:45] "POST /api/clustering/point-rows HTTP/1.1" 200 -
+01:17:45 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:45] "POST /fixture/evict HTTP/1.1" 200 -
+01:17:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:46] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:46 [WARNING] backend.clustering_api: product_clustering_error request_id=dfe7fcbdeb0e492ca3a232fda7d0ec4d endpoint=/api/clustering/point-origins code=RESULT_UNAVAILABLE status=409
+01:17:46 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:46] "[31m[1mPOST /api/clustering/point-origins HTTP/1.1[0m" 409 -
+01:17:47 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:47] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:17:48 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30', 'new') destination=Region A routes=12 resolved=12 request_id=c061834111464854abe7eccb11a9ed7f filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=118 repository_cache=hit location_cache=hit result_cache=miss graph_cache=hit calculation_ms=152.50
+01:17:48 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:48] "POST /api/clustering/run HTTP/1.1" 200 -
+01:17:49 [INFO] backend.services.clustering_service: clustering_point_origins request_id=57de53ed001442f5a1c70d36e5438d2d destination=synthetic-00 origins=34
+01:17:49 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:49] "POST /api/clustering/point-origins HTTP/1.1" 200 -
+01:17:50 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:50] "POST /fixture/add-origin HTTP/1.1" 200 -
+01:17:51 [WARNING] backend.clustering_api: product_clustering_error request_id=be48ddd87f8f419a8b2d0c48c3490650 endpoint=/api/clustering/point-origins code=STALE_DATA_SNAPSHOT status=409
+01:17:51 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:51] "[31m[1mPOST /api/clustering/point-origins HTTP/1.1[0m" 409 -
+01:17:51 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:51] "POST /api/clustering/revision HTTP/1.1" 200 -
+01:17:51 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:51] "GET /api/geocode-status HTTP/1.1" 200 -
+01:17:51 [INFO] backend.services.clustering_service: clustering mode=geography origin=('a', 'b', 'c', 'extra-00', 'extra-01', 'extra-02', 'extra-03', 'extra-04', 'extra-05', 'extra-06', 'extra-07', 'extra-08', 'extra-09', 'extra-10', 'extra-11', 'extra-12', 'extra-13', 'extra-14', 'extra-15', 'extra-16', 'extra-17', 'extra-18', 'extra-19', 'extra-20', 'extra-21', 'extra-22', 'extra-23', 'extra-24', 'extra-25', 'extra-26', 'extra-27', 'extra-28', 'extra-29', 'extra-30', 'new') destination=Region A routes=12 resolved=12 request_id=20dd3a1248c54a4f82949580338dc14e filters={'period_types': ['current'], 'price_types': ['spot'], 'vehicle_types': [], 'tonnage_ids': []} source_rows=119 repository_cache=hit location_cache=miss result_cache=miss graph_cache=miss calculation_ms=213.07
+01:17:51 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:51] "POST /api/clustering/run HTTP/1.1" 200 -
+01:17:53 [INFO] backend.services.clustering_service: clustering_point_origins request_id=e59b9e24f3d947ed91f5b1a6ded9af65 destination=synthetic-00 origins=34
+01:17:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:53] "POST /api/clustering/point-origins HTTP/1.1" 200 -
+01:17:53 [INFO] backend.services.clustering_service: clustering_point_rows request_id=8711c23e087642559dccdba06ced15c6 destination=synthetic-00 offset=0 rows=50
+01:17:53 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:53] "POST /api/clustering/point-rows HTTP/1.1" 200 -
+01:17:55 [INFO] werkzeug: 127.0.0.1 - - [12/Oct/2026 01:17:55] "GET /api/clustering/options HTTP/1.1" 200 -

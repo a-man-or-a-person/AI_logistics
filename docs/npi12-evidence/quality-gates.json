@@ -1,0 +1,79 @@
+{
+  "source_sha": "596d9fb4276db04c72c569b922c63e74d500035d",
+  "python": "3.12.14",
+  "node": "v22.23.3",
+  "locked_versions": {
+    "blinker": "1.9.0",
+    "certifi": "2026.7.22",
+    "click": "8.4.2",
+    "colorama": "0.4.6",
+    "Flask": "3.1.0",
+    "flask-cors": "6.0.0",
+    "geographiclib": "2.1",
+    "geopy": "2.5.0",
+    "iniconfig": "2.3.0",
+    "itsdangerous": "2.2.0",
+    "Jinja2": "3.1.6",
+    "joblib": "1.5.3",
+    "MarkupSafe": "3.0.3",
+    "numpy": "1.26.4",
+    "packaging": "26.3",
+    "pluggy": "1.6.0",
+    "pyproj": "3.7.2",
+    "pytest": "8.3.5",
+    "ruff": "0.9.10",
+    "scikit-learn": "1.4.0",
+    "scipy": "1.13.0",
+    "shapely": "2.0.4",
+    "threadpoolctl": "3.6.0",
+    "Werkzeug": "3.1.8",
+    "XlsxWriter": "3.2.9"
+  },
+  "pytest": {
+    "passed": 593,
+    "mandatory_frontend": 136,
+    "skipped": 0,
+    "failures": 0,
+    "seconds": 328.96,
+    "command": "REQUIRE_FRONTEND_BROWSER=1 python -m pytest -ra --junitxml=docs/npi12-evidence/pytest-results.xml --basetemp=.scratch/npi12-pytest-clean"
+  },
+  "locked_install": {
+    "status": "PASS",
+    "command": "python -m pip install -r requirements-lock.txt",
+    "evidence": "locked-install-clean.txt"
+  },
+  "pip_check": {
+    "status": "PASS",
+    "command": "python -m pip check",
+    "evidence": "pip-check-clean.txt"
+  },
+  "ruff": {
+    "status": "PASS",
+    "command": "python -m ruff check . --extend-exclude .scratch",
+    "evidence": "ruff-final.txt"
+  },
+  "js_syntax": {
+    "status": "PASS",
+    "scope": "all frontend/js/**/*.js including vendored ol.js, plus export_edge.mjs",
+    "command": "node --check <each file>"
+  },
+  "diff_check": {
+    "status": "PASS",
+    "command": "git diff --check"
+  },
+  "node_edge_startup": {
+    "status": "PASS",
+    "evidence": "browser-startup.txt",
+    "command": "existing _run_node_script/_run_browser_script exact CI startup assertions"
+  },
+  "run_py": {
+    "status": "PASS",
+    "command": "python run.py --port5082 --no-browser",
+    "evidence": "startup.json"
+  },
+  "warnings": [
+    "Two pytest cache-directory permission warnings; no skips/failures.",
+    "Old environment initially lacked XlsxWriter; new isolated full locked environment passed."
+  ],
+  "publication_ci": "Pending exact final acceptance PR HEAD; final result recorded after publication."
+}

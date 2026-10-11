@@ -1,0 +1,25 @@
+python.exe : Traceback (most recent call last):
+строка:2 знак:587
++ ... n) $p),$s); & '../../.codex-impl-env/Scripts/python.exe' docs/npi12-e ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+  File "C:\folder\Python\������ �� ���������\.worktrees\npi12\docs\npi12-evidence\export_live.py", line 17, in <module>
+    from test_clustering_product_api import _row  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\folder\Python\������ �� ���������\.worktrees\npi12\tests\test_clustering_product_api.py", line 10, in <modul
+e>
+    from backend.app import app
+  File "C:\folder\Python\������ �� ���������\.worktrees\npi12\backend\app.py", line 12, in <module>
+    from backend.clustering_api import clustering_blueprint
+  File "C:\folder\Python\������ �� ���������\.worktrees\npi12\backend\clustering_api.py", line 12, in <module>
+    from backend.services.clustering_service import (
+  File "C:\folder\Python\������ �� ���������\.worktrees\npi12\backend\services\__init__.py", line 4, in <module>
+    from backend.services.clustering_service import (
+  File "C:\folder\Python\������ �� ���������\.worktrees\npi12\backend\services\clustering_service.py", line 27, in <mod
+ule>
+    from backend.services.xlsx_export import validate_sort, write_workbook
+  File "C:\folder\Python\������ �� ���������\.worktrees\npi12\backend\services\xlsx_export.py", line 11, in <module>
+    import xlsxwriter
+ModuleNotFoundError: No module named 'xlsxwriter'
