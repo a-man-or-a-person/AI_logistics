@@ -34,7 +34,7 @@ Backend принимает scalar или canonical `origin_fiases`; options ис
 совместимым. Backend All разрешает полный региональный каталог до segment filters;
 intent хранится отдельно от frozen resolved set. Compare разрешает All один раз,
 detail использует только saved explicit set и membership, без расширения или rerun.
-Multi-origin/All UI, summary и export пока отсутствуют.
+All UI, summary и export пока отсутствуют.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
 Backend переиспользует location/spatial context и result LRU; UI переключает

@@ -195,12 +195,24 @@ def _product_workspace_script(actions: str) -> str:
         defaults: {{mode: 'geography', period_types: ['current'], price_types: ['spot']}},
         destination_regions: ['R'], period_types: ['current', 'retro'],
         price_types: ['spot', 'tender'], vehicle_types: [], tonnage_ids: []}};
-      let failRun = false, failSearch = false, failRows = false;
+      let failRun = false, failSearch = false, failRows = false, holdOptions = false;
+      const heldOptions = [];
+      let originRegions = null;
       globalThis.fetch = async (url, init = {{}}) => {{
         const path = String(url).split('/api/clustering/')[1];
         const payload = init.body ? JSON.parse(init.body) : null;
         requests.push({{path, payload}});
+        if (holdOptions && path.startsWith('options')) await new Promise(resolve => heldOptions.push(resolve));
         let data = options, status = 200;
+        if (originRegions && path.startsWith('options?')) {{
+          const params = new URLSearchParams(path.split('?')[1]);
+          const selected = params.getAll('origin_fiases');
+          const regions = [...new Set(selected.flatMap(id => originRegions[id] || []))];
+          data = {{...options, destination_regions: regions}};
+          if (params.get('destination_region') && !regions.includes(params.get('destination_region'))) {{
+            status = 422; data = {{code: 'UNKNOWN_DESTINATION_REGION', error: 'Region unavailable'}};
+          }}
+        }}
         if (path.startsWith('origins')) {{
           data = path.includes('q=missing') ? [] : origins;
           if (failSearch) {{status = 500; data = {{error: 'Catalog offline'}};}}
@@ -248,6 +260,7 @@ def _product_workspace_script(actions: str) -> str:
 def test_origin_tokens_survive_search_and_submit_the_union_with_keyboard_removal():
     actual = _run_browser_script(_product_workspace_script("""
       await choose('b');
+      const popupClosed = document.getElementById('cluster-origin-options').classList.contains('hidden');
       document.getElementById('cluster-region').value = 'R';
       document.getElementById('cluster-region').dispatchEvent(new Event('change', {bubbles: true}));
       await pause();
@@ -265,7 +278,7 @@ def test_origin_tokens_survive_search_and_submit_the_union_with_keyboard_removal
       remove?.focus();
       remove?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Delete', bubbles: true}));
       await pause();
-      document.body.dataset.result = JSON.stringify({selected, route,
+      document.body.dataset.result = JSON.stringify({selected, route, popupClosed,
         origins: submitted?.origin_fiases, region: submitted?.destination_region,
         optionsUnion: requests.some(request => request.path.includes('origin_fiases=a&origin_fiases=b')),
         remaining: [...document.querySelectorAll('[data-remove-origin]')].map(button => button.dataset.removeOrigin),
@@ -275,7 +288,7 @@ def test_origin_tokens_survive_search_and_submit_the_union_with_keyboard_removal
       });
     """))
     assert actual == {
-        "selected": ["b", "a"], "route": "Beta, Alpha → R",
+        "selected": ["b", "a"], "route": "Beta, Alpha → R", "popupClosed": True,
         "origins": ["a", "b"], "region": "R", "optionsUnion": True,
         "remaining": ["a"], "frozen": True, "stale": True,
     }
@@ -359,6 +372,44 @@ def test_evicted_union_result_requires_fresh_calculation_without_rejecting_valid
         stale: !document.getElementById('analysis-stale').classList.contains('hidden')});
     """))
     assert actual == {"recovery": True, "retry": False, "runs": 2, "rows": 2, "success": True, "stale": False}
+
+
+def test_reset_during_union_options_loading_ignores_late_response_and_restores_controls():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('b');
+      holdOptions = true;
+      input.value = ''; input.dispatchEvent(new Event('input', {bubbles: true})); await pause();
+      document.querySelector('[data-origin-index="1"]').click(); await pause();
+      const loading = document.getElementById('clustering-controls').classList.contains('options-loading');
+      document.getElementById('btn-reset-clustering').focus();
+      document.getElementById('btn-reset-clustering').click();
+      heldOptions.forEach(resolve => resolve()); await pause();
+      document.body.dataset.result = JSON.stringify({loading,
+        busy: document.getElementById('clustering-controls').classList.contains('options-loading'),
+        compareDisabled: document.getElementById('compare-modes').disabled,
+        statusHidden: document.getElementById('options-status').classList.contains('hidden'),
+        origins: document.querySelectorAll('[data-remove-origin]').length,
+        region: document.getElementById('cluster-region').value});
+    """))
+    assert actual == {"loading": True, "busy": False, "compareDisabled": False,
+                      "statusHidden": True, "origins": 0, "region": ""}
+
+
+def test_removing_last_origin_serving_region_refreshes_available_destination_regions():
+    actual = _run_browser_script(_product_workspace_script("""
+      originRegions = {a: ['R'], b: ['S']};
+      await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      await choose('b');
+      document.querySelector('[data-remove-origin="a"]').click(); await pause();
+      document.body.dataset.result = JSON.stringify({region: region.value,
+        available: [...region.options].map(option => option.value),
+        selected: [...document.querySelectorAll('[data-remove-origin]')].map(button => button.dataset.removeOrigin),
+        error: !document.getElementById('analysis-form-error').classList.contains('hidden'),
+        enabled: !region.disabled});
+    """))
+    assert actual == {"region": "", "available": ["", "S"], "selected": ["b"], "error": False, "enabled": True}
 
 
 @pytest.fixture(scope="module")

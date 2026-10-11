@@ -202,19 +202,20 @@ async function chooseOrigin(origin) {
   $('cluster-origin').value = '';
   ++originSearchVersion;
   clearTimeout(originTimer);
-  hideOriginOptions();
   renderOrigins();
   renderAll();
   $('cluster-origin').focus();
-  await loadContextOptions();
+  hideOriginOptions();
+  await loadContextOptions({originsChanged: true});
 }
 
 async function removeOrigin(fias) {
   state.form.origins = state.form.origins.filter(origin => origin.fias_id !== fias);
   renderOrigins();
   $('cluster-origin').focus();
+  hideOriginOptions();
   renderAll();
-  await loadContextOptions();
+  await loadContextOptions({originsChanged: true});
 }
 
 function renderOrigins() {
@@ -225,17 +226,21 @@ function renderOrigins() {
     </button>`).join('');
 }
 
-async function loadContextOptions() {
+async function loadContextOptions({originsChanged = false} = {}) {
   const version = ++optionsVersion;
   const origins = state.form.origins.map(origin => origin.fias_id);
   const region = state.form.destinationRegion;
   setOptionsLoading(true, 'Загружаем доступные параметры…');
   try {
-    const options = await fetchClusteringOptions(
+    let options = await fetchClusteringOptions(
       origins,
-      region,
+      originsChanged ? '' : region,
     );
     if (version !== optionsVersion) return;
+    if (originsChanged && origins.length && region && options.destination_regions.includes(region)) {
+      options = await fetchClusteringOptions(origins, region);
+      if (version !== optionsVersion) return;
+    }
     updateClusteringOptions(state, options);
     $('cluster-region').replaceChildren(new Option('Выберите регион…', ''));
     options.destination_regions.forEach(value => $('cluster-region').add(new Option(value, value)));
@@ -283,6 +288,7 @@ function clearOrigin() {
   clearTimeout(originTimer);
   $('cluster-origin').value = '';
   renderOrigins();
+  hideOriginOptions();
   state.form.destinationRegion = '';
   $('cluster-region').disabled = true;
   $('cluster-region').replaceChildren(new Option('Сначала выберите точку отправления', ''));
@@ -374,6 +380,7 @@ function reset() {
   state = createClusteringState(state.options);
   renderOptionControls(state);
   clearOrigin();
+  setOptionsLoading(false);
   clearClusteringResult();
   $('empty-state').classList.remove('hidden');
   renderAll();
