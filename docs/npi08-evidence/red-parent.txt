@@ -1,0 +1,125 @@
+FFF                                                                      [100%]
+================================== FAILURES ===================================
+_ test_parent_navigation_clears_descendants_and_ignores_late_rows[different] __
+
+parent = 'different'
+
+    @pytest.mark.parametrize('parent', ['different', 'overview', 'unassigned'])
+    def test_parent_navigation_clears_descendants_and_ignores_late_rows(parent):
+        actions = """
+          await choose('b'); const region=document.getElementById('cluster-region'); region.value='R';
+          region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+          document.getElementById('btn-run-clustering').click(); await pause();
+          window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x',clusterId:0}})); await pause();
+          const old=workspace.getState().result.data;
+          holdRows=true;
+          document.querySelector('[data-origin-fias="b"]').click(); await pause();
+          const before=requests.filter(r=>r.path==='run'||r.path==='compare').length;
+          PARENT_ACTION
+          holdRows=false; heldRows.forEach(resolve=>resolve());
+          await pause();
+          const ui=workspace.getState().ui;
+          document.body.dataset.result=JSON.stringify({cluster:ui.selectedCluster,point:ui.selectedPoint,
+            origin:ui.selectedOrigin,same:old===workspace.getState().result.data,
+            requestFree:before===requests.filter(r=>r.path==='run'||r.path==='compare').length});
+        """.replace('PARENT_ACTION', {
+            'different': "document.querySelector('#cluster-points'); document.querySelector('#cluster-list [data-cluster-id=\"1\"]').click();",
+            'overview': "document.getElementById('cluster-details-close').click();",
+            'unassigned': "window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'outside'}}));",
+        }[parent])
+>       assert _run_browser_script(_drill_workspace_script(actions)) == {
+            'cluster': 1 if parent == 'different' else None,
+            'point': 'outside' if parent == 'unassigned' else None, 'origin': None,
+            'same': True, 'requestFree': True}
+E       AssertionError: assert {'cluster': 1...e': True, ...} == {'cluster': 1...e': True, ...}
+E
+E         Omitting 3 identical items, use -vv to show
+E         Differing items:
+E         {'origin': 'b'} != {'origin': None}
+E         {'point': 'x'} != {'point': None}
+E         Use -v to get more diff
+
+tests\test_clustering_frontend_contract.py:2190: AssertionError
+__ test_parent_navigation_clears_descendants_and_ignores_late_rows[overview] __
+
+parent = 'overview'
+
+    @pytest.mark.parametrize('parent', ['different', 'overview', 'unassigned'])
+    def test_parent_navigation_clears_descendants_and_ignores_late_rows(parent):
+        actions = """
+          await choose('b'); const region=document.getElementById('cluster-region'); region.value='R';
+          region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+          document.getElementById('btn-run-clustering').click(); await pause();
+          window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x',clusterId:0}})); await pause();
+          const old=workspace.getState().result.data;
+          holdRows=true;
+          document.querySelector('[data-origin-fias="b"]').click(); await pause();
+          const before=requests.filter(r=>r.path==='run'||r.path==='compare').length;
+          PARENT_ACTION
+          holdRows=false; heldRows.forEach(resolve=>resolve());
+          await pause();
+          const ui=workspace.getState().ui;
+          document.body.dataset.result=JSON.stringify({cluster:ui.selectedCluster,point:ui.selectedPoint,
+            origin:ui.selectedOrigin,same:old===workspace.getState().result.data,
+            requestFree:before===requests.filter(r=>r.path==='run'||r.path==='compare').length});
+        """.replace('PARENT_ACTION', {
+            'different': "document.querySelector('#cluster-points'); document.querySelector('#cluster-list [data-cluster-id=\"1\"]').click();",
+            'overview': "document.getElementById('cluster-details-close').click();",
+            'unassigned': "window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'outside'}}));",
+        }[parent])
+>       assert _run_browser_script(_drill_workspace_script(actions)) == {
+            'cluster': 1 if parent == 'different' else None,
+            'point': 'outside' if parent == 'unassigned' else None, 'origin': None,
+            'same': True, 'requestFree': True}
+E       AssertionError: assert {'cluster': N...e': True, ...} == {'cluster': N...e': True, ...}
+E
+E         Omitting 3 identical items, use -vv to show
+E         Differing items:
+E         {'origin': 'b'} != {'origin': None}
+E         {'point': 'x'} != {'point': None}
+E         Use -v to get more diff
+
+tests\test_clustering_frontend_contract.py:2190: AssertionError
+_ test_parent_navigation_clears_descendants_and_ignores_late_rows[unassigned] _
+
+parent = 'unassigned'
+
+    @pytest.mark.parametrize('parent', ['different', 'overview', 'unassigned'])
+    def test_parent_navigation_clears_descendants_and_ignores_late_rows(parent):
+        actions = """
+          await choose('b'); const region=document.getElementById('cluster-region'); region.value='R';
+          region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+          document.getElementById('btn-run-clustering').click(); await pause();
+          window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x',clusterId:0}})); await pause();
+          const old=workspace.getState().result.data;
+          holdRows=true;
+          document.querySelector('[data-origin-fias="b"]').click(); await pause();
+          const before=requests.filter(r=>r.path==='run'||r.path==='compare').length;
+          PARENT_ACTION
+          holdRows=false; heldRows.forEach(resolve=>resolve());
+          await pause();
+          const ui=workspace.getState().ui;
+          document.body.dataset.result=JSON.stringify({cluster:ui.selectedCluster,point:ui.selectedPoint,
+            origin:ui.selectedOrigin,same:old===workspace.getState().result.data,
+            requestFree:before===requests.filter(r=>r.path==='run'||r.path==='compare').length});
+        """.replace('PARENT_ACTION', {
+            'different': "document.querySelector('#cluster-points'); document.querySelector('#cluster-list [data-cluster-id=\"1\"]').click();",
+            'overview': "document.getElementById('cluster-details-close').click();",
+            'unassigned': "window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'outside'}}));",
+        }[parent])
+>       assert _run_browser_script(_drill_workspace_script(actions)) == {
+            'cluster': 1 if parent == 'different' else None,
+            'point': 'outside' if parent == 'unassigned' else None, 'origin': None,
+            'same': True, 'requestFree': True}
+E       AssertionError: assert {'cluster': 0...e': True, ...} == {'cluster': N...e': True, ...}
+E
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'cluster': 0} != {'cluster': None}
+E         Use -v to get more diff
+
+tests\test_clustering_frontend_contract.py:2190: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_parent_navigation_clears_descendants_and_ignores_late_rows[different]
+FAILED tests/test_clustering_frontend_contract.py::test_parent_navigation_clears_descendants_and_ignores_late_rows[overview]
+FAILED tests/test_clustering_frontend_contract.py::test_parent_navigation_clears_descendants_and_ignores_late_rows[unassigned]

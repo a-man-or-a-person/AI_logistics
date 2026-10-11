@@ -152,7 +152,7 @@ def test_unchanged_recalculation_recovers_after_real_snapshot_conflict(table_ser
       const renderFormState = () => {{}}, renderErrorState = () => {{}};
       const renderComparison = () => {{}}, renderClusteringPoints = () => {{}};
       const renderClusterTable = () => {{}}, renderInspector = () => {{}};
-      const setMlResultStale = () => {{}};
+      const setMlResultStale = () => {{}}, highlightCluster = () => {{}};
       {state_module}
       {controller}
       const options = await (await fetch(base + '/api/clustering/options')).json();

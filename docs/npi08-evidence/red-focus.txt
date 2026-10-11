@@ -1,0 +1,33 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___ test_drill_up_pooled_rows_keeps_summary_focus_after_cancelled_response ____
+
+    def test_drill_up_pooled_rows_keeps_summary_focus_after_cancelled_response():
+>       assert _run_browser_script(_drill_workspace_script("""
+          await choose('b'); const region=document.getElementById('cluster-region'); region.value='R';
+          region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+          document.getElementById('btn-run-clustering').click(); await pause();
+          window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}})); await pause();
+          holdRows=true;
+          document.querySelector('.pulse-details summary').focus();
+          document.querySelector('.pulse-details summary').click();
+          const loadingFocus=document.activeElement.matches('.pulse-details summary');
+          document.querySelector('[data-point-summary]').click();
+          holdRows=false; heldRows.forEach(resolve=>resolve()); await pause();
+          document.body.dataset.result=JSON.stringify({loadingFocus,
+            parentFocus:document.activeElement.matches('.pulse-details summary'),
+            closed:!document.querySelector('.pulse-details').open,
+            point:workspace.getState().ui.selectedPoint,
+            rowRequests:requests.filter(r=>r.path==='point-rows').length});
+        """)) == {'loadingFocus':True,'parentFocus':True,'closed':True,'point':'x','rowRequests':1}
+E       AssertionError: assert {'closed': Tr...nt': 'x', ...} == {'closed': Tr...nt': 'x', ...}
+E
+E         Omitting 3 identical items, use -vv to show
+E         Differing items:
+E         {'loadingFocus': False} != {'loadingFocus': True}
+E         {'parentFocus': False} != {'parentFocus': True}
+E         Use -v to get more diff
+
+tests\test_clustering_frontend_contract.py:2229: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_drill_up_pooled_rows_keeps_summary_focus_after_cancelled_response

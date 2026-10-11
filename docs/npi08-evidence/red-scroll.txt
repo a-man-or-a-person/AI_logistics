@@ -1,0 +1,30 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________ test_drill_up_preserves_bottom_table_scroll_and_selection __________
+
+    def test_drill_up_preserves_bottom_table_scroll_and_selection():
+        script=_drill_workspace_script("""
+          const css=document.createElement('style'); css.textContent='.cluster-table-scroll{width:100px;height:40px;overflow:auto}.cluster-table-scroll table{min-width:900px}'; document.head.append(css);
+          await choose('b'); const region=document.getElementById('cluster-region');region.value='R';
+          region.dispatchEvent(new Event('change',{bubbles:true}));await pause();
+          document.getElementById('btn-run-clustering').click();await pause();
+          const scroll=document.querySelector('.cluster-table-scroll');scroll.scrollLeft=75;scroll.scrollTop=10;
+          const position=[scroll.scrollLeft,scroll.scrollTop];
+          window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}}));await pause();
+          document.getElementById('point-details-close').click();
+          const after=document.querySelector('.cluster-table-scroll');
+          document.body.dataset.result=JSON.stringify({position,after:[after.scrollLeft,after.scrollTop],
+            selected:document.querySelector('#cluster-table-panel tr[data-cluster-id="0"]').classList.contains('selected')});
+        """).replace('cluster_table: {supported: true, rows: []}',
+          'cluster_table: {supported:true,rows:[{cluster_id:0,point_count:1,trip_count:40},{cluster_id:1,point_count:1,trip_count:10}]}')
+        actual=_run_browser_script(script)
+        assert actual['position'][0] == 75
+>       assert actual['after'] == actual['position']
+E       assert [0, 0] == [75, 10]
+E
+E         At index 0 diff: 0 != 75
+E         Use -v to get more diff
+
+tests\test_clustering_frontend_contract.py:2265: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_drill_up_preserves_bottom_table_scroll_and_selection

@@ -1,0 +1,67 @@
+Python 3.12.14
+Node v22.23.3
+C:\folder\Python\Проект ИИ Логистика\.codex-impl-env\Scripts\python.exe -m ruff check .
+All checks passed!
+
+exit=0
+C:\folder\Python\Проект ИИ Логистика\.codex-impl-env\Scripts\python.exe -m pip check
+No broken requirements found.
+
+exit=0
+git diff --check
+
+
+exit=0
+node --check frontend\js\api.js
+
+
+exit=0
+node --check frontend\js\app.js
+
+
+exit=0
+node --check frontend\js\filters.js
+
+
+exit=0
+node --check frontend\js\map.js
+
+
+exit=0
+node --check frontend\js\ol.js
+
+
+exit=0
+node --check frontend\js\clustering\comparison.js
+
+
+exit=0
+node --check frontend\js\clustering\controller.js
+
+
+exit=0
+node --check frontend\js\clustering\controls.js
+
+
+exit=0
+node --check frontend\js\clustering\formatters.js
+
+
+exit=0
+node --check frontend\js\clustering\inspector.js
+
+
+exit=0
+node --check frontend\js\clustering\state.js
+
+
+exit=0
+node --check frontend\js\clustering\table.js
+
+
+exit=0
+node --check docs\npi08-evidence\live_edge.mjs
+
+
+exit=0
+JUnit:492 passed;80 mandatory frontend;zero skipped

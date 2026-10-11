@@ -235,3 +235,11 @@ Frontend поддерживает explicit multi-select по FIAS, один ре
 
 Data Map и `/api/ml-cluster` сохранены для legacy-клиентов. Product v1 вызывает
 только `/api/clustering/*`.
+
+## CURRENT navigation guarantee (NPI-08)
+
+Frontend drill-up and parent selection do not call run/compare or change frozen membership.
+Point-to-origin details keep the saved resolved origins, region, filters, mode/parameters
+and snapshot. Same-context loaded summaries/pages remain reusable. New calculations
+still validate revision/result presence; STALE_DATA_SNAPSHOT and RESULT_UNAVAILABLE
+never cause a silent result substitution during navigation.

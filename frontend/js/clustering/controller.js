@@ -111,14 +111,18 @@ function wireEvents() {
     setClusteringLayers(input.dataset.clusteringLayer, input.checked);
   }));
   $('btn-reset-clustering').addEventListener('click', reset);
-  $('cluster-details-close').addEventListener('click', () => selectCluster(null));
+  $('cluster-details-close').addEventListener('click', () => {
+    const cluster = state.ui.selectedCluster;
+    selectCluster(null);
+    [...document.querySelectorAll('#cluster-list [data-cluster-id]')]
+      .find(button => Number(button.dataset.clusterId) === cluster)?.focus({preventScroll: true});
+  });
   $('compare-modes').addEventListener('click', openComparison);
   $('close-comparison').addEventListener('click', () => {
     closeComparison();
   });
   $('rerun-comparison').addEventListener('click', runComparison);
   window.addEventListener('clustering-point-select', event => {
-    if (event.detail.clusterId != null) selectCluster(event.detail.clusterId);
     selectPoint(event.detail.pointId);
   });
   window.addEventListener('ml-zone-hover', event => {
@@ -156,7 +160,6 @@ function syncForm(event) {
   form.bearVolumeThreshold = Number(document.querySelector('input[name="bear-volume-threshold"]:checked')?.value ?? form.bearVolumeThreshold);
   form.singletonThreshold = modeParameter(state.modeCapabilities, form.mode, 'singleton_threshold')?.default
     ?? form.singletonThreshold;
-  if (event.target.name === 'analysis-mode') state.ui.selectedCluster = null;
 }
 
 async function searchOrigins(query) {
@@ -428,6 +431,11 @@ function reset() {
 }
 
 function selectCluster(clusterId, focus = false) {
+  if (clusterId == null || clusterId !== state.ui.selectedCluster) {
+    cancelPointDetailRequests();
+    state.ui.selectedPoint = null;
+    state.ui.selectedOrigin = null;
+  }
   state.ui.selectedCluster = clusterId;
   highlightCluster(clusterId, focus);
   renderInspectorState();
@@ -600,7 +608,9 @@ function renderEmptyState() {
 }
 
 function renderInspectorState() {
-  const focusedOrigin = globalThis.document?.activeElement?.dataset.originFias;
+  const focused = globalThis.document?.activeElement;
+  const focusedOrigin = focused?.dataset.originFias;
+  const focusedPulse = focused?.matches?.('.pulse-details summary');
   renderInspector(state, {
     pointRowsKey,
     pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
@@ -620,7 +630,24 @@ function renderInspectorState() {
       selectPoint(pointId, true);
     },
     onPointClear: () => {
+      const point = state.ui.selectedPoint;
       selectPoint(null);
+      const parent = state.ui.selectedCluster == null
+        ? document.querySelector('.cluster-card')
+        : [...document.querySelectorAll('[data-point-id]')].find(button => button.dataset.pointId === point);
+      parent?.focus({preventScroll: true});
+    },
+    onPointSummary: () => {
+      const origin = state.ui.selectedOrigin;
+      cancelPointDetailRequests();
+      pointRowsForSelection().open = false;
+      state.ui.selectedOrigin = null;
+      pointRowsForSelection().open = false;
+      renderInspectorState();
+      const parent = origin
+        ? [...document.querySelectorAll('[data-origin-fias]')].find(button => button.dataset.originFias === origin)
+        : document.querySelector('.pulse-details summary');
+      parent?.focus({preventScroll: true});
     },
     onPulseToggle: open => {
       const detail = pointRowsForSelection();
@@ -631,6 +658,7 @@ function renderInspectorState() {
     onPulseMore: () => loadPointRows(),
     onPulseRetry: () => loadPointRows(),
   });
+  if (focusedPulse) document.querySelector('.pulse-details summary')?.focus({preventScroll: true});
   if (focusedOrigin) {
     [...document.querySelectorAll('[data-origin-fias]')]
       .find(button => button.dataset.originFias === focusedOrigin)?.focus({preventScroll: true});
@@ -687,6 +715,11 @@ function selectPoint(pointId, focus = false) {
   cancelPointDetailRequests();
   state.ui.selectedPoint = pointId;
   state.ui.selectedOrigin = null;
+  if (pointId) {
+    state.ui.selectedCluster = state.result.data.points.find(point => point.id === pointId)?.cluster_id ?? null;
+    highlightCluster(state.ui.selectedCluster);
+    renderClusterTableState();
+  }
   if (pointId && focus) focusClusteringPoint(pointId);
   renderInspectorState();
   if (pointId && state.result.data.analysis.frozen_request) loadPointOrigins();

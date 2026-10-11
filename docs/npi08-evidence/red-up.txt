@@ -1,0 +1,40 @@
+.F                                                                       [100%]
+================================== FAILURES ===================================
+__ test_drill_up_origin_returns_to_point_without_requests_or_context_changes __
+
+    def test_drill_up_origin_returns_to_point_without_requests_or_context_changes():
+>       assert _run_browser_script(_product_workspace_script("""
+          await choose('b'); await choose('a');
+          const region = document.getElementById('cluster-region'); region.value='R';
+          region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+          document.getElementById('btn-run-clustering').click(); await pause();
+          window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}})); await pause();
+          document.querySelector('[data-origin-fias="b"]').click(); await pause();
+          const saved=workspace.getState().result.data;
+          workspace.getState().ui.tableSort={key:'point_count',direction:'asc'};
+          workspace.getState().ui.tableOpen=false;
+          const before=requests.length;
+          const up=document.querySelector('[data-point-summary]');
+          if(!up) {document.body.dataset.result=JSON.stringify({error:'Missing return to point summary'}); return;}
+          up.focus(); up.click(); await pause();
+          const ui=workspace.getState().ui;
+          document.body.dataset.result=JSON.stringify({point:ui.selectedPoint,origin:ui.selectedOrigin,
+            same:saved===workspace.getState().result.data,sort:ui.tableSort,open:ui.tableOpen,
+            requestFree:before===requests.length,focus:document.activeElement.dataset.originFias,
+            rowsClosed:!document.querySelector('.pulse-details').open});
+        """)) == {'point':'x','origin':None,'same':True,'sort':{'key':'point_count','direction':'asc'},
+                    'open':False,'requestFree':True,'focus':'b','rowsClosed':True}
+E       AssertionError: assert {'error': 'Mi...oint summary'} == {'focus': 'b'...nt': 'x', ...}
+E
+E         Left contains 1 more item:
+E         {'error': 'Missing return to point summary'}
+E         Right contains 8 more items:
+E         {'focus': 'b',
+E          'open': False,
+E          'origin': None,...
+E
+E         ...Full output truncated (6 lines hidden), use '-vv' to show
+
+tests\test_clustering_frontend_contract.py:2135: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_clustering_frontend_contract.py::test_drill_up_origin_returns_to_point_without_requests_or_context_changes
