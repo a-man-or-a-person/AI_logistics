@@ -125,6 +125,32 @@ def _run_node_script(script: str) -> dict:
     return json.loads(completed.stdout)
 
 
+
+def test_all_intent_is_explicit_and_resolution_does_not_make_form_stale():
+    module = _read("frontend/js/clustering/state.js").replace("export ", "")
+    actual = _run_node_script(f"""
+      {module}
+      const form = {{allOrigins: true, origins: [{{fias_id: 'a'}}], destinationRegion: 'R',
+        periodTypes: ['current'], priceTypes: ['spot'], vehicleTypes: [], tonnageIds: [],
+        mode: 'geography', kMode: 'auto'}};
+      const request = buildRequest(form);
+      const frozen = {{...request, origin_fiases: ['a', 'b', 'outside-suggestions']}};
+      delete frozen.all_origins;
+      const result = {{status: 'success', data_snapshot: 's', analysis: {{frozen_request: frozen,
+        selection_intent: {{all_origins: true}}}}}};
+      const state = {{form, result: {{cache: new Map()}}, ui: {{}}}};
+      setResult(state, result, request);
+      const unchanged = !isResultStale(state);
+      form.allOrigins = false;
+      form.origins = frozen.origin_fiases.map(fias_id => ({{fias_id}}));
+      console.log(JSON.stringify({{selector: request.all_origins, mixed: 'origin_fiases' in request,
+        unchanged, switched: isResultStale(state), frozen: result.analysis.frozen_request.origin_fiases,
+        intent: state.result.requestSnapshot.all_origins,
+        separateCache: requestSignature(request) !== requestSignature(buildRequest(form))}}));
+    """)
+    assert actual == {"selector": True, "mixed": False, "unchanged": True, "switched": True,
+                      "frozen": ["a", "b", "outside-suggestions"], "intent": True, "separateCache": True}
+
 def test_explicit_origin_set_requests_are_canonical_and_freeze_independent_of_form():
     module = _read("frontend/js/clustering/state.js").replace("export ", "")
     actual = _run_node_script(f"""
@@ -222,14 +248,17 @@ def _product_workspace_script(actions: str) -> str:
           data = path.includes('q=missing') ? [] : origins;
           if (failSearch) {{status = 500; data = {{error: 'Catalog offline'}};}}
         }}
-        if (path === 'run') {{
+        if (path === 'run' || path === 'compare') {{
           data = {{ok: true, status: 'success', data_snapshot: 's1',
             analysis: {{mode: payload.mode, parameters: {{k_mode: 'auto', n_clusters: 2}},
               origins, origin_fiases: ['a', 'b'], origin: null, destination_region: 'R',
-              filters: {{period_types: ['current'], price_types: ['spot']}}, frozen_request: payload,
+              filters: {{period_types: ['current'], price_types: ['spot']}},
+              selection_intent: payload.all_origins ? {{all_origins: true}} : {{origin_fiases: payload.origin_fiases}},
+              frozen_request: payload.all_origins ? {{...payload, all_origins: undefined, origin_fiases: ['a', 'b']}} : payload,
               origin_coverage: [{{fias_id: 'a', zero_match: true}}]}},
             data_quality: {{}}, points: [{{id: 'x', fias_id: 'x', name: 'X', trip_count: 40}}],
             clusters: [], cluster_table: {{supported: true, rows: []}}}};
+          if (path === 'compare') data = {{ok: true, results: Object.fromEntries(options.mode_capabilities.map(item => [item.id, {{...data, analysis: {{...data.analysis, mode: item.id, frozen_request: {{...data.analysis.frozen_request, mode: item.id, parameters: {{k_mode: 'auto', n_clusters: 'auto'}}}}}}}}]))}};
           if (failRun) {{status = 422; data = {{error: 'No data matches the selected filters.', code: 'NO_DATA'}};}}
         }}
         if (path === 'point-rows') {{
@@ -247,7 +276,7 @@ def _product_workspace_script(actions: str) -> str:
       function focusClusteringPoint() {{}}
       {''.join(modules)}
       (async () => {{
-        await initClustering();
+        const workspace = await initClustering();
         const pause = () => new Promise(resolve => setTimeout(resolve, 280));
         const input = document.getElementById('cluster-origin');
         const choose = async id => {{
@@ -260,6 +289,93 @@ def _product_workspace_script(actions: str) -> str:
         {actions}
       }})().catch(error => {{document.body.dataset.result = JSON.stringify({{error: String(error)}});}});
     """
+
+
+
+def test_all_control_requires_region_and_uses_explicit_all_options_run_and_frozen_detail():
+    actual = _run_browser_script(_product_workspace_script("""
+      const all = document.getElementById('all-origins');
+      if (!all) throw Error('Explicit All control missing');
+      all.click(); await pause();
+      document.getElementById('clustering-controls').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+      const regionRequired = document.getElementById('analysis-form-error').textContent.includes('регион');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      const preview = document.getElementById('filter-route').textContent;
+      document.getElementById('clustering-controls').dispatchEvent(new Event('submit', {bubbles: true, cancelable: true})); await pause();
+      const saved = document.getElementById('result-context').textContent;
+      const unchanged = document.getElementById('analysis-stale').classList.contains('hidden');
+      document.querySelector('#cluster-periods input[value="retro"]').click();
+      window.dispatchEvent(new CustomEvent('clustering-point-select', {detail: {pointId: 'x'}}));
+      const details = document.querySelector('.pulse-details'); details.open = true; details.dispatchEvent(new Event('toggle')); await pause();
+      const run = requests.find(r => r.path === 'run')?.payload;
+      const rows = requests.find(r => r.path === 'point-rows')?.payload;
+      all.click(); await pause();
+      document.body.dataset.result = JSON.stringify({regionRequired, selector: run?.all_origins,
+        mixed: run ? 'origin_fiases' in run : true,
+        optionsAll: requests.some(r => r.path.includes('all_origins=true') && r.path.includes('destination_region=R')),
+        previewAll: preview.includes('Все отправления') && preview.includes('R'), savedAll: saved.includes('Все отправления'),
+        unchanged, frozen: rows?.origin_fiases, rowsAll: !!rows?.all_origins, savedUnchanged: saved === document.getElementById('result-context').textContent,
+        manualEnabled: !input.disabled, manualEmpty: document.querySelectorAll('[data-remove-origin]').length === 0});
+    """))
+    assert actual == {"regionRequired": True, "selector": True, "mixed": False, "optionsAll": True,
+                      "previewAll": True, "savedAll": True, "unchanged": True, "frozen": ["a", "b"],
+                      "rowsAll": False, "savedUnchanged": True, "manualEnabled": True, "manualEmpty": True}
+
+def test_cached_all_comparison_keeps_intent_after_manual_form_edit():
+    actual = _run_browser_script(_product_workspace_script("""
+      document.getElementById('all-origins').click(); await pause();
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.getElementById('compare-modes').click(); await pause();
+      const allRequest = requests.find(r => r.path === 'compare')?.payload;
+      document.getElementById('close-comparison').click();
+      document.getElementById('all-origins').click(); await pause();
+      await choose('a');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.querySelector('[data-comparison-mode="geo_volume"]').click(); await pause();
+      const saved = workspace.getState().result.requestSnapshot;
+      const oldAll = document.getElementById('result-context').textContent.includes('Все отправления');
+      const editedStale = !document.getElementById('analysis-stale').classList.contains('hidden');
+      document.getElementById('all-origins').click(); await pause();
+      document.getElementById('compare-modes').click(); await pause();
+      document.body.dataset.result = JSON.stringify({all: allRequest?.all_origins,
+        savedAll: saved.all_origins, mixed: 'origin_fiases' in saved,
+        oldAll, editedStale, comparisons: requests.filter(r => r.path === 'compare').length,
+        current: !workspace.getState().result.requestSnapshot.origin_fiases,
+        unchanged: document.getElementById('analysis-stale').classList.contains('hidden')});
+    """))
+    assert actual == {"all": True, "savedAll": True, "mixed": False, "oldAll": True,
+                      "editedStale": True, "comparisons": 1, "current": True, "unchanged": True}
+
+
+def test_all_late_options_after_region_change_reset_or_manual_switch_are_ignored():
+    actual = _run_browser_script(_product_workspace_script("""
+      options.destination_regions = ['R', 'S'];
+      await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.getElementById('all-origins').click(); await pause();
+      holdOptions = true;
+      region.value = 'S'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.getElementById('all-origins').click(); await pause();
+      holdOptions = false;
+      heldOptions.splice(0).forEach(resolve => resolve()); await pause();
+      const manual = !input.disabled && document.querySelectorAll('[data-remove-origin]').length === 1;
+      const currentRegion = region.value;
+      document.getElementById('all-origins').click(); await pause();
+      holdOptions = true;
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles: true})); await pause();
+      document.getElementById('btn-reset-clustering').click();
+      holdOptions = false;
+      heldOptions.splice(0).forEach(resolve => resolve()); await pause();
+      document.body.dataset.result = JSON.stringify({manual, currentRegion,
+        all: document.getElementById('all-origins').checked, region: region.value,
+        runEnabled: !document.getElementById('btn-run-clustering').disabled,
+        statusHidden: document.getElementById('options-status').classList.contains('hidden')});
+    """))
+    assert actual == {"manual": True, "currentRegion": "S", "all": False, "region": "",
+                      "runEnabled": True, "statusHidden": True}
 
 
 def test_origin_tokens_survive_search_and_submit_the_union_with_keyboard_removal():

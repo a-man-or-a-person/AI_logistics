@@ -20,6 +20,18 @@ def all_payload(**changes):
     return {**request, "all_origins": True}
 
 
+def test_unselected_options_offer_all_destination_regions_without_origin_suggestions(union_client):
+    client, service = union_client
+    with service.source_path.open("a", encoding="utf-8", newline="") as stream:
+        csv.DictWriter(stream, fieldnames=PULSE_COLUMNS).writerow(
+            _row("x", "X", origin="outside", region="Other Region", trips="10000"))
+    response = client.get("/api/clustering/options")
+    assert response.status_code == 200
+    assert response.get_json()["destination_regions"] == ["Other Region", "Region A"]
+    selected = client.get("/api/clustering/options?origin_fiases=a")
+    assert selected.get_json()["destination_regions"] == ["Region A"]
+
+
 def test_all_resolves_complete_region_before_common_filters(union_client):
     client, _ = union_client
     suggestions = client.get("/api/clustering/origins?q=b+Warehouse&limit=1").get_json()

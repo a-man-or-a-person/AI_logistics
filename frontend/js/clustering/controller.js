@@ -62,6 +62,14 @@ function wireEvents() {
   $('cluster-origin').addEventListener('input', onOriginInput);
   $('cluster-origin').addEventListener('focus', () => showOriginOptions());
   $('cluster-origin').addEventListener('keydown', onOriginKeydown);
+  $('all-origins').addEventListener('change', async () => {
+    state.form.allOrigins = $('all-origins').checked;
+    ++originSearchVersion;
+    clearTimeout(originTimer);
+    hideOriginOptions();
+    renderAll();
+    await loadContextOptions({originsChanged: true});
+  });
   $('selected-origins').addEventListener('click', event => {
     const button = event.target.closest('[data-remove-origin]');
     if (button) removeOrigin(button.dataset.removeOrigin);
@@ -85,7 +93,7 @@ function wireEvents() {
   });
   $('cluster-region').addEventListener('change', async () => {
     state.form.destinationRegion = $('cluster-region').value;
-    if (state.form.origins.length) await loadContextOptions();
+    if (state.form.allOrigins || state.form.origins.length) await loadContextOptions();
     renderAll();
   });
   document.querySelectorAll('[data-step]').forEach(button => button.addEventListener('click', () => {
@@ -231,22 +239,24 @@ function renderOrigins() {
 async function loadContextOptions({originsChanged = false} = {}) {
   const version = ++optionsVersion;
   const origins = state.form.origins.map(origin => origin.fias_id);
+  const all = state.form.allOrigins;
   const region = state.form.destinationRegion;
   setOptionsLoading(true, 'Загружаем доступные параметры…');
   try {
     let options = await fetchClusteringOptions(
-      origins,
-      originsChanged ? '' : region,
+      all ? [] : origins,
+      originsChanged || all ? '' : region,
     );
     if (version !== optionsVersion) return;
-    if (originsChanged && origins.length && region && options.destination_regions.includes(region)) {
-      options = await fetchClusteringOptions(origins, region);
+    const regions = options.destination_regions;
+    if ((all || originsChanged && origins.length) && region && regions.includes(region)) {
+      options = await fetchClusteringOptions(origins, region, all);
       if (version !== optionsVersion) return;
     }
     updateClusteringOptions(state, options);
     $('cluster-region').replaceChildren(new Option('Выберите регион…', ''));
-    options.destination_regions.forEach(value => $('cluster-region').add(new Option(value, value)));
-    state.form.destinationRegion = origins.length && options.destination_regions.includes(region) ? region : '';
+    regions.forEach(value => $('cluster-region').add(new Option(value, value)));
+    state.form.destinationRegion = (all || origins.length) && regions.includes(region) ? region : '';
     $('cluster-region').value = state.form.destinationRegion;
     const facetValues = key => new Set((options[key] || []).map(item => typeof item === 'string' ? item : item.value));
     const contextualDefault = (key, preferred) => {
@@ -275,7 +285,7 @@ async function loadContextOptions({originsChanged = false} = {}) {
 
 function setOptionsLoading(loading, message = '') {
   ['cluster-region', 'btn-run-clustering'].forEach(id => { $(id).disabled = loading; });
-  $('cluster-region').disabled = loading || !state.form.origins.length;
+  $('cluster-region').disabled = loading || !(state.form.allOrigins || state.form.origins.length);
   $('compare-modes').disabled = loading;
   $('clustering-controls').classList.toggle('options-loading', loading);
   $('options-status').textContent = loading ? message : '';
@@ -298,7 +308,7 @@ function clearOrigin() {
 }
 
 function validate(request) {
-  if (!request.origin_fias && !request.origin_fiases?.length) return 'Выберите хотя бы одно отправление из списка.';
+  if (!request.all_origins && !request.origin_fias && !request.origin_fiases?.length) return 'Выберите хотя бы одно отправление из списка.';
   if (!request.destination_region) return 'Выберите один регион доставки.';
   if (!request.period_types.length) return 'Выберите хотя бы один период.';
   if (!request.price_types.length) return 'Выберите хотя бы один тип цены.';
@@ -491,7 +501,7 @@ function activateComparisonMode(mode) {
   if (mode === 'bear_volume_zones') state.form.bearVolumeThreshold = result.analysis.parameters.volume_threshold ?? state.form.bearVolumeThreshold;
   state.form.singletonThreshold = modeParameter(state.modeCapabilities, mode, 'singleton_threshold')?.default
     ?? state.form.singletonThreshold;
-  const request = { ...buildRequest(state.form, mode), ...state.comparison.context };
+  const request = { ...state.comparison.context, mode, parameters: buildRequest(state.form, mode).parameters };
   setResult(state, result, request);
   showSingleRunTable(result);
   renderClusteringPoints(result);
@@ -533,7 +543,7 @@ function renderClusterTableState() {
 
 function comparisonContext(form) {
   return {
-    route: `${form.origins?.map(origin => origin.name || origin.fias_id).join(', ') || form.origin?.name || 'Точка не выбрана'} → ${form.destinationRegion || 'Регион не выбран'}`,
+    route: `${form.allOrigins ? 'Все отправления' : form.origins?.map(origin => origin.name || origin.fias_id).join(', ') || form.origin?.name || 'Точка не выбрана'} → ${form.destinationRegion || 'Регион не выбран'}`,
     periods: form.periodTypes.map(value => PERIOD_LABELS[value] || value).join(', ') || '—',
     prices: form.priceTypes.map(value => PRICE_LABELS[value] || value).join(', ') || '—',
     vehicles: form.vehicleTypes.join(', ') || 'Все',
@@ -543,7 +553,7 @@ function comparisonContext(form) {
 
 function renderEmptyState() {
   if (state.result.data || state.result.status === 'error') return;
-  const ready = Boolean((state.form.origins?.length || state.form.origin) && state.form.destinationRegion);
+  const ready = Boolean((state.form.allOrigins || state.form.origins?.length || state.form.origin) && state.form.destinationRegion);
   $('empty-state').querySelector('.empty-title').textContent = ready
     ? 'Всё готово к расчёту.'
     : 'Выберите направление и параметры анализа.';

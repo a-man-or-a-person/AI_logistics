@@ -326,7 +326,7 @@ class ClusteringService:
             repository_options = {
                 "origins": [item.as_dict() for item in self._load_catalog(destination_region)],
                 "destination_regions": sorted(
-                    {region for origin in origins
+                    {region for origin in (origins or self._destination_regions)
                      for region in self._destination_regions.get(origin, set())}
                 ),
             }

@@ -36,6 +36,8 @@
         <section class="form-section">
           <h2><span>01</span> Направление</h2>
           <label for="cluster-origin">Откуда</label>
+          <label class="all-origins-control"><input id="all-origins" type="checkbox" aria-describedby="all-origins-hint"> Все отправления</label>
+          <p id="all-origins-hint" class="field-hint">Все отправления в выбранный регион доставки. Снимите отметку для ручного выбора.</p>
           <div class="combobox"><input id="cluster-origin" type="search" role="combobox" aria-autocomplete="list" aria-controls="cluster-origin-options" aria-expanded="false" placeholder="Поиск точки отправления…" autocomplete="off"><div id="cluster-origin-options" class="combo-options hidden" role="listbox"></div></div>
           <div id="selected-origins" class="selected-origins" aria-label="Выбранные отправления"></div>
           <p id="cluster-origin-meta" class="field-hint" role="status" aria-live="polite">Выберите одно или несколько отправлений</p>
