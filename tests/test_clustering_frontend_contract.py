@@ -17,6 +17,87 @@ def _read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
 
 
+def test_xlsx_transport_returns_exact_binary_and_safe_attachment():
+    source = _read('frontend/js/api.js').replace('export ', '')
+    actual = _run_node_script(f"""
+      globalThis.window = {{location: {{origin: 'http://localhost'}}}};
+      {source}
+      const bytes = Uint8Array.from([80,75,3,4,1,2,3,4,80,75,5,6,...Array(18).fill(0)]);
+      let request;
+      globalThis.fetch = async (url, options) => {{
+        request = {{url, ...options, body: JSON.parse(options.body)}};
+        return new Response(bytes, {{headers: {{
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="saved.xlsx"', 'X-Request-ID': 'binary-test',
+        }}}});
+      }};
+      const result = await exportClustering({{data_snapshot:'s1'}});
+      console.log(JSON.stringify({{bytes:[...new Uint8Array(await result.blob.arrayBuffer())],
+        filename:result.filename, requestId:result.requestId, cache:request.cache,
+        method:request.method, body:request.body}}));
+    """)
+    assert actual == {'bytes': [80, 75, 3, 4, 1, 2, 3, 4, 80, 75, 5, 6] + [0] * 18,
+                      'filename': 'saved.xlsx', 'requestId': 'binary-test', 'cache': 'no-store',
+                      'method': 'POST', 'body': {'data_snapshot': 's1'}}
+
+
+@pytest.mark.parametrize('failure,code', [('network', 'EXPORT_CONNECTION_ERROR'),
+    ('timeout', 'EXPORT_TIMEOUT'), ('cancel', 'AbortError'), ('preabort', 'AbortError'),
+    ('typed', 'EXPORT_FAILED'), ('mime', 'INVALID_EXPORT_RESPONSE'),
+    ('partial', 'INVALID_EXPORT_RESPONSE'), ('attachment', 'INVALID_EXPORT_RESPONSE')])
+def test_xlsx_transport_failures_never_return_download(failure, code):
+    source = _read('frontend/js/api.js').replace('export ', '')
+    actual = _run_node_script(f"""
+      globalThis.window={{location:{{origin:'http://localhost'}}}};
+      {source}
+      const failure={json.dumps(failure)}, caller=new AbortController();
+      let expire, called=false;
+      if(failure==='timeout') globalThis.setTimeout=callback=>{{expire=callback;return 1;}};
+      if(failure==='preabort') caller.abort();
+      globalThis.fetch=async(url,init)=>{{
+        called=true;
+        if(failure==='network') throw new TypeError('Failed to fetch');
+        if(failure==='timeout' || failure==='cancel') {{
+          failure==='timeout' ? expire() : caller.abort();
+          throw new DOMException('Aborted','AbortError');
+        }}
+        if(failure==='typed') return new Response(JSON.stringify({{code:'EXPORT_FAILED',error:'Safe writer failure'}}),
+          {{status:500,headers:{{'Content-Type':'application/json','X-Request-ID':'req-123'}}}});
+        return new Response('partial',{{headers:{{'Content-Type':failure==='mime'?'application/json':
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition':failure==='attachment'?'inline':'attachment; filename="safe.xlsx"'}}}});
+      }};
+      try {{await exportClustering({{}},{{signal:caller.signal}});console.log('{{"download":true}}');}}
+      catch(error) {{console.log(JSON.stringify({{code:typeof error.code==='string'?error.code:error.name,message:error.message,requestId:error.requestId,called}}));}}
+    """)
+    assert actual['code'] == code, actual
+    if failure == 'typed':
+        assert actual['message'] == 'Safe writer failure' and actual['requestId'] == 'req-123'
+    if failure == 'preabort':
+        assert actual['called'] is False
+
+
+@pytest.mark.parametrize('attachment,filename', [
+    ('attachment; filename="../unsafe.xlsx"', 'clustering.xlsx'),
+    ('attachment; filename="C:\\unsafe.xlsx"', 'clustering.xlsx'),
+    ('attachment; filename="NUL.xlsx"', 'clustering.xlsx'),
+    ('attachment; filename="unsafe.exe"', 'clustering.xlsx'),
+    ("attachment; filename*=UTF-8''%D0%A2%D0%B0%D0%B1%D0%BB%D0%B8%D1%86%D0%B0.xlsx", 'Таблица.xlsx'),
+    ("attachment; filename*=UTF-8''%ZZ; filename=backup.xlsx", 'backup.xlsx'),
+])
+def test_xlsx_attachment_filename_cannot_create_a_path(attachment, filename):
+    source = _read('frontend/js/api.js').replace('export ', '')
+    actual = _run_node_script(f"""
+      globalThis.window={{location:{{origin:'http://localhost'}}}};
+      {source}
+      globalThis.fetch=async()=>new Response(Uint8Array.from([80,75,3,4,80,75,5,6,...Array(18).fill(0)]),
+        {{headers:{{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition':{json.dumps(attachment)}}}}});
+      console.log(JSON.stringify({{filename:(await exportClustering({{}})).filename}}));
+    """)
+    assert actual['filename'] == filename
+
+
 def _edge_path() -> str | None:
     executable = shutil.which("msedge")
     if executable:
@@ -367,6 +448,134 @@ def _product_workspace_script(actions: str) -> str:
         {actions}
       }})().catch(error => {{document.body.dataset.result = JSON.stringify({{error: String(error)}});}});
     """
+
+
+def test_saved_table_download_ignores_form_and_preserves_selection_and_sort():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('a');
+      const region = document.getElementById('cluster-region');
+      region.value = 'R'; region.dispatchEvent(new Event('change', {bubbles:true})); await pause();
+      const transport = globalThis.fetch;
+      const blob = new Blob([Uint8Array.from([80,75,3,4,1,2,3,4,80,75,5,6,...Array(18).fill(0)])]);
+      let downloads = 0, revoked = 0, exportPayload;
+      URL.createObjectURL = value => {if(value.size === blob.size) downloads++; return 'blob:synthetic';};
+      URL.revokeObjectURL = () => revoked++;
+      HTMLAnchorElement.prototype.click = function() {this.dataset.clicked='true';};
+      globalThis.fetch = async (url, init) => {
+        if(String(url).endsWith('/export')) {
+          exportPayload = JSON.parse(init.body);
+          return new Response(blob, {headers:{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition':'attachment; filename="saved.xlsx"'}});
+        }
+        const response = await transport(url,init);
+        const data = await response.json();
+        if(String(url).endsWith('/run')) data.cluster_table.rows = [{cluster_id:0,trip_count:40}];
+        return {...response,json:async()=>data};
+      };
+      document.getElementById('btn-run-clustering').click(); await pause();
+      const s = workspace.getState(), saved = s.result.data;
+      s.ui.selectedCluster = 0; s.ui.selectedPoint = 'x'; s.ui.tableSort = {key:'price.min',direction:'asc'};
+      s.ui.tableOpen = false;
+      const mode = document.querySelector('input[value="bear_zones"]');
+      mode.checked=true; mode.dispatchEvent(new Event('change',{bubbles:true}));
+      const button = document.getElementById('btn-export-clustering');
+      button.focus(); button.click(); button.click(); await pause();
+      await new Promise(resolve=>setTimeout(resolve,1100));
+      document.body.dataset.result=JSON.stringify({exportPayload,downloads,revoked,
+        sameResult:s.result.data===saved,point:s.ui.selectedPoint,cluster:s.ui.selectedCluster,
+        sort:s.ui.tableSort,open:s.ui.tableOpen,focus:document.activeElement.id,
+        status:document.getElementById('export-status').textContent,
+        runs:requests.filter(r=>r.path==='run').length});
+    """))
+    assert 'error' not in actual, actual
+    assert actual['exportPayload']['mode'] == 'geography'
+    assert actual['exportPayload']['origin_fiases'] == ['a']
+    assert actual['exportPayload']['selection_intent'] == {'origin_fiases': ['a']}
+    assert actual['exportPayload']['table_sort'] == {'key': 'price.min', 'direction': 'asc'}
+    assert actual['sameResult'] and actual['point'] == 'x' and actual['cluster'] == 0
+    assert actual['sort'] == {'key': 'price.min', 'direction': 'asc'} and not actual['open']
+    assert actual['downloads'] == actual['revoked'] == actual['runs'] == 1
+    assert actual['focus'] == 'btn-export-clustering'
+    assert 'передан' in actual['status']
+
+
+@pytest.mark.parametrize('action', ['cancel', 'reset', 'hide', 'pagehide', 'run', 'comparison', 'replacement'])
+def test_cancelled_export_late_response_cannot_download(action):
+    actual = _run_browser_script(_product_workspace_script(f"""
+      await choose('a');
+      const region=document.getElementById('cluster-region');
+      region.value='R';region.dispatchEvent(new Event('change',{{bubbles:true}}));await pause();
+      const transport=globalThis.fetch;
+      let release, signal, downloads=0;
+      URL.createObjectURL=()=>{{downloads++;return 'blob:synthetic';}};
+      globalThis.fetch=async(url,init)=>{{
+        if(String(url).endsWith('/export')) {{
+          signal=init.signal;await new Promise(resolve=>release=resolve);
+          return new Response(Uint8Array.from([80,75,3,4,80,75,5,6,...Array(18).fill(0)]),
+            {{headers:{{'Content-Type':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'Content-Disposition':'attachment; filename="saved.xlsx"'}}}});
+        }}
+        const response=await transport(url,init), data=await response.json();
+        if(String(url).endsWith('/run')) data.cluster_table.rows=[{{cluster_id:0,trip_count:40}}];
+        return {{...response,json:async()=>data}};
+      }};
+      document.getElementById('btn-run-clustering').click();await pause();
+      const saved=workspace.getState().result.data;
+      document.getElementById('btn-export-clustering').click();await pause();
+      const loading=document.getElementById('export-status').textContent;
+      const action={json.dumps(action)};
+      if(action==='cancel') document.getElementById('btn-cancel-export').click();
+      if(action==='reset') document.getElementById('btn-reset-clustering').click();
+      if(action==='hide') workspace.hide();
+      if(action==='pagehide') window.dispatchEvent(new Event('pagehide'));
+      if(action==='run') document.getElementById('btn-run-clustering').click();
+      if(action==='comparison') document.getElementById('compare-modes').click();
+      if(action==='replacement') {{workspace.getState().result.data={{...saved}};workspace.show();}}
+      await pause();release();await pause();
+      document.body.dataset.result=JSON.stringify({{downloads,aborted:signal.aborted,loading,
+        busy:document.getElementById('export-controls').getAttribute('aria-busy'),
+        success:document.getElementById('export-status').textContent.includes('передан')}});
+    """))
+    assert 'error' not in actual, actual
+    assert actual['downloads'] == 0 and actual['aborted'] and not actual['success']
+    assert actual['busy'] == 'false' and 'Подготавливаем' in actual['loading']
+
+
+@pytest.mark.parametrize('code', ['EXPORT_FAILED', 'STALE_DATA_SNAPSHOT', 'RESULT_UNAVAILABLE'])
+def test_export_error_retry_preserves_saved_result_and_rejects_bad_cache(code):
+    actual = _run_browser_script(_product_workspace_script(f"""
+      await choose('a');
+      const region=document.getElementById('cluster-region');
+      region.value='R';region.dispatchEvent(new Event('change',{{bubbles:true}}));await pause();
+      const transport=globalThis.fetch;
+      let exports=0;
+      globalThis.fetch=async(url,init)=>{{
+        if(String(url).endsWith('/export')) {{exports++;return new Response(JSON.stringify({{code:{json.dumps(code)},error:'Safe failure'}}),
+          {{status:409,headers:{{'X-Request-ID':'req-safe'}}}});}}
+        const response=await transport(url,init),data=await response.json();
+        if(String(url).endsWith('/run')) data.cluster_table.rows=[{{cluster_id:0,trip_count:40}}];
+        return {{...response,json:async()=>data}};
+      }};
+      document.getElementById('btn-run-clustering').click();await pause();
+      const s=workspace.getState(),saved=s.result.data;
+      document.getElementById('btn-export-clustering').focus();
+      document.getElementById('btn-export-clustering').click();await pause();
+      const status=document.getElementById('export-status').textContent;
+      const disabled=document.getElementById('btn-export-clustering').getAttribute('aria-disabled');
+      document.getElementById('btn-export-clustering').click();await pause();
+      document.body.dataset.result=JSON.stringify({{exports,disabled,status,
+        preserved:s.result.data===saved,rejected:s.rejectedSnapshots.has(saved.data_snapshot),
+        unavailable:s.unavailableResults.has(saved),runs:requests.filter(r=>r.path==='run').length,
+        focus:document.activeElement.id}});
+    """))
+    assert 'error' not in actual, actual
+    assert actual['preserved'] and actual['runs'] == 1
+    assert code in actual['status'] and 'req-safe' in actual['status']
+    assert actual['focus'] == 'btn-export-clustering'
+    assert actual['exports'] == (2 if code == 'EXPORT_FAILED' else 1)
+    assert actual['disabled'] == ('false' if code == 'EXPORT_FAILED' else 'true')
+    assert actual['rejected'] == (code == 'STALE_DATA_SNAPSHOT')
+    assert actual['unavailable'] == (code == 'RESULT_UNAVAILABLE')
 
 
 
@@ -1795,6 +2004,7 @@ def test_cached_comparison_switches_the_active_product_result_without_recalculat
       const elements = new Map();
       const element = id => elements.get(id) || elements.set(id, {{
         textContent: '',
+          setAttribute() {{}},
         classList: {{toggle() {{}}, add() {{}}, remove() {{}}}},
       }}).get(id);
       globalThis.document = {{getElementById: element}};

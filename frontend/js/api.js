@@ -120,6 +120,64 @@ export function fetchClusteringPointOrigins(payload, options) {
   return postClustering('point-origins', payload, options);
 }
 
+export async function exportClustering(payload, { signal } = {}) {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  if (signal?.aborted) abort();
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; abort(); }, REQUEST_TIMEOUT_MS);
+  let requestId;
+  try {
+    if (controller.signal.aborted) throw new DOMException('Загрузка отменена', 'AbortError');
+    const response = await fetch(`${API_BASE}/api/clustering/export`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload), cache: 'no-store', signal: controller.signal,
+    });
+    requestId = response.headers.get('X-Request-ID')?.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 64);
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      throw Object.assign(new Error(data?.error || `HTTP ${response.status}`), { code: data?.code, requestId });
+    }
+    const disposition = response.headers.get('Content-Disposition') || '';
+    if (response.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase()
+        !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        || !/^attachment\s*;/i.test(disposition)) {
+      throw Object.assign(new Error('Сервер не вернул XLSX-вложение.'), { code: 'INVALID_EXPORT_RESPONSE' });
+    }
+    let filename = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+    if (filename) {
+      try { filename = decodeURIComponent(filename); } catch { filename = null; }
+    }
+    filename ||= /filename="([^"]+)"|filename=([^;]+)/i.exec(disposition)?.slice(1).find(Boolean)?.trim();
+    if (!filename || filename.length > 180 || /[<>:"/\\|?*\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/.test(filename)
+        || /^(?:\.|CON\.|PRN\.|AUX\.|NUL\.|COM[1-9]\.|LPT[1-9]\.)/i.test(filename)
+        || !/\.xlsx$/i.test(filename)) filename = 'clustering.xlsx';
+    const blob = await response.blob();
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    // A complete ZIP end record prevents accepting an interrupted attachment as a workbook.
+    let complete = false;
+    for (let i = bytes.length - 22; i >= Math.max(4, bytes.length - 65557); i--) {
+      if (bytes[i] === 80 && bytes[i + 1] === 75 && bytes[i + 2] === 5 && bytes[i + 3] === 6
+          && i + 22 + bytes[i + 20] + 256 * bytes[i + 21] === bytes.length) { complete = true; break; }
+    }
+    if (bytes[0] !== 80 || bytes[1] !== 75 || bytes[2] !== 3 || bytes[3] !== 4 || !complete) {
+      throw Object.assign(new Error('Получен неполный или некорректный XLSX.'), { code: 'INVALID_EXPORT_RESPONSE' });
+    }
+    if (controller.signal.aborted) throw new DOMException('Загрузка отменена', 'AbortError');
+    return { blob, filename, requestId };
+  } catch (error) {
+    if (signal?.aborted) throw new DOMException('Загрузка отменена', 'AbortError');
+    if (timedOut) throw Object.assign(new Error('Превышено время ожидания XLSX. Повторите загрузку.'), { code: 'EXPORT_TIMEOUT', requestId });
+    if (error instanceof TypeError) throw Object.assign(new Error('Нет соединения с сервером. Повторите загрузку XLSX.'), { code: 'EXPORT_CONNECTION_ERROR', requestId });
+    error.requestId ||= requestId;
+    throw error;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
+  }
+}
+
 export function fetchMlClusters(params = {}) {
   return requestJson(`${API_BASE}/api/ml-cluster?${new URLSearchParams(params)}`);
 }

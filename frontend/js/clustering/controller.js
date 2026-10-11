@@ -1,6 +1,6 @@
 import {
   fetchClusteringOptions, fetchClusteringOrigins, fetchClusteringPointRows, fetchClusteringPointOrigins, runClustering,
-  runClusteringComparison, fetchClusteringRevision,
+  runClusteringComparison, fetchClusteringRevision, exportClustering,
 } from '../api.js';
 import {
   buildRequest, createClusteringState, datasetSnapshot, isComparisonStale,
@@ -26,6 +26,9 @@ let runController;
 let pointRowsController;
 let pointOriginsController;
 let comparisonFocusReturn;
+let exportController;
+let exportResult;
+let exportStatus = { kind: 'idle', message: '' };
 
 export async function initClustering() {
   $('options-status').textContent = 'Загружаем направления…';
@@ -37,7 +40,7 @@ export async function initClustering() {
   await searchOrigins('');
   $('options-status').classList.add('hidden');
   renderAll();
-  return { show, getState: () => state };
+  return { show, hide: cancelExport, getState: () => state };
 }
 
 export function show() {
@@ -46,6 +49,9 @@ export function show() {
 }
 
 function wireEvents() {
+  $('btn-export-clustering').addEventListener('click', downloadExport);
+  $('btn-cancel-export').addEventListener('click', () => { cancelExport(); $('btn-export-clustering').focus(); });
+  window.addEventListener('pagehide', cancelExport);
   $('clustering-controls').addEventListener('submit', event => {
     event.preventDefault();
     executeRun();
@@ -343,6 +349,7 @@ async function executeRun() {
   const request = buildRequest(state.form);
   const error = validate(request);
   if (error) return showFormError(error);
+  cancelExport();
   cancelCalculation();
   $('analysis-form-error').classList.add('hidden');
   const cached = state.result.cache.get(requestSignature(request));
@@ -419,6 +426,7 @@ async function validateCachedResults(candidates, controller) {
 }
 
 function reset() {
+  cancelExport();
   cancelCalculation();
   cancelPointDetailRequests();
   state = createClusteringState(state.options);
@@ -482,6 +490,7 @@ async function runComparison() {
   const dataset = datasetSnapshot(state.form);
   const error = validate(buildRequest(state.form));
   if (error) return showFormError(error);
+  cancelExport();
   cancelCalculation();
   const controller = new AbortController();
   runController = controller;
@@ -533,6 +542,7 @@ function activateComparisonMode(mode) {
   cancelPointDetailRequests();
   const result = state.comparison.results[mode];
   if (!result) return;
+  cancelExport();
   cancelCalculation();
   state.comparison.activeMode = mode;
   state.form.mode = mode;
@@ -564,6 +574,84 @@ function renderAll() {
   renderInspectorState();
   renderClusterTableState();
   renderComparisonState();
+  renderExportState();
+}
+
+function exportBlockedReason() {
+  const result = state.result.data;
+  if (!result) return 'Сначала рассчитайте результат.';
+  if (state.rejectedSnapshots.has(result.data_snapshot)) return 'Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.';
+  if (state.unavailableResults.has(result)) return 'Сохранённый результат недоступен. Пересчитайте результат.';
+  if (result.cluster_table?.supported !== true) return 'XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).';
+  if (!result.cluster_table.rows?.length) return 'В результате нет кластеров для экспорта.';
+  return '';
+}
+
+function renderExportState() {
+  if (exportResult !== state.result.data) {
+    exportController?.abort();
+    exportController = null;
+    exportResult = state.result.data;
+    exportStatus = { kind: 'idle', message: '' };
+  }
+  const busy = Boolean(exportController);
+  const blocked = exportBlockedReason();
+  const button = $('btn-export-clustering');
+  // Keep the native button focused while preventing duplicate activation.
+  button.setAttribute('aria-disabled', String(busy || Boolean(blocked)));
+  button.textContent = exportStatus.kind === 'error' && !blocked ? 'Повторить загрузку XLSX' : 'Скачать XLSX';
+  $('export-controls').setAttribute('aria-busy', String(busy));
+  $('btn-cancel-export').classList.toggle('hidden', !busy);
+  const warning = !blocked && isResultStale(state) ? ' Форма изменена: XLSX использует исходные параметры сохранённого результата.' : '';
+  $('export-status').textContent = (exportStatus.message || blocked || 'Полная таблица и строки Pulse сохранённого результата.')
+    + (exportStatus.message && blocked ? ` ${blocked}` : '') + warning;
+  $('export-status').classList.toggle('error', exportStatus.kind === 'error');
+}
+
+function cancelExport() {
+  if (!exportController) return;
+  exportController.abort();
+  exportController = null;
+  exportStatus = { kind: 'idle', message: 'Загрузка отменена.' };
+  renderExportState();
+}
+
+async function downloadExport() {
+  if (exportController || exportBlockedReason()) return;
+  const result = state.result.data;
+  const controller = new AbortController();
+  exportController = controller;
+  exportResult = result;
+  exportStatus = { kind: 'loading', message: 'Подготавливаем XLSX…' };
+  renderExportState();
+  try {
+    const file = await exportClustering({
+      ...result.analysis.frozen_request, data_snapshot: result.data_snapshot,
+      selection_intent: result.analysis.selection_intent, table_sort: { ...state.ui.tableSort },
+    }, { signal: controller.signal });
+    if (controller.signal.aborted || exportController !== controller || state.result.data !== result
+        || exportBlockedReason()) return;
+    const url = URL.createObjectURL(file.blob);
+    const anchor = document.createElement('a');
+    try {
+      anchor.href = url; anchor.download = file.filename;
+      anchor.hidden = true;
+      document.body.append(anchor);
+      anchor.click();
+    } finally {
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    exportStatus = { kind: 'success', message: `Файл ${file.filename} передан браузеру для сохранения.` };
+  } catch (error) {
+    if (controller.signal.aborted || exportController !== controller || state.result.data !== result) return;
+    if (error.code === 'STALE_DATA_SNAPSHOT') rejectDataSnapshot(state, result.data_snapshot);
+    if (error.code === 'RESULT_UNAVAILABLE') rejectUnavailableResult(state, result);
+    exportStatus = { kind: 'error', message: `${error.code || 'Ошибка загрузки'}: ${error.message}${error.requestId ? ` · Запрос: ${error.requestId}` : ''}` };
+    renderAll();
+  } finally {
+    if (exportController === controller) { exportController = null; renderExportState(); }
+  }
 }
 
 function renderClusterTableState() {

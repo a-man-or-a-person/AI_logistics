@@ -74,6 +74,7 @@ function switchView(view) {
   if (!['data', 'clustering'].includes(view)) return;
   state.view = view;
   const clustering = view === 'clustering';
+  if (!clustering) state.clustering?.hide();
   $('workspace').classList.toggle('mode-cluster', clustering);
   $('workspace').classList.toggle('mode-data', !clustering);
   $('data-map-view').classList.toggle('hidden', clustering);

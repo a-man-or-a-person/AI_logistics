@@ -1,0 +1,258 @@
+[
+  {
+    "filename": "product-geography-566943ed5dfb.xlsx",
+    "bytes": 16512,
+    "sha256": "3c1f65da6011f18413860b35b828066dcde19aa947596ea92fa958872d0da98b",
+    "mode": "geography",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "all_origins": true
+    },
+    "sort": {
+      "key": "weighted_route_length",
+      "direction": "asc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geography-566943ed5dfb.xlsx",
+    "bytes": 16513,
+    "sha256": "f21e8cce628a1e6a2a45bee392131d3a655177fda8e5742e6de36e47e3f31bd3",
+    "mode": "geography",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "all_origins": true
+    },
+    "sort": {
+      "key": "weighted_route_length",
+      "direction": "asc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geo_cost-566943ed5dfb.xlsx",
+    "bytes": 16355,
+    "sha256": "27f0fe05fc4a969e48dd8cb49e3d3a1bd2d885b4f7ca4dd967e0561a8858bfef",
+    "mode": "geo_cost",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 65,
+    "unique_ids": 65,
+    "intent": {
+      "all_origins": true
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geo_volume-566943ed5dfb.xlsx",
+    "bytes": 16537,
+    "sha256": "ff3d10bddb77276337fd84eaae9a5c821dadde621313c3ad53fddcaf472c2fb2",
+    "mode": "geo_volume",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "all_origins": true
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geography-566943ed5dfb.xlsx",
+    "bytes": 16516,
+    "sha256": "b60df38347ef631c447686dde78370131c45a8dcc4aa35ab1d7b033962af9dd2",
+    "mode": "geography",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "all_origins": true
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geo_cost-566943ed5dfb.xlsx",
+    "bytes": 16353,
+    "sha256": "4ccba2595e49daeff4920b671699283a7984acb0feebb11329934d8c9d638ce8",
+    "mode": "geo_cost",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 65,
+    "unique_ids": 65,
+    "intent": {
+      "all_origins": true
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geography-566943ed5dfb.xlsx",
+    "bytes": 16510,
+    "sha256": "8f4c3524fc68f64f30a206850890107b6bece8ed2c6abb8a0b4a064ba6760a27",
+    "mode": "geography",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "origin_fiases": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geography-566943ed5dfb.xlsx",
+    "bytes": 16510,
+    "sha256": "ea37bec89a1e279ad315d560ab3b4f561d6fe3d2ffad9a63ab73aeb304672ef4",
+    "mode": "geography",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "origin_fiases": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geo_volume-131e1f7fd377.xlsx",
+    "bytes": 16528,
+    "sha256": "db78d9e4f983abb6983ad715cb954c09ae829275212f30b0dd40b52704ce8a79",
+    "mode": "geo_volume",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "origin_fiases": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  },
+  {
+    "filename": "product-geo_volume-a386e9f28675.xlsx",
+    "bytes": 16530,
+    "sha256": "71f0836efddce92a38b58313fe29fdeb516a6e13affa1e255a5fae3a392c55c4",
+    "mode": "geo_volume",
+    "sheets": [
+      "Кластеры",
+      "1 Origin Region → Кластер 1",
+      "2 Регион погрузки не определён ",
+      "3 B Region → Кластер 1",
+      "4 Origin Region → Кластер 2",
+      "Контекст"
+    ],
+    "rows": 67,
+    "unique_ids": 67,
+    "intent": {
+      "origin_fiases": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    "sort": {
+      "key": "trip_count",
+      "direction": "desc"
+    },
+    "independent_reopen": "PASS: ZIP CRC/XML values/types, exact table headers/order, membership, frozen context, no formulas/macros/external links"
+  }
+]

@@ -106,6 +106,11 @@
         <div id="result-status" class="result-state hidden"></div>
         <section class="result-hero"><div><span class="eyebrow">Метод</span><h3 id="result-title">—</h3><p id="result-subtitle">—</p></div><div class="hero-counts"><strong id="result-total-trips">—</strong><span id="result-outliers"></span></div></section>
         <section id="result-context" class="result-context"></section>
+        <section id="export-controls" class="inspector-section" aria-label="Скачать таблицу">
+          <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status">Скачать XLSX</button>
+          <button id="btn-cancel-export" class="text-button hidden" type="button">Отменить загрузку</button>
+          <p id="export-status" class="cluster-table-state" role="status" aria-live="polite"></p>
+        </section>
         <section id="result-warnings" class="result-warnings hidden" aria-live="polite"></section>
         <section id="result-quality" class="inspector-section"></section>
         <section id="result-metrics" class="inspector-section"></section>
