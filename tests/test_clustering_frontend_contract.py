@@ -284,8 +284,6 @@ def _product_workspace_script(actions: str) -> str:
       function hoverCluster() {{}}
       function setClusteringLayers() {{}}
       function focusClusteringPoint() {{}}
-      function highlightCluster() {{}}
-      function renderClusterTable() {{}}
       {''.join(modules)}
       (async () => {{
         const workspace = await initClustering();
@@ -1753,8 +1751,6 @@ def test_cached_comparison_switches_the_active_product_result_without_recalculat
       function clearClusteringResult() {{}}
       function focusClusteringPoint() {{}}
       function highlightCluster() {{}}
-      function renderClusterTable() {{}}
-      function highlightCluster() {{}}
       function hoverCluster() {{}}
       function setClusteringLayers() {{}}
       function readChecks() {{ return []; }}
@@ -2154,7 +2150,7 @@ def test_drill_up_origin_returns_to_point_without_requests_or_context_changes():
       workspace.getState().ui.tableOpen=false;
       const before=requests.length;
       const up=document.querySelector('[data-point-summary]');
-      if(!up) {document.body.dataset.result=JSON.stringify({error:'Missing return to point summary'}); return;}
+      if(!up || !up.textContent.includes('К сводке точки')) {document.body.dataset.result=JSON.stringify({error:'Missing return to point summary'}); return;}
       up.focus(); up.click(); await pause();
       const ui=workspace.getState().ui;
       document.body.dataset.result=JSON.stringify({point:ui.selectedPoint,origin:ui.selectedOrigin,
@@ -2227,3 +2223,44 @@ def test_drill_up_point_restores_parent_focus_and_reuses_frozen_origin_pages():
         frozen:workspace.getState().result.data.analysis.frozen_request.period_types});
     """)) == {'parentFocus':'x','atParent':[0,None,None],'requestFree':True,
                'origin':'b','stale':True,'frozen':['current']}
+
+
+def test_drill_up_pooled_rows_keeps_summary_focus_after_cancelled_response():
+    assert _run_browser_script(_drill_workspace_script("""
+      await choose('b'); const region=document.getElementById('cluster-region'); region.value='R';
+      region.dispatchEvent(new Event('change',{bubbles:true})); await pause();
+      document.getElementById('btn-run-clustering').click(); await pause();
+      window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}})); await pause();
+      holdRows=true;
+      document.querySelector('.pulse-details summary').focus();
+      document.querySelector('.pulse-details summary').click();
+      const loadingFocus=document.activeElement.matches('.pulse-details summary');
+      document.querySelector('[data-point-summary]').click();
+      holdRows=false; heldRows.forEach(resolve=>resolve()); await pause();
+      document.body.dataset.result=JSON.stringify({loadingFocus,
+        parentFocus:document.activeElement.matches('.pulse-details summary'),
+        closed:!document.querySelector('.pulse-details').open,
+        point:workspace.getState().ui.selectedPoint,
+        rowRequests:requests.filter(r=>r.path==='point-rows').length});
+    """)) == {'loadingFocus':True,'parentFocus':True,'closed':True,'point':'x','rowRequests':1}
+
+
+def test_drill_up_preserves_bottom_table_scroll_and_selection():
+    script=_drill_workspace_script("""
+      const css=document.createElement('style'); css.textContent='.cluster-table-scroll{width:100px;height:40px;overflow:auto}.cluster-table-scroll table{min-width:900px}'; document.head.append(css);
+      await choose('b'); const region=document.getElementById('cluster-region');region.value='R';
+      region.dispatchEvent(new Event('change',{bubbles:true}));await pause();
+      document.getElementById('btn-run-clustering').click();await pause();
+      const scroll=document.querySelector('.cluster-table-scroll');scroll.scrollLeft=75;scroll.scrollTop=10;
+      const position=[scroll.scrollLeft,scroll.scrollTop];
+      window.dispatchEvent(new CustomEvent('clustering-point-select',{detail:{pointId:'x'}}));await pause();
+      document.getElementById('point-details-close').click();
+      const after=document.querySelector('.cluster-table-scroll');
+      document.body.dataset.result=JSON.stringify({position,after:[after.scrollLeft,after.scrollTop],
+        selected:document.querySelector('#cluster-table-panel tr[data-cluster-id="0"]').classList.contains('selected')});
+    """).replace('cluster_table: {supported: true, rows: []}',
+      'cluster_table: {supported:true,rows:[{cluster_id:0,point_count:1,trip_count:40},{cluster_id:1,point_count:1,trip_count:10}]}')
+    actual=_run_browser_script(script)
+    assert actual['position'][0] == 75
+    assert actual['after'] == actual['position']
+    assert actual['selected'] is True

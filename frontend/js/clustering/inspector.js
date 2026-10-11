@@ -207,19 +207,19 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
           : '';
   const pulseDetails = tableMode || handlers.selectedOrigin ? `<details class="pulse-details" ${pulse.open ? 'open' : ''}>
     <summary>Исходные строки Pulse${pulse.total == null ? '' : ` (${fmt(pulse.total)})`}</summary>
-    ${!handlers.selectedOrigin ? '<button type="button" class="back-button" data-point-summary>? ? ?????? ?????</button>' : ''}
+    ${!handlers.selectedOrigin ? '<button type="button" class="back-button" data-point-summary>← К сводке точки</button>' : ''}
     ${pulseState}
     ${handlers.selectedOrigin ? `<p>Отправление: ${escapeHtml(handlers.selectedOrigin)} → ${escapeHtml(point.fias_id || point.id)} · Источник: Pulse</p>` : ''}
     ${pulseRows ? `<div class="pulse-table"><table><thead><tr><th>Отправление / FIAS</th><th>Регион погрузки из строки</th><th>Период</th><th>Тип периода</th><th>Тип цены</th><th>Транспорт</th><th>Тоннаж</th><th>Цена</th><th>Маршрут</th><th>₽/км</th><th>Машины</th><th>Предупреждения</th></tr></thead><tbody>${pulseRows}</tbody></table></div>` : ''}
     ${pulse.hasMore && pulse.status !== 'loading' ? '<button type="button" data-pulse-more>Показать ещё</button>' : ''}
   </details>` : '';
   $('point-details').innerHTML = `
-    <div class="section-row"><h4>Точка назначения</h4><button id="point-details-close" class="back-button" type="button">Закрыть</button></div>
+    <div class="section-row"><h4>Точка назначения</h4><button id="point-details-close" class="back-button" type="button">${point.cluster_id == null ? '← К обзору' : '← К кластеру'}</button></div>
     <h3>${escapeHtml(point.name)}</h3>
     <dl class="point-facts">
       <div><dt>FIAS</dt><dd>${escapeHtml(point.fias_id || point.id)}</dd></div>
       <div><dt>Статус</dt><dd>${escapeHtml(statuses[point.status] || point.status)}</dd></div>
-      <div><dt>Кластер</dt><dd>${point.cluster_id == null ? '—' : Number(point.cluster_id) + 1}</dd></div>
+      <div><dt>Кластер</dt><dd>${point.cluster_id == null ? 'Вне кластеров' : Number(point.cluster_id) + 1}</dd></div>
       <div><dt>${tableMode ? 'Машины' : 'Перевозки'}</dt><dd>${fmt(point.trip_count)}</dd></div>
       ${tableMode ? `<div><dt>Маршрут</dt><dd>${km(point.weighted_route_length)}</dd></div>` : ''}
       ${tableMode ? `<div><dt>Периоды</dt><dd>${periodTypes.map(value => escapeHtml(value === 'forecast' ? 'Прогноз Pulse' : PERIOD_LABELS[value] || value)).join(', ') || '—'}</dd></div>` : ''}
@@ -227,7 +227,7 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
       ${economics}
       ${volume}
     </dl>
-    ${handlers.selectedOrigin ? '<button type="button" class="back-button" data-point-summary>? ? ?????? ?????</button>' : ''}
+    ${handlers.selectedOrigin ? '<button type="button" class="back-button" data-point-summary>← К сводке точки</button>' : ''}
     ${originSummary(handlers)}
     ${pulseDetails}`;
   document.getElementById('point-details-close').addEventListener('click', () => handlers.onPointClear?.());

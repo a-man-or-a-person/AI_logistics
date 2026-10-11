@@ -608,7 +608,9 @@ function renderEmptyState() {
 }
 
 function renderInspectorState() {
-  const focusedOrigin = globalThis.document?.activeElement?.dataset.originFias;
+  const focused = globalThis.document?.activeElement;
+  const focusedOrigin = focused?.dataset.originFias;
+  const focusedPulse = focused?.matches?.('.pulse-details summary');
   renderInspector(state, {
     pointRowsKey,
     pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
@@ -656,6 +658,7 @@ function renderInspectorState() {
     onPulseMore: () => loadPointRows(),
     onPulseRetry: () => loadPointRows(),
   });
+  if (focusedPulse) document.querySelector('.pulse-details summary')?.focus({preventScroll: true});
   if (focusedOrigin) {
     [...document.querySelectorAll('[data-origin-fias]')]
       .find(button => button.dataset.originFias === focusedOrigin)?.focus({preventScroll: true});

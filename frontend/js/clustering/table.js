@@ -96,6 +96,9 @@ function methodologyHtml(result) {
 
 export function renderClusterTable(state, handlers = {}) {
   const panel = $('cluster-table-panel');
+  const scroll = panel.querySelector('.cluster-table-scroll');
+  const scrollLeft = scroll?.scrollLeft || 0;
+  const scrollTop = scroll?.scrollTop || 0;
   const result = state.result.data;
   const table = result?.cluster_table;
   const supported = table?.supported === true && state.ui.tableVisible !== false;
@@ -146,6 +149,9 @@ export function renderClusterTable(state, handlers = {}) {
   panel.querySelectorAll('.cluster-table-content, .cluster-table-scroll').forEach(container => {
     container.addEventListener('scroll', hideHelp);
   });
+
+  const nextScroll = panel.querySelector('.cluster-table-scroll');
+  if (nextScroll) { nextScroll.scrollLeft = scrollLeft; nextScroll.scrollTop = scrollTop; }
 
   panel.querySelectorAll('[data-sort-key]').forEach(button => {
     const active = button.dataset.sortKey === sort.key;
