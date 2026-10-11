@@ -167,14 +167,14 @@ async function searchOrigins(query) {
       <strong>${escapeText(origin.name)}</strong><small>${escapeText(origin.region)} · ${escapeText(origin.fias_id)}</small>
     </button>`).join('');
   document.querySelectorAll('[data-origin-index]').forEach(button => button.addEventListener('click', () => chooseOrigin(originOptions[Number(button.dataset.originIndex)])));
+  return true;
 }
 
 function onOriginInput() {
   ++originSearchVersion;
   clearTimeout(originTimer);
   originTimer = setTimeout(async () => {
-    await searchOrigins($('cluster-origin').value.trim());
-    showOriginOptions();
+    if (await searchOrigins($('cluster-origin').value.trim())) showOriginOptions();
   }, 220);
 }
 
@@ -193,6 +193,8 @@ function showOriginOptions() {
 }
 
 function hideOriginOptions() {
+  ++originSearchVersion;
+  clearTimeout(originTimer);
   $('cluster-origin-options').classList.add('hidden');
   $('cluster-origin').setAttribute('aria-expanded', 'false');
 }

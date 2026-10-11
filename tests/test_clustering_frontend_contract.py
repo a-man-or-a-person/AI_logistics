@@ -195,14 +195,16 @@ def _product_workspace_script(actions: str) -> str:
         defaults: {{mode: 'geography', period_types: ['current'], price_types: ['spot']}},
         destination_regions: ['R'], period_types: ['current', 'retro'],
         price_types: ['spot', 'tender'], vehicle_types: [], tonnage_ids: []}};
-      let failRun = false, failSearch = false, failRows = false, holdOptions = false;
+      let failRun = false, failSearch = false, failRows = false, holdOptions = false, holdSearch = false;
       const heldOptions = [];
+      const heldSearch = [];
       let originRegions = null;
       globalThis.fetch = async (url, init = {{}}) => {{
         const path = String(url).split('/api/clustering/')[1];
         const payload = init.body ? JSON.parse(init.body) : null;
         requests.push({{path, payload}});
         if (holdOptions && path.startsWith('options')) await new Promise(resolve => heldOptions.push(resolve));
+        if (holdSearch && path.startsWith('origins')) await new Promise(resolve => heldSearch.push(resolve));
         let data = options, status = 200;
         if (originRegions && path.startsWith('options?')) {{
           const params = new URLSearchParams(path.split('?')[1]);
@@ -410,6 +412,25 @@ def test_removing_last_origin_serving_region_refreshes_available_destination_reg
         enabled: !region.disabled});
     """))
     assert actual == {"region": "", "available": ["", "S"], "selected": ["b"], "error": False, "enabled": True}
+
+
+def test_late_origin_search_cannot_reopen_popup_after_selection_or_escape():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('b');
+      input.focus(); holdSearch = true;
+      input.value = 'Alpha'; input.dispatchEvent(new Event('input', {bubbles: true})); await pause();
+      document.querySelector('[data-origin-index="1"]').click(); await pause();
+      const afterChoice = document.getElementById('cluster-origin-options').classList.contains('hidden');
+      heldSearch.splice(0).forEach(resolve => resolve()); await pause();
+      const afterLateChoice = document.getElementById('cluster-origin-options').classList.contains('hidden');
+      input.value = 'Beta'; input.dispatchEvent(new Event('input', {bubbles: true})); await pause();
+      input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
+      heldSearch.splice(0).forEach(resolve => resolve()); await pause();
+      document.body.dataset.result = JSON.stringify({afterChoice, afterLateChoice,
+        afterEscape: document.getElementById('cluster-origin-options').classList.contains('hidden'),
+        selected: document.querySelectorAll('[data-remove-origin]').length});
+    """))
+    assert actual == {"afterChoice": True, "afterLateChoice": True, "afterEscape": True, "selected": 2}
 
 
 @pytest.fixture(scope="module")
@@ -1624,7 +1645,7 @@ def test_cancelled_calculation_cannot_replace_new_context(late_kind, late_error,
       globalThis.document = {{getElementById: id => {{
         if (!elements.has(id)) elements.set(id, {{disabled: false, value: '', textContent: '',
           classList: {{add() {{}}, remove() {{}}, toggle() {{}}}},
-          replaceChildren() {{}}, querySelector() {{return this;}}}});
+              setAttribute() {{}}, replaceChildren() {{}}, querySelector() {{return this;}}}});
         return elements.get(id);
       }}}};
       globalThis.Option = class {{}};
