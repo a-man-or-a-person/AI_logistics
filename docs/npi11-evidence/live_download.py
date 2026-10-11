@@ -8,6 +8,7 @@ import tempfile
 import threading
 from pathlib import Path
 
+from flask import request
 from werkzeug.serving import make_server
 
 root = Path(__file__).resolve().parents[2]
@@ -45,6 +46,15 @@ with tempfile.TemporaryDirectory(dir=runtime) as directory:
         return output
 
     service_module.write_workbook = controlled_writer
+
+    @app.after_request
+    def attachment_checksum(response):
+        if request.path == '/api/clustering/export' and response.status_code == 200:
+            attachment = response.response.file
+            position = attachment.tell()
+            response.headers['X-Fixture-SHA256'] = hashlib.file_digest(attachment, 'sha256').hexdigest()
+            attachment.seek(position)
+        return response
 
     @app.post('/fixture/fail/<kind>')
     def fail(kind):

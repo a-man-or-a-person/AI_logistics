@@ -43,7 +43,18 @@ UI включает explicit «Все отправления»: сначала �
 Снятие All возвращает ручной выбор и доступные ему регионы. Point origin summary
 показывается отдельно в inspector; выбор origin открывает frozen origin→point rows.
 Summary и rows имеют loading/error/retry и typed recalculation recovery. Form edits
-не меняют их контекст. Нижняя таблица сохраняется. Export отсутствует.
+не меняют их контекст. Нижняя таблица сохраняется. Inspector позволяет скачать XLSX
+сохранённой таблицы Geography/Geo+Cost/Geo+Volume, в том числе свёрнутой.
+
+Кнопка «Скачать XLSX» находится после контекста результата. Она использует saved
+frozen request/snapshot/selection intent и текущую сортировку таблицы. Изменение формы
+разрешает export прежнего контекста с предупреждением. Подготовка, отмена, передача файла
+браузеру, ошибка и повторная загрузка видимы; retry не вызывает clustering. Пустая таблица,
+Bear и rejected/unavailable result имеют явное объяснение и недоступный export.
+После source conflict/cache loss нужен успешный явный пересчёт, прежний display сохранён.
+Новый Calculate/Compare, cached mode activation, reset, выход из Product и pagehide
+отменяют pending export; поздний ответ не скачивает старый файл. Point/cluster drill-up
+внутри того же saved result сохраняет контекст download, table sort/map/selection.
 
 Frontend-метод `runClusteringComparison()` выполняет один запрос к `/compare`.
 Перед frontend cache reuse при новом Calculate/Compare revision check подтверждает

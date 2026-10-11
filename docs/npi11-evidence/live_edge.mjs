@@ -22,7 +22,7 @@ const waitFor=async expression=>{for(let i=0;i<120;i++){if(await evaluate(expres
 const click=async selector=>{
   await evaluate(`document.querySelector(${JSON.stringify(selector)}).scrollIntoView({block:'center',behavior:'instant'})`);
   await pause(100);
-  const p=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:(Math.max(60,r.top)+Math.min(innerHeight,r.bottom))/2}})()`);
+  const p=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.bottom<=60?r.y+r.height/2:(Math.max(60,r.top)+Math.min(innerHeight,r.bottom))/2}})()`);
   console.log('click '+selector+' '+JSON.stringify(p)+' hit '+await evaluate(`document.elementFromPoint(${p.x},${p.y})?.outerHTML.slice(0,200)`));
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',...p});
   await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...p});
@@ -72,9 +72,9 @@ try{
       if(response){try{
         const b=await send('Network.getResponseBody',{requestId:response.id});
         if(response.mimeType==='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
-          response.sha256=createHash('sha256').update(Buffer.from(b.body,b.base64Encoded?'base64':'utf8')).digest('hex');
+          response.bodyUnavailable=b.body.length===0;
         }else response.body=JSON.parse(b.body);
-      }catch{}}
+      }catch(error){response.bodyError=String(error);}}
     }
     if(r.method==='Browser.downloadWillBegin') downloads.push({...r.params,...expected});
     if(r.method==='Browser.downloadProgress'&&r.params.state==='completed')finished.add(r.params.guid);
@@ -148,10 +148,12 @@ try{
   await run();saved=last('run');await fixture('restart');await click('#btn-export-clustering');await waitFor("document.getElementById('export-status').textContent.includes('RESULT_UNAVAILABLE')");await record('10-restart-unavailable');
   await run();saved=last('run');await download(false,true);await record('11-restart-recovery');
   await pause(400);
+  await writeFile(new URL('network.json',root),JSON.stringify({requests,responses,downloads},null,2));
+  await writeFile(new URL('live-observations.json',root),JSON.stringify(evidence,null,2));
   for(const file of downloads){
     const data=await readFile(process.env.NPI11_DOWNLOADS+'/'+file.guid);
     const sha=createHash('sha256').update(data).digest('hex');
-    assert.ok(responses.some(r=>r.sha256===sha),'download must equal exact HTTP binary');
+    assert.ok(responses.some(r=>Object.entries(r.headers).some(([key,value])=>key.toLowerCase()==='x-fixture-sha256'&&value===sha)), 'download must equal server attachment bytes');
   }
   await writeFile(new URL('network.json',root),JSON.stringify({requests,responses,downloads},null,2));
   await writeFile(new URL('live-observations.json',root),JSON.stringify(evidence,null,2));

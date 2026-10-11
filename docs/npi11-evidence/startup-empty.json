@@ -1,0 +1,10 @@
+{
+  "startup_Node_Edge": "PASS",
+  "empty_saved_table": {
+    "disabled": "true",
+    "explanation": "В результате нет кластеров для экспорта.",
+    "exports": 0,
+    "runs": 1,
+    "focus": "btn-export-clustering"
+  }
+}

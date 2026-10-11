@@ -145,6 +145,7 @@ def test_unchanged_recalculation_recovers_after_real_snapshot_conflict(table_ser
       const elements = new Map();
       globalThis.document = {{getElementById: id => {{
         if (!elements.has(id)) elements.set(id, {{textContent: '', disabled: false,
+            setAttribute() {{}},
           classList: {{add() {{}}, remove() {{}}, toggle() {{}}}}, querySelector() {{return this;}}}});
         return elements.get(id);
       }}}};

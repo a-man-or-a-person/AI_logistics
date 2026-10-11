@@ -173,7 +173,7 @@ Zero-match origins остаются в analysis.origin_coverage, не созда
 Summary и detail используют общий frozen-row доступ, точную saved membership и
 typed errors; нет All expansion или rerun. Inspector показывает summary отдельно,
 origin buttons доступны клавиатурой и открывают lazy50 rows с source attribution.
-XLSX доступен через backend API ниже; кнопка download относится к NPI-11.
+XLSX доступен через backend API ниже и inspector download control NPI-11.
 
 Нормальные result states: `success`, `no_bears`. Нарушение связности не выдаётся
 как успешный результат, а возвращает typed error `CONNECTIVITY_VIOLATION`.
@@ -268,7 +268,7 @@ All нужно передавать как уже разрешённый frozen 
 backend принимает только provenance, уже наблюдавшийся для этого exact результата.
 Это сохраняет оба намерения после shared cache reuse All/explicit. Без него
 допускается только единственное наблюдавшееся намерение. Когда cache видел оба,
-отсутствие intent возвращает INVALID_REQUEST400; NPI-11 должен передавать intent явно.
+отсутствие intent возвращает INVALID_REQUEST400; frontend всегда передаёт saved intent явно.
 
 Sort key — любой существующий столбец таблицы: `cluster_id`, `point_count`,
 `trip_count`, `trip_share`, `weighted_route_length`, `price.min/median/weighted/max`,
@@ -300,3 +300,12 @@ empty table `NO_DATA`422; missing/incomplete/duplicate rows or membership confli
 `EXPORT_INCONSISTENT_DATA`409; operational failure `EXPORT_FAILED`500.
 Успех: XLSX MIME, `.xlsx` attachment, `X-Request-ID`, `Cache-Control: no-store`,
 `X-Content-Type-Options: nosniff`. Ошибки не содержат private paths/source dumps.
+
+CURRENT NPI-11: отдельный binary-aware transport отправляет JSON с `cache: no-store`,
+проверяет XLSX MIME/attachment и ZIP boundary records, возвращает полные response bytes.
+Typed JSON code/message/request ID сохранены; network/30s timeout/cancellation не дают
+successful download. Безопасное имя attachment, временный anchor и object URL очищаются.
+UI не выполняет workbook calculations; filename/status не вставляются как HTML.
+Кнопка native keyboard-operable; `aria-disabled` и handler guard предотвращают duplicate
+submission, сохраняя focus, `aria-busy` и live region показывают состояние. Success означает
+передачу файла браузеру, не подтверждение записи пользователем или открытия в Excel.

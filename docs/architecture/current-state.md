@@ -32,7 +32,8 @@ NPI-10 добавляет `POST /api/clustering/export`: ClusteringService на�
 result, использует общий frozen-point row access и serializer с detail API, а
 `xlsx_export.py` записывает saved table и direction rows в disk-backed XLSX.
 Serializer не рассчитывает экономику и не вызывает clustering. Generation validation
-заканчивается перед HTTP attachment; download UI остаётся отдельным NPI-11.
+заканчивается перед HTTP attachment. NPI-11 добавляет binary-aware frontend transport
+и inspector download control; backend остаётся единственным генератором workbook.
 
 ```mermaid
 flowchart TD
@@ -135,7 +136,9 @@ set и saved membership, без повторного All resolution. UI вклю
 с выбором региона доставки и раскрываемым полным saved набором. Point origin summary
 использует тот же frozen-row доступ и существующую valid-weight агрегацию; cluster
 attribution берётся из saved point. Inspector выбирает origin и загружает только его
-строки, с отдельными result/point/origin cache keys. Export остаётся будущей возможностью.
+строки, с отдельными result/point/origin cache keys. XLSX download использует exact
+saved result/intent/current sort и существующие generation/result rejection helpers;
+не вызывает run/compare и не раскрывает All повторно.
 
 ## Границы контуров
 

@@ -2004,6 +2004,7 @@ def test_cached_comparison_switches_the_active_product_result_without_recalculat
       const elements = new Map();
       const element = id => elements.get(id) || elements.set(id, {{
         textContent: '',
+          setAttribute() {{}},
         classList: {{toggle() {{}}, add() {{}}, remove() {{}}}},
       }}).get(id);
       globalThis.document = {{getElementById: element}};
