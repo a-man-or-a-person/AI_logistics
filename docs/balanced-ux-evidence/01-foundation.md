@@ -33,6 +33,13 @@ corrections. Mandatory Quality workflow remains unchanged.
   rendered contrast regression checks light/dark toast and action/text pairs >=4.5.
 - Independent reviewer reproduced faded facet count contrast (~3.27:1) and nested
   Pulse small text below 13px; final probes confirmed 13px/opacity 1 in both themes.
+- First hosted Quality run `38387303328` at `14b81dbc` passed all 136 existing
+  frontend cases/zero-skipped gate, but the two new resize oracles read 13px
+  immediately after root mutation instead of 26px. Other 457 Python cases passed.
+  Recovery candidate synchronizes measurement with two animation frames, preserves
+  the 26px assertion and adds explicit root 16px/32px assertions. Production CSS
+  remains the independently reviewed candidate; hosted recovery evidence is
+  recorded in the later PR supplement rather than assumed from local success.
 
 ## Live functional evidence
 
