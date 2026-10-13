@@ -10,7 +10,10 @@ from test_clustering_frontend_contract import _read, _run_browser_script
 def test_product_essential_values_and_actions_are_readable(theme):
     actual = _run_browser_script(f"""
       (async () => {{
-      document.head.insertAdjacentHTML('beforeend', '<style>' + {json.dumps(_read('frontend/css/style.css'))} + '</style>');
+      const sheet=document.createElement('style');
+      const loaded=new Promise(resolve=>{{sheet.onload=resolve;sheet.onerror=resolve;}});
+      sheet.textContent={json.dumps(_read('frontend/css/style.css'))};document.head.append(sheet);
+      await loaded;
       if ({json.dumps(theme)} === 'dark') document.documentElement.dataset.theme = 'dark';
       document.body.innerHTML = `<main class="workspace mode-cluster">
         <aside class="control-panel"><form id="clustering-controls"><p class="field-hint">Hint</p>
@@ -19,6 +22,8 @@ def test_product_essential_values_and_actions_are_readable(theme):
           <table><tbody><tr><th>Cluster 1</th><td>200 ₽</td></tr></tbody></table></section></div>
         <aside class="analysis-inspector"><div class="pulse-table"><table><tbody><tr><td>10 км <small>FIAS</small></td></tr></tbody></table></div></aside>
       </main><div id="toast" class="show toast-error">Error</div>`;
+      document.body.getBoundingClientRect();
+      await document.fonts.ready;
       const style = selector => getComputedStyle(document.querySelector(selector));
       const luminance = color => {{
         const values = color.match(/[\\d.]+/g).slice(0, 3).map(v => Number(v) / 255)
@@ -38,7 +43,9 @@ def test_product_essential_values_and_actions_are_readable(theme):
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       document.body.dataset.result=JSON.stringify({{...before,
         resizedRoot:getComputedStyle(document.documentElement).fontSize,
-        resizedTable:style('td').fontSize}});
+        resizedTable:style('td').fontSize,
+        resizedFontChain:['body','main','table','tbody','tr','td'].map(selector=>[selector,style(selector).fontSize]),
+        browser:navigator.userAgent, compat:document.compatMode, fonts:document.fonts.status}});
       }})();
     """)
     assert actual['table'] == actual['pulse'] == '13px'
@@ -50,4 +57,4 @@ def test_product_essential_values_and_actions_are_readable(theme):
     assert actual['errorContrast'] >= 4.5
     assert actual['rootFont'] == '16px'
     assert actual['resizedRoot'] == '32px'
-    assert actual['resizedTable'] == '26px'
+    assert actual['resizedTable'] == '26px', actual

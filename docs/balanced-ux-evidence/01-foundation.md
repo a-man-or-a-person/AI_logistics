@@ -40,6 +40,13 @@ corrections. Mandatory Quality workflow remains unchanged.
   the 26px assertion and adds explicit root 16px/32px assertions. Production CSS
   remains the independently reviewed candidate; hosted recovery evidence is
   recorded in the later PR supplement rather than assumed from local success.
+- Rerun `38388863949` at `6773700ce60c35f587670e754328e755ff1627f7` again passed
+  136 frontend cases and 457 Python cases but failed both resize assertions;
+  root32 assertions passed. Waiting animation frames alone was insufficient.
+  The next test setup waits for inserted stylesheet completion and font readiness
+  before initial measurement, preserving 13/26px assertions and capturing the
+  font-size chain/UA if failure persists. A controlled empty delayed import did
+  not reproduce the hosted symptom locally; no production defect is inferred.
 
 ## Live functional evidence
 
