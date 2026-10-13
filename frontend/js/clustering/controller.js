@@ -30,6 +30,7 @@ let activePanel;
 let panelFocusReturn;
 let panelBackground = [];
 let panelFocusOwner;
+let invalidField;
 let exportController;
 let exportResult;
 let exportStatus = { kind: 'idle', message: '' };
@@ -249,6 +250,7 @@ function wirePanelPresentation() {
 }
 
 function syncForm(event) {
+  if (invalidField?.contains(event.target)) clearFormValidation();
   const form = state.form;
   form.periodTypes = readChecks('cluster-periods');
   form.priceTypes = readChecks('cluster-prices');
@@ -347,6 +349,7 @@ function renderOrigins() {
 }
 
 async function loadContextOptions({originsChanged = false} = {}) {
+  clearFormValidation();
   const version = ++optionsVersion;
   const origins = state.form.origins.map(origin => origin.fias_id);
   const all = state.form.allOrigins;
@@ -418,15 +421,15 @@ function clearOrigin() {
 }
 
 function validate(request) {
-  if (!request.all_origins && !request.origin_fias && !request.origin_fiases?.length) return 'Выберите хотя бы одно отправление из списка.';
-  if (!request.destination_region) return 'Выберите один регион доставки.';
-  if (!request.period_types.length) return 'Выберите хотя бы один период.';
-  if (!request.price_types.length) return 'Выберите хотя бы один тип цены.';
+  if (!request.all_origins && !request.origin_fias && !request.origin_fiases?.length) return {message: 'Выберите хотя бы одно отправление из списка.', field: 'cluster-origin'};
+  if (!request.destination_region) return {message: 'Выберите один регион доставки.', field: 'cluster-region'};
+  if (!request.period_types.length) return {message: 'Выберите хотя бы один период.', field: 'cluster-periods'};
+  if (!request.price_types.length) return {message: 'Выберите хотя бы один тип цены.', field: 'cluster-prices'};
   const capability = modeParameter(state.modeCapabilities, request.mode, 'n_clusters');
   if (capability && request.parameters.k_mode === 'manual') {
     const min = capability?.min;
     const max = capability?.max;
-    if (!Number.isInteger(request.parameters.n_clusters) || request.parameters.n_clusters < min || request.parameters.n_clusters > max) return `K должен быть от ${min} до ${max}.`;
+    if (!Number.isInteger(request.parameters.n_clusters) || request.parameters.n_clusters < min || request.parameters.n_clusters > max) return {message: `K должен быть от ${min} до ${max}.`, field: 'manual-k'};
   }
   return null;
 }
@@ -448,7 +451,7 @@ async function executeRun() {
   cancelPointDetailRequests();
   const request = buildRequest(state.form);
   const error = validate(request);
-  if (error) return showFormError(error);
+  if (error) return showFormError(error.message, error.field);
   cancelExport();
   cancelCalculation();
   $('analysis-form-error').classList.add('hidden');
@@ -526,6 +529,7 @@ async function validateCachedResults(candidates, controller) {
 }
 
 function reset() {
+  clearFormValidation();
   cancelExport();
   cancelCalculation();
   cancelPointDetailRequests();
@@ -590,7 +594,7 @@ async function runComparison() {
   cancelPointDetailRequests();
   const dataset = datasetSnapshot(state.form);
   const error = validate(buildRequest(state.form));
-  if (error) return showFormError(error);
+  if (error) return showFormError(error.message, error.field);
   cancelExport();
   cancelCalculation();
   const controller = new AbortController();
@@ -1008,9 +1012,33 @@ function renderComparisonState() {
   });
 }
 
-function showFormError(message) {
+function clearFormValidation() {
+  if (!invalidField) return;
+  const input = invalidField.querySelector('input') || invalidField;
+  input.removeAttribute('aria-invalid');
+  input.removeAttribute('aria-describedby');
+  invalidField = null;
+  $('analysis-form-error').classList.add('hidden');
+  $('clustering-controls').append($('analysis-form-error'));
+}
+
+function showFormError(message, field) {
+  clearFormValidation();
   $('analysis-form-error').textContent = message;
   $('analysis-form-error').classList.remove('hidden');
+  if (field) {
+    if (state.comparison.open) closeComparison(false);
+    openPanel($('sidebar'), $('mobile-controls-btn'));
+    const group = $(field);
+    invalidField = group;
+    const section = group.closest('details.form-section');
+    if (section) section.open = true;
+    group.after($('analysis-form-error'));
+    const input = group.querySelector('input') || group;
+    input.setAttribute('aria-invalid', 'true');
+    input.setAttribute('aria-describedby', 'analysis-form-error');
+    input.focus();
+  }
 }
 
 function escapeText(value) {

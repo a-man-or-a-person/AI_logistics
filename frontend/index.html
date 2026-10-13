@@ -33,8 +33,8 @@
       </div>
 
       <form id="clustering-controls" class="controls-view" novalidate>
-        <section class="form-section">
-          <h2><span>01</span> Направление</h2>
+        <details id="direction-section" class="form-section" open>
+          <summary><h2><span>01</span> Направление</h2></summary>
           <label for="cluster-origin">Откуда</label>
           <label class="all-origins-control"><input id="all-origins" type="checkbox" aria-describedby="all-origins-hint"> Все отправления</label>
           <p id="all-origins-hint" class="field-hint">Все отправления в выбранный регион доставки. Снимите отметку для ручного выбора.</p>
@@ -44,25 +44,25 @@
           <label for="cluster-region">Регион доставки</label>
           <select id="cluster-region" disabled required><option value="">Сначала выберите точку отправления</option></select>
           <p id="options-status" class="field-hint options-status hidden" role="status" aria-live="polite"></p>
-        </section>
+        </details>
 
-        <section class="form-section">
-          <h2><span>02</span> Сегмент данных</h2>
+        <details id="segment-section" class="form-section">
+          <summary><h2><span>02</span> Сегмент</h2><span id="filter-summary" class="section-caption">Текущий · Спот · Все кузова · Все тоннажи</span></summary>
           <fieldset><legend>Период</legend><div id="cluster-periods" class="check-grid"></div></fieldset>
           <fieldset><legend>Тип цены</legend><div id="cluster-prices" class="check-grid"></div></fieldset>
           <details class="multi-select"><summary><span>Тип кузова</span><strong id="vehicle-count">Все</strong></summary><input class="option-search" data-filter-options="cluster-vehicles" type="search" placeholder="Найти тип кузова…"><div id="cluster-vehicles" class="check-list"></div></details>
           <details class="multi-select"><summary><span>Тоннаж</span><strong id="tonnage-count">Все</strong></summary><input class="option-search" data-filter-options="cluster-tonnages" type="search" placeholder="Найти тоннаж…"><div id="cluster-tonnages" class="check-list"></div></details>
-        </section>
+        </details>
 
-        <section class="form-section">
-          <h2><span>03</span> Метод построения</h2>
+        <details id="method-section" class="form-section" open>
+          <summary><h2><span>03</span> Метод</h2></summary>
           <div id="mode-cards" class="mode-cards"></div>
           <div id="k-controls" class="parameter-box"><span class="field-label">Количество кластеров</span><div class="segmented"><label><input type="radio" name="k-mode" value="auto" checked><span>Автоматически</span></label><label><input type="radio" name="k-mode" value="manual"><span>Вручную</span></label></div><div id="manual-k-row" class="stepper hidden"><button type="button" data-step="manual-k" data-delta="-1">−</button><input id="manual-k" type="number"><button type="button" data-step="manual-k" data-delta="1">+</button></div></div>
           <div id="cost-controls" class="parameter-box hidden"><span class="field-label">Влияние стоимости</span><div id="cost-weight-options" class="segmented preset-grid" aria-label="Вес стоимости"></div><p>Пространственная связность остаётся обязательным ограничением.</p></div>
           <div id="volume-controls" class="parameter-box hidden"><span class="field-label">Влияние объёма перевозок</span><div id="volume-weight-options" class="segmented preset-grid" aria-label="Вес объёма перевозок"></div><p>Пространственная связность остаётся обязательным ограничением.</p></div>
           <div id="bear-controls" class="parameter-box bear-parameters hidden"><p>Сравнивает средневзвешенный ₽/км точки и региона.</p><span class="field-label">Порог зоны</span><div id="bear-threshold-options" class="segmented preset-grid threshold-grid" aria-label="Порог медвежьей зоны"></div><p class="fixed-helper">Одиночная аномально дорогая точка определяется при +<span id="bear-singleton-threshold"></span>%.</p></div>
           <div id="bear-volume-controls" class="parameter-box bear-parameters volume-bear-parameters hidden"><p>Сравнивает число перевозок точки со средним объёмом на точку в регионе.</p><span class="field-label">Порог объёмной зоны</span><div id="bear-volume-threshold-options" class="segmented preset-grid threshold-grid" aria-label="Порог объёмной медвежьей зоны"></div><p class="fixed-helper">Одиночная аномально объёмная точка определяется при +<span id="bear-volume-singleton-threshold"></span>%.</p></div>
-        </section>
+        </details>
 
         <section id="analysis-preview" class="filter-recap analysis-preview" aria-label="Предпросмотр расчёта">
           <div class="preview-heading"><strong id="filter-route">Точка не выбрана → Регион не выбран</strong><span>Источник: Pulse</span></div>
@@ -74,7 +74,6 @@
             <div><dt>Режим</dt><dd id="preview-mode">По географии</dd></div>
             <div><dt>Настройка</dt><dd id="preview-parameters">Auto K</dd></div>
           </dl>
-          <span id="filter-summary" class="sr-only">Текущий · Спот</span>
         </section>
         <div id="form-warnings" class="inline-messages hidden" aria-live="polite"></div>
         <div id="analysis-stale" class="state-banner hidden" role="status"><strong>Параметры анализа изменены</strong><span>Результат рассчитан для предыдущих настроек.</span></div>

@@ -202,6 +202,7 @@ def test_data_map_controls_drawer_stacks_heading_and_filters_without_clipping_ac
 def test_parameter_form_reflows_without_horizontal_scrolling(root_font, mode):
     actual = _run_browser_script(_layout_script(f"""
       document.querySelector('input[name="analysis-mode"][value="'+{json.dumps(mode)}+'"]').click();
+      document.getElementById('segment-section').open=true;
       document.querySelectorAll('details.multi-select').forEach(element=>{{element.open=true}});
       document.documentElement.style.fontSize={json.dumps(str(root_font)+'px')};
       document.body.getBoundingClientRect();

@@ -106,3 +106,4 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .workspace .control-panel.panel-overlay{left:12px;right:auto;width:min(280px,calc(100vw - 24px));display:flex;flex-direction:column}
 .workspace .panel-overlay .panel-close{display:block!important}
 .workspace.mode-cluster .analysis-inspector.panel-overlay{display:block}
+.mode-cluster .form-section>summary{cursor:pointer;min-height:40px;list-style:disclosure-closed}.mode-cluster .form-section[open]>summary{list-style:disclosure-open;margin-bottom:12px}.mode-cluster .form-section>summary h2{display:inline-flex;margin:0;vertical-align:middle}.mode-cluster .section-caption{display:block;margin-top:4px;color:var(--muted);font-size:.8125rem;line-height:1.4;overflow-wrap:anywhere}

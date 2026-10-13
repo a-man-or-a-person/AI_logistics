@@ -110,7 +110,8 @@ export function renderFormState(state) {
   const labels = [
     ...form.periodTypes.map(value => PERIOD_LABELS[value] || value),
     ...form.priceTypes.map(value => PRICE_LABELS[value] || value),
-    ...form.vehicleTypes, ...form.tonnageIds.map(value => `${value} т`),
+    ...(form.vehicleTypes.length ? form.vehicleTypes : ['Все кузова']),
+    ...(form.tonnageIds.length ? form.tonnageIds.map(value => `${value} т`) : ['Все тоннажи']),
   ];
   $('filter-summary').textContent = labels.length ? labels.join(' · ') : 'Фильтры не выбраны';
   $('preview-periods').textContent = form.periodTypes.map(value => PERIOD_LABELS[value] || value).join(', ') || '—';
