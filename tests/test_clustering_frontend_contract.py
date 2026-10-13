@@ -1591,6 +1591,12 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
       const focus = visibleHelp();
       help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Escape', bubbles: true}}));
       const hiddenAfterEscape = !visibleHelp()?.readable;
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Enter', bubbles: true}}));
+      const afterEnter = visibleHelp();
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Escape', bubbles: true}}));
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: ' ', bubbles: true}}));
+      const afterSpace = visibleHelp();
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Escape', bubbles: true}}));
       help.blur();
       const hiddenAfterBlur = !visibleHelp()?.readable;
       const focusPriceHelp = () => {{
@@ -1624,7 +1630,7 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
         return panel.classList.contains('hidden') && !panel.querySelector('[role="tooltip"]');
       }});
       document.body.dataset.result = JSON.stringify({{
-        hover, focus, hiddenAfterLeave, hiddenAfterBlur, hiddenAfterEscape,
+        hover, focus, hiddenAfterLeave, hiddenAfterBlur, hiddenAfterEscape, afterEnter, afterSpace,
         afterSort, collapsedHasNoTooltip, afterReopen, supportedModes, allMetrics, hiddenAfterScroll, bearModes,
       }});
     """
@@ -1637,7 +1643,8 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
     }
     assert _run_browser_script(script) == {
         "hover": expected, "focus": expected, "hiddenAfterLeave": True, "hiddenAfterBlur": True,
-        "hiddenAfterEscape": True, "afterSort": expected, "collapsedHasNoTooltip": True,
+        "hiddenAfterEscape": True, "afterEnter": expected, "afterSpace": expected,
+        "afterSort": expected, "collapsedHasNoTooltip": True,
         "afterReopen": expected, "supportedModes": [expected] * 3,
         "allMetrics": [True] * 12, "hiddenAfterScroll": True, "bearModes": [True, True],
     }

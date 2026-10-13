@@ -1,9 +1,11 @@
 import { clusterLabel, decimal, escapeHtml, fmt, km, MODE_LABELS, PERIOD_LABELS, percent, representativeLabel, rubKm } from './formatters.js';
 
 const $ = id => document.getElementById(id);
+let helpId = 0;
 
 function metric(label, value, hint = '') {
-  return `<div class="metric-row"><span>${label}${hint ? `<button class="help" title="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}">?</button>` : ''}</span><strong>${value}</strong></div>`;
+  const id = `metric-help-${++helpId}`;
+  return `<div class="metric-row"><span>${label}${hint ? `<button type="button" class="help" popovertarget="${id}" aria-label="${escapeHtml(hint)}">?</button><span id="${id}" class="metric-help-popover" popover>${escapeHtml(hint)}</span>` : ''}</span><strong>${value}</strong></div>`;
 }
 
 export function renderInspector(state, handlers = {}) {

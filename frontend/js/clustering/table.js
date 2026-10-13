@@ -144,7 +144,10 @@ export function renderClusterTable(state, handlers = {}) {
     help.addEventListener('focus', show);
     help.addEventListener('mouseleave', () => { if (!help.matches(':focus')) tip.hidePopover(); });
     help.addEventListener('blur', () => { if (!help.matches(':hover')) tip.hidePopover(); });
-    help.addEventListener('keydown', event => { if (event.key === 'Escape') tip.hidePopover(); });
+    help.addEventListener('keydown', event => {
+      if (event.key === 'Escape') tip.hidePopover();
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); show(); }
+    });
   });
   panel.querySelectorAll('.cluster-table-content, .cluster-table-scroll').forEach(container => {
     container.addEventListener('scroll', hideHelp);
