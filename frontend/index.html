@@ -79,11 +79,13 @@
         <div id="form-warnings" class="inline-messages hidden" aria-live="polite"></div>
         <div id="analysis-stale" class="state-banner hidden" role="status"><strong>Параметры анализа изменены</strong><span>Результат рассчитан для предыдущих настроек.</span></div>
         <div id="analysis-form-error" class="state-banner error hidden" role="alert"></div>
-        <div class="panel-actions sticky-actions"><button id="btn-run-clustering" class="primary-button" type="submit">Рассчитать</button><span id="run-caption" class="button-caption">Geography · Auto K</span><button id="btn-reset-clustering" class="text-button" type="button">Сбросить</button></div>
       </form>
+      <div id="clustering-actions" class="panel-actions sticky-actions"><span class="button-caption">Черновик: <span id="run-caption">Geography · Auto K</span></span><button id="btn-run-clustering" class="primary-button" type="submit" form="clustering-controls">Рассчитать</button><button id="btn-reset-clustering" class="text-button" type="button">Сбросить</button></div>
     </aside>
 
     <div id="clustering-center" class="clustering-center">
+      <div class="workspace-actions"><button id="mobile-controls-btn" class="secondary-button" type="button" aria-controls="sidebar">Параметры</button><span id="selection-context" aria-live="polite"></span><button id="mobile-inspector-btn" class="secondary-button" type="button" aria-controls="clustering-inspector">Результат</button></div>
+      <section id="result-context" class="result-context hidden" aria-label="Сохранённый контекст"></section>
     <main id="clustering-map" aria-label="Карта результата">
       <div id="map"></div>
       <div class="map-control base-layer-control"><label for="layer-select">Подложка</label><select id="layer-select"><option value="2gis">Карта</option><option value="hybrid">Спутник</option></select></div>
@@ -94,7 +96,6 @@
       <div id="map-legend" class="map-legend hidden"><span><i class="legend-dot ship"></i> Отгрузка</span><span><i class="legend-dot del"></i> Доставка</span></div>
       <div id="loading-overlay" class="loading-overlay hidden" aria-live="polite"><span class="loading-spinner"></span><strong id="loading-text">Рассчитываем…</strong><span id="loading-sub"></span></div>
       <div id="update-badge" class="update-badge hidden">Обновляем результат…</div>
-      <button id="mobile-controls-btn" class="mobile-sheet-button mobile-only" type="button">Настроить анализ</button><button id="mobile-inspector-btn" class="mobile-sheet-button secondary mobile-only" type="button">Результат</button>
     </main>
     <section id="cluster-table-panel" class="cluster-table-panel hidden" aria-label="Таблица кластеров"></section>
     </div>
@@ -105,7 +106,6 @@
       <div id="inspector-result" class="inspector-content hidden">
         <div id="result-status" class="result-state hidden"></div>
         <section class="result-hero"><div><span class="eyebrow">Метод</span><h3 id="result-title">—</h3><p id="result-subtitle">—</p></div><div class="hero-counts"><strong id="result-total-trips">—</strong><span id="result-outliers"></span></div></section>
-        <section id="result-context" class="result-context"></section>
         <section id="export-controls" class="inspector-section" aria-label="Скачать таблицу">
           <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status">Скачать XLSX</button>
           <button id="btn-cancel-export" class="text-button hidden" type="button">Отменить загрузку</button>
@@ -130,6 +130,7 @@
     <nav id="comparison-tabs" class="comparison-tabs" aria-label="Результат на карте"></nav>
     <div id="comparison-cards" class="comparison-cards"></div>
   </section>
+  <div id="panel-backdrop" class="panel-backdrop hidden" aria-hidden="true"></div>
 </div>
 
 <div id="records-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div id="modal-overlay" class="modal-overlay"></div><div class="modal-content"><div class="modal-header"><h2 id="modal-title">Данные города</h2><button id="modal-close" type="button" aria-label="Закрыть">×</button></div><div id="modal-error" class="state-banner error hidden"></div><div class="table-wrap"><table><thead><tr><th>Цена</th><th>Маршрут</th><th>₽/км</th><th>Перевозки</th><th>Период</th><th>Тип</th><th>Confidence</th><th>Откуда</th><th>Куда</th></tr></thead><tbody id="records-tbody"></tbody></table></div></div></div>

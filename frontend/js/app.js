@@ -44,17 +44,26 @@ function setLoading(active, title = 'Загружаем данные…') {
   $('loading-text').textContent = title;
 }
 
+function cancelDataMap() {
+  pointsController?.abort();
+  pointsController = null;
+  setLoading(false);
+}
+
 async function loadDataMap() {
   const filters = getFilters();
-  pointsController?.abort();
+  cancelDataMap();
   if (!filters.fromRegions.length && !filters.toRegions.length) {
     mapEmpty('Выберите направление или регион', 'Настройте фильтры слева.');
     return;
   }
-  pointsController = new AbortController();
+  const controller = new AbortController();
+  pointsController = controller;
+  const current = () => !controller.signal.aborted && pointsController === controller && state.view === 'data';
   setLoading(true, 'Обновляем карту данных…');
   try {
-    const data = await fetchPoints(filters, { signal: pointsController.signal });
+    const data = await fetchPoints(filters, { signal: controller.signal });
+    if (!current()) return;
     state.lastData = data;
     renderPoints(data.shipment_points, data.delivery_points);
     $('info-ship').textContent = fmt(data.total_ship);
@@ -64,14 +73,15 @@ async function loadDataMap() {
     $('map-legend').classList.remove('hidden');
     $('empty-state').classList.toggle('hidden', Boolean(data.total_ship + data.total_del));
   } catch (error) {
-    if (error.name !== 'AbortError') toast(error.message, 'error');
+    if (current() && error.name !== 'AbortError') toast(error.message, 'error');
   } finally {
-    setLoading(false);
+    if (current()) { pointsController = null; setLoading(false); }
   }
 }
 
 function switchView(view) {
   if (!['data', 'clustering'].includes(view)) return;
+  if (view === 'clustering' && state.view === 'data') cancelDataMap();
   state.view = view;
   const clustering = view === 'clustering';
   if (!clustering) state.clustering?.hide();
@@ -79,6 +89,7 @@ function switchView(view) {
   $('workspace').classList.toggle('mode-data', !clustering);
   $('data-map-view').classList.toggle('hidden', clustering);
   $('clustering-controls').classList.toggle('hidden', !clustering);
+  $('clustering-actions').classList.toggle('hidden', !clustering);
   $('controls-title').textContent = clustering ? 'Анализ кластеров' : 'Карта данных';
   document.querySelectorAll('.mode-tab').forEach(button => {
     const active = button.dataset.view === view;
@@ -113,10 +124,7 @@ function initTheme() {
 function wireShell() {
   document.querySelectorAll('.mode-tab').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
   $('btn-apply').addEventListener('click', loadDataMap);
-  $('btn-reset').addEventListener('click', () => { resetFilters(); state.lastData = null; clearMarkers(); });
-  $('mobile-controls-btn').addEventListener('click', () => $('sidebar').classList.add('open'));
-  $('mobile-inspector-btn').addEventListener('click', () => $('clustering-inspector').classList.add('open'));
-  document.querySelectorAll('[data-close-panel]').forEach(button => button.addEventListener('click', () => button.closest('aside').classList.remove('open')));
+  $('btn-reset').addEventListener('click', () => { cancelDataMap(); resetFilters(); state.lastData = null; clearMarkers(); });
   $('modal-close').addEventListener('click', closeModal);
   $('modal-overlay').addEventListener('click', closeModal);
   window.addEventListener('show-records-modal', showRecords);

@@ -9,7 +9,7 @@ import {
 import { readChecks, renderFormState, renderOptionControls } from './controls.js';
 import { renderErrorState, renderInspector } from './inspector.js';
 import { renderComparison } from './comparison.js';
-import { MODE_LABELS, PERIOD_LABELS, PRICE_LABELS } from './formatters.js';
+import { clusterLabel, MODE_LABELS, PERIOD_LABELS, PRICE_LABELS } from './formatters.js';
 import { renderClusterTable } from './table.js';
 import {
   clearClusteringResult, focusClusteringPoint, highlightCluster, hoverCluster,
@@ -26,6 +26,10 @@ let runController;
 let pointRowsController;
 let pointOriginsController;
 let comparisonFocusReturn;
+let activePanel;
+let panelFocusReturn;
+let panelBackground = [];
+let panelFocusOwner;
 let exportController;
 let exportResult;
 let exportStatus = { kind: 'idle', message: '' };
@@ -40,7 +44,7 @@ export async function initClustering() {
   await searchOrigins('');
   $('options-status').classList.add('hidden');
   renderAll();
-  return { show, hide: cancelExport, getState: () => state };
+  return { show, hide, getState: () => state };
 }
 
 export function show() {
@@ -48,7 +52,15 @@ export function show() {
   renderAll();
 }
 
+function hide() {
+  closePanel(false);
+  if (state.comparison.open) closeComparison(false);
+  cancelCalculation();
+  cancelExport();
+}
+
 function wireEvents() {
+  wirePanelPresentation();
   $('btn-export-clustering').addEventListener('click', downloadExport);
   $('btn-cancel-export').addEventListener('click', () => { cancelExport(); $('btn-export-clustering').focus(); });
   window.addEventListener('pagehide', cancelExport);
@@ -94,8 +106,9 @@ function wireEvents() {
       event.preventDefault();
       options[(index + (event.key === 'ArrowDown' ? 1 : options.length - 1)) % options.length]?.focus();
     } else if (event.key === 'Escape') {
-      hideOriginOptions();
+      event.stopPropagation();
       $('cluster-origin').focus();
+      hideOriginOptions();
     }
   });
   $('cluster-region').addEventListener('change', async () => {
@@ -146,10 +159,93 @@ function wireEvents() {
       if (document.querySelector('.metric-help-popover:popover-open')) return;
       if (state.comparison.open) closeComparison();
       hideOriginOptions();
-      document.querySelectorAll('.control-panel.open,.analysis-inspector.open').forEach(panel => panel.classList.remove('open'));
+      closePanel();
     }
     if (event.key === 'Tab' && state.comparison.open) trapComparisonFocus(event);
+    else if (event.key === 'Tab' && activePanel) trapPanelFocus(event);
   });
+}
+
+function panelFocusables(panel) {
+  return [...panel.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]')]
+    .filter(element => !element.disabled && element.tabIndex >= 0 && element.getClientRects().length);
+}
+
+function closePanel(restoreFocus = true) {
+  if (!activePanel) return;
+  activePanel.classList.remove('open', 'panel-overlay');
+  activePanel.removeAttribute('role');
+  activePanel.removeAttribute('aria-modal');
+  activePanel = null;
+  for (const [element, wasInert] of panelBackground) element.inert = wasInert;
+  panelBackground = [];
+  $('panel-backdrop').classList.add('hidden');
+  if (restoreFocus) panelFocusReturn?.focus();
+}
+
+function openPanel(panel, opener) {
+  closePanel(false);
+  const docked = panel.id === 'sidebar' ? innerWidth >= 1040
+    : innerWidth >= 1320 && $('workspace').classList.contains('has-inspector-selection');
+  if (!docked) {
+    activePanel = panel;
+    panelFocusReturn = opener;
+    panel.classList.add('open', 'panel-overlay');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panelBackground = [...document.querySelectorAll('.topbar,#sidebar,#clustering-center,#clustering-inspector,#comparison-view,#records-modal')]
+      .filter(element => element !== panel).map(element => [element, element.inert]);
+    for (const [element] of panelBackground) element.inert = true;
+    $('panel-backdrop').classList.remove('hidden');
+  }
+  panel.setAttribute('tabindex', '-1');
+  (panelFocusables(panel)[0] || panel).focus();
+}
+
+function trapPanelFocus(event) {
+  const elements = panelFocusables(activePanel);
+  const first = elements[0] || activePanel;
+  const last = elements.at(-1) || activePanel;
+  if (event.shiftKey && (document.activeElement === first || document.activeElement === activePanel)) {
+    event.preventDefault(); last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !activePanel.contains(document.activeElement))) {
+    event.preventDefault(); first.focus();
+  }
+}
+
+function syncPanelLayout() {
+  const selected = state.ui.selectedCluster != null || state.ui.selectedPoint != null;
+  $('workspace').classList.toggle('has-inspector-selection', selected);
+  const point = state.result.data?.points.find(item => item.id === state.ui.selectedPoint);
+  const cluster = state.result.data?.clusters.find(item => item.cluster_id === state.ui.selectedCluster);
+  $('selection-context').textContent = point?.name || (cluster ? clusterLabel(cluster, state.result.data.analysis.mode) : '');
+  $('mobile-inspector-btn').textContent = selected ? 'Детали' : 'Результат';
+  if (activePanel && ((activePanel.id === 'sidebar' && innerWidth >= 1040)
+      || (activePanel.id === 'clustering-inspector' && innerWidth >= 1320 && selected))) closePanel();
+  if (!activePanel) {
+    for (const [id, opener] of [['sidebar', 'mobile-controls-btn'], ['clustering-inspector', 'mobile-inspector-btn']]) {
+      if (getComputedStyle($(id)).display === 'none' && ($(id).contains(document.activeElement)
+          || (document.activeElement === document.body && panelFocusOwner === $(id)))) $(opener).focus();
+    }
+  }
+}
+
+function wirePanelPresentation() {
+  // Browsers can move focus to body before resize fires when a dock becomes hidden.
+  document.addEventListener('focusin', event => {
+    if (event.target !== document.body) panelFocusOwner = event.target.closest('#sidebar,#clustering-inspector');
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!event.target.closest('#sidebar,#clustering-inspector')) panelFocusOwner = null;
+  });
+  $('panel-backdrop').addEventListener('click', () => closePanel());
+  $('mobile-controls-btn').addEventListener('click', event => openPanel($('sidebar'), event.currentTarget));
+  $('mobile-inspector-btn').addEventListener('click', event => openPanel($('clustering-inspector'), event.currentTarget));
+  document.querySelectorAll('[data-close-panel]').forEach(button => button.addEventListener('click', () => closePanel()));
+  window.addEventListener('resize', syncPanelLayout);
+  for (const query of ['(min-width: 1040px)', '(min-width: 1320px)']) {
+    matchMedia(query).addEventListener('change', syncPanelLayout);
+  }
 }
 
 function syncForm(event) {
@@ -203,7 +299,10 @@ function onOriginKeydown(event) {
     event.preventDefault();
     showOriginOptions();
     (options.find(item => item.classList.contains('active'))?.nextElementSibling || options[0])?.focus();
-  } else if (event.key === 'Escape') hideOriginOptions();
+  } else if (event.key === 'Escape' && $('cluster-origin').getAttribute('aria-expanded') === 'true') {
+    event.stopPropagation();
+    hideOriginOptions();
+  }
 }
 
 function showOriginOptions() {
@@ -459,17 +558,18 @@ function showSingleRunTable(result) {
 }
 
 function openComparison() {
-  comparisonFocusReturn = document.activeElement;
+  comparisonFocusReturn = activePanel ? panelFocusReturn : document.activeElement;
+  closePanel(false);
   state.comparison.open = true;
   renderComparisonState();
   $('comparison-view').focus();
   runComparison();
 }
 
-function closeComparison() {
+function closeComparison(restoreFocus = true) {
   state.comparison.open = false;
   renderComparisonState();
-  comparisonFocusReturn?.focus?.();
+  if (restoreFocus) comparisonFocusReturn?.focus?.();
 }
 
 function trapComparisonFocus(event) {
@@ -701,6 +801,7 @@ function renderInspectorState() {
   const focusedOrigin = focused?.dataset.originFias;
   const focusedPulse = focused?.matches?.('.pulse-details summary');
   renderInspector(state, {
+    onLayout: syncPanelLayout,
     pointRowsKey,
     pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
     selectedOrigin: state.ui.selectedOrigin,

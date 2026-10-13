@@ -10,6 +10,8 @@ function metric(label, value, hint = '') {
 
 export function renderInspector(state, handlers = {}) {
   const result = state.result.data;
+  handlers.onLayout?.();
+  $('result-context').classList.toggle('hidden', !result);
   $('inspector-empty').classList.toggle('hidden', Boolean(result));
   $('inspector-result').classList.toggle('hidden', !result);
   if (!result) return;
