@@ -65,6 +65,18 @@ corrections. Mandatory Quality workflow remains unchanged.
   root. Original26px assertion remains unchanged. Independent Spec reviewed and
   exercised the probes without file edits; local138 frontend/466 Python cases
   and Ruff passed. These diagnostics require hosted execution to establish a cause.
+  Fifth run55 (`38400720015`, job `115307336930`) at
+  `3ea8ab31853f9481a1f68b998d06b4e24db36282` again failed only both resize cases.
+  Fresh inline rem computed26px/width32px; both minimal iframe roots (implicit
+  and explicit100%) resized13px to26px; original existing rules stayed13px.
+  Document was complete and fonts loaded. This isolates existing-rule invalidation
+  rather than root conversion, implicit root sizing or parser completion.
+  The next candidate moves the unchanged existing Google font URL/families/weights
+  from CSS `@import` into a normal HTML stylesheet link and removes the ineffective
+  direct-cell rule. The test loads that actual HTML font link too. Original
+  assertions remain intact; hosted GREEN is required before attributing recovery
+  to this change. An initial unescaped HTML-in-script fixture setup error was
+  corrected using JSON `<` escaping; it is not behavioral RED evidence.
 
 ## Live functional evidence
 
@@ -83,6 +95,26 @@ inspector Escape/Enter/Space opened/dismissed help. Data Map dark navigation wor
 Actual browser zoom 125% was separately observed (DPR 1.2500000186, CSS viewport
 1152x720 for a 1440x900 device viewport), using an isolated task-owned Edge profile.
 No user's browser preference was changed.
+
+Font-link candidate repeated full138 frontend/466 Python cases, zero frontend
+skips, dependency/Ruff checks and explicit Node+Edge startup. Actual Inter and
+JetBrains Mono faces loaded in headed Edge155; both-theme100% matrix/help/200%
+resize passed. Blocking only Google font resources in an isolated test profile
+also passed the fallback-font matrix/help/resize. All three device sizes in both
+themes passed at actual125% browser zoom (DPR1.2500000186), retaining14 columns
+and access to Calculate/export. Calculate access currently requires scrolling
+the controls to their end; native scrollIntoView can expose only a sliver at
+1366x768/125%. Persistent footer/focus visibility remains owned by ticket02;
+this evidence does not claim its layout criterion. Named normal/fallback/zoom
+observation JSON and drivers are retained in `.scratch/balanced-foundation/`
+and `.scratch/foundation_font_link*.mjs`; source asset hashes matched served bytes.
+
+Official Edge152 package SHA256 matched Microsoft metadata and was archive
+extracted with existing7-Zip solely under `.scratch/resize-diagnosis-edge152/`.
+No installer/global setting was changed. Actual offline browser UA was152, but
+page CDP commands hung before CSS evaluation, including an immediate UA evaluation
+without viewport/focus emulation. This is a local renderer/driver blocker with
+unknown cause; it is not typography RED/GREEN. Package/probes are preserved.
 
 Bulk local artifacts and reproduction drivers are retained in
 `.scratch/balanced-foundation/` and `.scratch/foundation_edge.mjs`,
@@ -121,6 +153,15 @@ Repeated local gates passed 138 frontend cases and 466 Python cases (including
 seven prepared, unpublished ticket04 guard cases), Ruff and dependency checks.
 Fresh live matrix/help/200% text smoke passed in both themes. Hosted verification
 is still required; local evidence does not establish the hosted failure cause.
+
+Font-link candidate independent Spec PASS: CSS
+`fe331cbeb898ffe2464f1331e7f3b2a3855d426950d4b1c5681264554c271cfc`, HTML
+`bbba1d3559705589eb2639547b722ef655117af7b52e4a9f5ecf792c2e803881`, test
+`0c45fb8b9a5980883108e0a63ef7419767fce31b808dd26b8e7f8f65b162271f`.
+Reviewer independently inspected exact decoded font URL/resource placement,
+assertion/fixture preservation and replayed both browser cases with zero skips.
+Loaded font coverage comes from the separately observed live evidence above;
+successful test cases can legitimately use the existing fallback.
 
 ## Reproduction and readiness
 

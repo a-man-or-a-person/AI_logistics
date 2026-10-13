@@ -8,8 +8,13 @@ from test_clustering_frontend_contract import _read, _run_browser_script
 
 @pytest.mark.parametrize('theme', ['light', 'dark'])
 def test_product_essential_values_and_actions_are_readable(theme):
+    page_html = json.dumps(_read('frontend/index.html')).replace('<', r'\u003c')
     actual = _run_browser_script(f"""
       (async () => {{
+      const head=new DOMParser().parseFromString({page_html},'text/html').head;
+      const fonts=head.querySelector('link[href^="https://fonts.googleapis.com/"]');
+      const fontLoaded=new Promise(resolve=>{{fonts.onload=resolve;fonts.onerror=resolve;}});
+      document.head.append(fonts);await fontLoaded;
       const sheet=document.createElement('style');
       const loaded=new Promise(resolve=>{{sheet.onload=resolve;sheet.onerror=resolve;}});
       sheet.textContent={json.dumps(_read('frontend/css/style.css'))};document.head.append(sheet);
