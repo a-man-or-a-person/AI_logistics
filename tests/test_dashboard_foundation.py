@@ -3,11 +3,12 @@
 import json
 
 import pytest
-from test_clustering_frontend_contract import _read, _run_browser_script
+from test_clustering_frontend_contract import _product_workspace_script, _read, _run_browser_script
 
 
 @pytest.mark.parametrize('theme', ['light', 'dark'])
-def test_product_essential_values_and_actions_are_readable(theme):
+@pytest.mark.parametrize('reduced_motion', [False, True], ids=['system-motion', 'reduced-motion'])
+def test_product_essential_values_and_actions_are_readable(theme, reduced_motion):
     actual = _run_browser_script(f"""
       (async () => {{
       const sheet=document.createElement('style');
@@ -48,28 +49,15 @@ def test_product_essential_values_and_actions_are_readable(theme):
         resizedNested:style('.pulse-table small').fontSize,
         resizedFontChain:['body','main','table','tbody','tr','td'].map(selector=>[selector,style(selector).fontSize]),
         browser:navigator.userAgent, compat:document.compatMode, fonts:document.fonts.status,
-        readyState:document.readyState}};
-      if (actual.resizedTable !== '26px') {{
-        const fresh=document.createElement('span');
-        fresh.style.cssText='display:block;font-size:.8125rem;width:1rem';
-        fresh.textContent='Fresh rem probe';document.body.append(fresh);
-        actual.freshRem={{font:getComputedStyle(fresh).fontSize,width:getComputedStyle(fresh).width}};
-        actual.minimalRoots=[];
-        for (const initial of ['', 'html{{font-size:100%}}', 'body{{font-size:13px}}']) {{
-          const frame=document.createElement('iframe');
-          const ready=new Promise(resolve=>frame.onload=resolve);
-          frame.srcdoc=`<!doctype html><style>${{initial}}span{{font-size:.8125rem}}</style><span>Probe</span>`;
-          document.body.append(frame);await ready;
-          const doc=frame.contentDocument, view=frame.contentWindow;
-          const baseline=view.getComputedStyle(doc.querySelector('span')).fontSize;
-          doc.documentElement.style.fontSize='32px';
-          actual.minimalRoots.push({{initial,baseline,root:view.getComputedStyle(doc.documentElement).fontSize,
-            resized:view.getComputedStyle(doc.querySelector('span')).fontSize}});
-        }}
-      }}
+        readyState:document.readyState,
+        reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,
+        transitions:document.getAnimations().filter(a=>a.constructor.name==='CSSTransition').map(a=>a.transitionProperty)}};
       document.body.dataset.result=JSON.stringify(actual);
       }})();
-    """)
+    """, reduced_motion=reduced_motion)
+    if reduced_motion:
+        assert actual['reducedMotion'] is True
+        assert actual['transitions'] == [], json.dumps(actual)
     assert actual['table'] == actual['pulse'] == '13px'
     assert actual['main'] == '14px'
     assert actual['nested'] == '13px'
@@ -83,3 +71,25 @@ def test_product_essential_values_and_actions_are_readable(theme):
     assert actual['resizedTable'] == '26px', json.dumps(actual)
     assert actual['resizedMain'] == '28px', json.dumps(actual)
     assert actual['resizedPulse'] == actual['resizedNested'] == '26px', json.dumps(actual)
+
+
+def test_inspector_help_escape_keeps_its_parent_panel_and_saved_result():
+    actual = _run_browser_script(_product_workspace_script("""
+      await choose('a');
+      const region=document.getElementById('cluster-region');
+      region.value='R';region.dispatchEvent(new Event('change',{bubbles:true}));await pause();
+      document.getElementById('btn-run-clustering').click();await pause();
+      const saved=workspace.getState().result.data;
+      const ui=JSON.stringify(workspace.getState().ui), before=requests.length;
+      const panel=document.getElementById('clustering-inspector');
+      panel.classList.add('open');
+      panel.insertAdjacentHTML('beforeend', '<button class="help" id="escape-help-trigger" type="button" popovertarget="escape-help">?</button><span id="escape-help" class="metric-help-popover" popover>Formula</span>');
+      const help=document.getElementById('escape-help-trigger');
+      help.focus();document.getElementById('escape-help').showPopover();
+      help.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+      document.body.dataset.result=JSON.stringify({panelOpen:panel.classList.contains('open'),
+        focus:document.activeElement.id, kept:workspace.getState().result.data===saved,
+        uiUnchanged:JSON.stringify(workspace.getState().ui)===ui,noRequests:requests.length===before});
+    """))
+    assert actual == {'panelOpen': True, 'focus': 'escape-help-trigger', 'kept': True,
+                      'uiUnchanged': True, 'noRequests': True}

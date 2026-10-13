@@ -16,7 +16,8 @@ The supported full table remains accessible at narrower widths. Layout dimension
 persistent footer, contextual inspector and reflow integration remain ticket 02+.
 
 Callers checked: app theme/navigation, controls, inspector, table and comparison.
-Touched runtime seams: CSS, inspector help markup, table keyboard help. No request,
+Touched runtime seams: CSS, inspector help markup, table keyboard help and
+controller Escape priority for an open native help popover. No request,
 snapshot, cache, sort value, API, metric, membership, export writer or dependency
 changes. Data Map keeps its own font sizes/formulas and receives shared theme/focus
 corrections. Mandatory Quality workflow remains unchanged.
@@ -69,8 +70,9 @@ corrections. Mandatory Quality workflow remains unchanged.
   `3ea8ab31853f9481a1f68b998d06b4e24db36282` again failed only both resize cases.
   Fresh inline rem computed26px/width32px; both minimal iframe roots (implicit
   and explicit100%) resized13px to26px; original existing rules stayed13px.
-  Document was complete and fonts loaded. This isolates existing-rule invalidation
-  rather than root conversion, implicit root sizing or parser completion.
+  Document was complete and fonts loaded. This ruled out root conversion, implicit root sizing and parser completion;
+  existing nodes differed from newly inserted probes. The transition cause was
+  established later, so this observation alone did not prove an engine defect.
   The next candidate moves the unchanged existing Google font URL/families/weights
   from CSS `@import` into a normal HTML stylesheet link and removes the ineffective
   direct-cell rule. The test loads that actual HTML font link too. Original
@@ -81,13 +83,29 @@ corrections. Mandatory Quality workflow remains unchanged.
   `0ab9dd52edc57a12e9ceb8d26199015769e9e132` FAILED the same two resize cases,
   with136 frontend/457 other Python cases passing. Font-import placement was not
   the cause; the font-loading change was reverted to the original CSS import.
-  Current candidate keeps Product's body font relative to its root (`.8125em`)
-  when the Product workspace or visible comparison is present. At default root16
-  its shared body baseline remains13px; Data Map keeps its original fixed13px.
-  This tests propagation through the previously fixed legacy body baseline.
-  Main14→28 and Pulse/nested13→26 assertions now supplement the original table
-  resize assertion. A fixed-body minimal control was added to failure diagnostics.
-  This candidate remains subject to hosted verification; no root cause is assumed.
+  The relative-body experiment at head `6cc25eee34a9323700c3fa48153547473626930d`
+  also FAILED in run57 (`38411374557`, job `115344288813`). The fixed-body minimal
+  control resized correctly, disproving the legacy fixed-body explanation.
+- Controlled local `prefers-reduced-motion: reduce` reproduced the hosted symptom
+  on installed Edge155: root32, existing table13, and 41 active CSSTransitions
+  with duration0.01/currentTime0. The old global reduced-motion rule created
+  transitions for font-size and other properties instead of disabling them.
+  Saved RED observations: `.scratch/balanced-foundation/reduced-motion-red.json`.
+  The expanded two-theme/system-or-forced-reduce test failed 2 cases and passed2
+  before production edits. The final CSS uses `animation:none`/`transition:none`
+  in that existing media rule; the ineffective relative-body rule was removed.
+  All four strict 13-to26px cases then passed, including no CSSTransitions under
+  forced reduction. Default test calls still retain actual system media settings.
+  Earlier failure-only fresh-rem/iframe diagnostics were removed from the final
+  test; their historical artifacts remain preserved. No CI assertion was weakened.
+- Actual125% browser zoom with reduced motion exposed Escape dismissing both help
+  and its parent inspector. A new regression genuinely failed with panelOpen=false
+  while snapshot/UI/request count remained unchanged. The shared controller now
+  lets native help dismissal take precedence. All five focused cases passed;
+  actual keyboard Escape retained the panel/focus, Enter/Space reopened help,
+  and a subsequent Escape without help closed the parent. Native smoke logs:
+  `.scratch/balanced-foundation/motion-drawer.log` (RED) and
+  `motion-drawer-green.log` (GREEN). Panel focus trapping/reflow remain ticket02.
 
 ## Live functional evidence
 
@@ -191,6 +209,20 @@ body/28px main at root32, Data Map13px at both roots and after reentry, and visi
 comparison relative sizing. Narrow source/probe verdict PASS; hosted recovery
 and broader delivery readiness were not claimed.
 
+Final motion candidate independent Standards PASS (`/root/economics_standards`):
+CSS `89c5dd6b3ede233f7aca5702812dd3bd114d9db8e10a7b4d301280cc912d90f2`,
+helper `00bdd4e503ac4d30d437ff4f40abadacf5d83cd627230a477aa297102425302e`.
+Reviewer independently ran four motion cases, checked the default-system setting
+and unchanged CI, and found no animation/transition completion listeners affected.
+Restricted browser startup timed out before assertions; escalated replay passed.
+
+Final independent Spec PASS (`/root/foundation_spec`): same CSS/helper plus
+controller `25b5223c2f3ed13fc64d927dc3f77e96ecccfc1256ec65b85facc994156bfE9b`
+and tests `45663e56cf95855c30f479c94d87d708150062e67709f25b991ace986ffc486b`.
+Reviewer ran five cases without skips and independently restored the old reduced
+motion rule and removed the Escape guard in memory to reproduce both defects.
+Native keyboard evidence above is the implementer's separately observed smoke.
+
 ## Reproduction and readiness
 
 Run the existing Quality sequence with `REQUIRE_FRONTEND_BROWSER=1`: locked
@@ -205,3 +237,14 @@ Final candidate test counts, exact commit SHA and hosted Quality run are recorde
 in the timestamped Draft PR supplement after execution. No earlier run is credited
 to a changed candidate. Human acceptance and production readiness are UNVERIFIED.
 Main merge, Ready-for-Review promotion and cleanup require separate authorization.
+
+Latest full local gate on the final motion/Escape source: other Python469 PASS,
+locked dependencies and Ruff PASS. The frontend141 PASS/zero skips (JUnit verified), explicit Node/Edge startup and
+served asset byte equality PASS. Hosted exact-head result remains pending; this is not hosted GREEN yet.
+Normal and forced-reduction live matrices on final source both passed three device
+sizes/two themes, 14 columns, strict200% text resize, native help and Data Map.
+Current logs: `.scratch/balanced-foundation/motion-final-{normal,reduce}.log`.
+
+Final actual125% zoom with forced reduced motion also passed all three device sizes
+and both themes, all14 columns and Calculate/export access. Evidence: local
+`.scratch/balanced-foundation/motion-final-zoom.log` and named observation JSON.

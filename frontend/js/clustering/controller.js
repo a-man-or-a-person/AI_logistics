@@ -143,6 +143,7 @@ function wireEvents() {
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
+      if (document.querySelector('.metric-help-popover:popover-open')) return;
       if (state.comparison.open) closeComparison();
       hideOriginOptions();
       document.querySelectorAll('.control-panel.open,.analysis-inspector.open').forEach(panel => panel.classList.remove('open'));

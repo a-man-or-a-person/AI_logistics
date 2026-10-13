@@ -109,7 +109,7 @@ def _edge_path() -> str | None:
     return next((str(path) for path in candidates if path.exists()), None)
 
 
-def _run_browser_script(script: str) -> dict:
+def _run_browser_script(script: str, *, reduced_motion: bool = False) -> dict:
     edge = _edge_path()
     if edge is None:
         if os.environ.get("REQUIRE_FRONTEND_BROWSER") == "1":
@@ -169,6 +169,7 @@ def _run_browser_script(script: str) -> dict:
             // Headless focus must be deterministic for the existing keyboard assertions.
             await send('Emulation.setDeviceMetricsOverride', {{width: 1600, height: 1000, deviceScaleFactor: 1, mobile: false}});
             await send('Emulation.setFocusEmulationEnabled', {{enabled: true}});
+            if ({json.dumps(reduced_motion)}) await send('Emulation.setEmulatedMedia', {{features: [{{name: 'prefers-reduced-motion', value: 'reduce'}}]}});
             await send('Page.navigate', {{url: {json.dumps(page.as_uri())}}});
             for (let attempt = 0; attempt < 200; attempt++) {{
               const reply = await send('Runtime.evaluate', {{expression: 'document.body?.dataset.result', returnByValue: true}});
