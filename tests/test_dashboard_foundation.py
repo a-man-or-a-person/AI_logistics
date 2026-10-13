@@ -8,13 +8,8 @@ from test_clustering_frontend_contract import _read, _run_browser_script
 
 @pytest.mark.parametrize('theme', ['light', 'dark'])
 def test_product_essential_values_and_actions_are_readable(theme):
-    page_html = json.dumps(_read('frontend/index.html')).replace('<', r'\u003c')
     actual = _run_browser_script(f"""
       (async () => {{
-      const head=new DOMParser().parseFromString({page_html},'text/html').head;
-      const fonts=head.querySelector('link[href^="https://fonts.googleapis.com/"]');
-      const fontLoaded=new Promise(resolve=>{{fonts.onload=resolve;fonts.onerror=resolve;}});
-      document.head.append(fonts);await fontLoaded;
       const sheet=document.createElement('style');
       const loaded=new Promise(resolve=>{{sheet.onload=resolve;sheet.onerror=resolve;}});
       sheet.textContent={json.dumps(_read('frontend/css/style.css'))};document.head.append(sheet);
@@ -38,7 +33,7 @@ def test_product_essential_values_and_actions_are_readable(theme):
       const contrast = (a, b) => {{const x=luminance(a), y=luminance(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}};
       const button=style('.primary-button'), hint=style('.field-hint'), toast=style('#toast');
       const before={{rootFont:getComputedStyle(document.documentElement).fontSize,
-        table:style('td').fontSize, pulse:style('.pulse-table td').fontSize,
+        main:style('main').fontSize, table:style('td').fontSize, pulse:style('.pulse-table td').fontSize,
         nested:style('.pulse-table small').fontSize,
         alignment:style('td').textAlign, numbers:style('td').fontVariantNumeric,
         textContrast:contrast(hint.color, style('.control-panel').backgroundColor),
@@ -49,6 +44,8 @@ def test_product_essential_values_and_actions_are_readable(theme):
       const actual={{...before,
         resizedRoot:getComputedStyle(document.documentElement).fontSize,
         resizedTable:style('td').fontSize,
+        resizedMain:style('main').fontSize, resizedPulse:style('.pulse-table td').fontSize,
+        resizedNested:style('.pulse-table small').fontSize,
         resizedFontChain:['body','main','table','tbody','tr','td'].map(selector=>[selector,style(selector).fontSize]),
         browser:navigator.userAgent, compat:document.compatMode, fonts:document.fonts.status,
         readyState:document.readyState}};
@@ -58,7 +55,7 @@ def test_product_essential_values_and_actions_are_readable(theme):
         fresh.textContent='Fresh rem probe';document.body.append(fresh);
         actual.freshRem={{font:getComputedStyle(fresh).fontSize,width:getComputedStyle(fresh).width}};
         actual.minimalRoots=[];
-        for (const initial of ['', 'html{{font-size:100%}}']) {{
+        for (const initial of ['', 'html{{font-size:100%}}', 'body{{font-size:13px}}']) {{
           const frame=document.createElement('iframe');
           const ready=new Promise(resolve=>frame.onload=resolve);
           frame.srcdoc=`<!doctype html><style>${{initial}}span{{font-size:.8125rem}}</style><span>Probe</span>`;
@@ -74,6 +71,7 @@ def test_product_essential_values_and_actions_are_readable(theme):
       }})();
     """)
     assert actual['table'] == actual['pulse'] == '13px'
+    assert actual['main'] == '14px'
     assert actual['nested'] == '13px'
     assert actual['alignment'] == 'right'
     assert actual['numbers'] == 'tabular-nums'
@@ -83,3 +81,5 @@ def test_product_essential_values_and_actions_are_readable(theme):
     assert actual['rootFont'] == '16px'
     assert actual['resizedRoot'] == '32px'
     assert actual['resizedTable'] == '26px', json.dumps(actual)
+    assert actual['resizedMain'] == '28px', json.dumps(actual)
+    assert actual['resizedPulse'] == actual['resizedNested'] == '26px', json.dumps(actual)

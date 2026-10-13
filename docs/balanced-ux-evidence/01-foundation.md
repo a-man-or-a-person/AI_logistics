@@ -77,6 +77,17 @@ corrections. Mandatory Quality workflow remains unchanged.
   assertions remain intact; hosted GREEN is required before attributing recovery
   to this change. An initial unescaped HTML-in-script fixture setup error was
   corrected using JSON `<` escaping; it is not behavioral RED evidence.
+  Sixth run56 (`38408410995`, job `115333998366`) at
+  `0ab9dd52edc57a12e9ceb8d26199015769e9e132` FAILED the same two resize cases,
+  with136 frontend/457 other Python cases passing. Font-import placement was not
+  the cause; the font-loading change was reverted to the original CSS import.
+  Current candidate keeps Product's body font relative to its root (`.8125em`)
+  when the Product workspace or visible comparison is present. At default root16
+  its shared body baseline remains13px; Data Map keeps its original fixed13px.
+  This tests propagation through the previously fixed legacy body baseline.
+  Main14→28 and Pulse/nested13→26 assertions now supplement the original table
+  resize assertion. A fixed-body minimal control was added to failure diagnostics.
+  This candidate remains subject to hosted verification; no root cause is assumed.
 
 ## Live functional evidence
 
@@ -115,6 +126,15 @@ No installer/global setting was changed. Actual offline browser UA was152, but
 page CDP commands hung before CSS evaluation, including an immediate UA evaluation
 without viewport/focus emulation. This is a local renderer/driver blocker with
 unknown cause; it is not typography RED/GREEN. Package/probes are preserved.
+
+The relative-body candidate repeated138 frontend cases (zero skips),466 Python
+cases, dependencies/Ruff and live loaded-font/fallback matrices/help/200% resize.
+The actual125% three-size/two-theme matrix also passed. Named `font-chain-*`
+observation JSON, logs, screenshots and `.scratch/foundation_font_chain*.mjs`
+drivers preserve this candidate separately from earlier font-link evidence.
+Data Map's body/main were13px even after root32, both in independent probes and
+the actual rendered navigation smoke. The persistent-footer limitation above
+still belongs02; no skipped mandatory checks or changed workflow were introduced.
 
 Bulk local artifacts and reproduction drivers are retained in
 `.scratch/balanced-foundation/` and `.scratch/foundation_edge.mjs`,
@@ -162,6 +182,14 @@ Reviewer independently inspected exact decoded font URL/resource placement,
 assertion/fixture preservation and replayed both browser cases with zero skips.
 Loaded font coverage comes from the separately observed live evidence above;
 successful test cases can legitimately use the existing fallback.
+
+Relative-body candidate independent Spec PASS: CSS
+`de06cf1b95bb2e9371704e6172d218145bb784d80ba9c1d2406641cb0011927f`, test
+`f7e0a0009ccdc566ca44824a74887bc262f7dca2569e8cbd4a1472273b2844e2`.
+Reviewer independently ran both cases, verified `:has()` support, Product26px
+body/28px main at root32, Data Map13px at both roots and after reentry, and visible
+comparison relative sizing. Narrow source/probe verdict PASS; hosted recovery
+and broader delivery readiness were not claimed.
 
 ## Reproduction and readiness
 
