@@ -41,11 +41,31 @@ def test_product_essential_values_and_actions_are_readable(theme):
         actionContrast:contrast(button.color, button.backgroundColor)}};
       document.documentElement.style.fontSize='32px';
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      document.body.dataset.result=JSON.stringify({{...before,
+      const actual={{...before,
         resizedRoot:getComputedStyle(document.documentElement).fontSize,
         resizedTable:style('td').fontSize,
         resizedFontChain:['body','main','table','tbody','tr','td'].map(selector=>[selector,style(selector).fontSize]),
-        browser:navigator.userAgent, compat:document.compatMode, fonts:document.fonts.status}});
+        browser:navigator.userAgent, compat:document.compatMode, fonts:document.fonts.status,
+        readyState:document.readyState}};
+      if (actual.resizedTable !== '26px') {{
+        const fresh=document.createElement('span');
+        fresh.style.cssText='display:block;font-size:.8125rem;width:1rem';
+        fresh.textContent='Fresh rem probe';document.body.append(fresh);
+        actual.freshRem={{font:getComputedStyle(fresh).fontSize,width:getComputedStyle(fresh).width}};
+        actual.minimalRoots=[];
+        for (const initial of ['', 'html{{font-size:100%}}']) {{
+          const frame=document.createElement('iframe');
+          const ready=new Promise(resolve=>frame.onload=resolve);
+          frame.srcdoc=`<!doctype html><style>${{initial}}span{{font-size:.8125rem}}</style><span>Probe</span>`;
+          document.body.append(frame);await ready;
+          const doc=frame.contentDocument, view=frame.contentWindow;
+          const baseline=view.getComputedStyle(doc.querySelector('span')).fontSize;
+          doc.documentElement.style.fontSize='32px';
+          actual.minimalRoots.push({{initial,baseline,root:view.getComputedStyle(doc.documentElement).fontSize,
+            resized:view.getComputedStyle(doc.querySelector('span')).fontSize}});
+        }}
+      }}
+      document.body.dataset.result=JSON.stringify(actual);
       }})();
     """)
     assert actual['table'] == actual['pulse'] == '13px'

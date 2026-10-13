@@ -54,6 +54,17 @@ corrections. Mandatory Quality workflow remains unchanged.
   retaining approved 13px/26px values instead of relying on table inheritance.
   The diagnostic assertion prints complete JSON rather than truncated dict repr.
   This candidate must pass a fresh hosted run; no environmental cause is asserted.
+  Fourth hosted run54 (`38398675617`, job `115300351677`) at head
+  `a1c4656cde9a898808e0cf6db7965b8f162236c1` also FAILED two resize cases;
+  tested merge was `797d1b670bb2dc1d3ffe58ac9ef9a28022a0f630`.
+  Complete JSON showed root32 while main14/table13/tbody13/tr13/td13 stayed
+  unchanged in both themes (fonts loaded, standards mode, Edge152). This disproves
+  the narrow table-inheritance explanation; direct cell rules did not solve it.
+  A failure-only diagnostic now compares a freshly inserted inline rem element
+  and loaded minimal iframe documents with implicit root versus relative100%
+  root. Original26px assertion remains unchanged. Independent Spec reviewed and
+  exercised the probes without file edits; local138 frontend/466 Python cases
+  and Ruff passed. These diagnostics require hosted execution to establish a cause.
 
 ## Live functional evidence
 
