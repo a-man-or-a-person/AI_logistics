@@ -57,4 +57,4 @@ def test_product_essential_values_and_actions_are_readable(theme):
     assert actual['errorContrast'] >= 4.5
     assert actual['rootFont'] == '16px'
     assert actual['resizedRoot'] == '32px'
-    assert actual['resizedTable'] == '26px', actual
+    assert actual['resizedTable'] == '26px', json.dumps(actual)

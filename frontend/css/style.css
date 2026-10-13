@@ -61,6 +61,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 :is(.mode-cluster,.comparison-view) :is(.metric-row strong,.summary-grid strong,.point-facts dd,.preview-facts dd,.comparison-context dd,.comparison-card dd){font-variant-numeric:tabular-nums;text-align:right}
 :is(.mode-cluster,.comparison-view) :is(.preview-facts dd,.comparison-context dd,.origin-summary small,.pulse-table small){font-size:.8125rem;line-height:1.125rem}
 :is(.mode-cluster,.comparison-view) :is(.pulse-table table,.cluster-table-panel table){font-size:.8125rem;line-height:1.125rem;font-variant-numeric:tabular-nums}
+.mode-cluster .cluster-table-panel th,.mode-cluster .cluster-table-panel td,.mode-cluster .pulse-table th,.mode-cluster .pulse-table td{font-size:.8125rem;line-height:1.125rem}
 :is(.mode-cluster,.comparison-view) :is(.pulse-table td,.cluster-table-panel td){text-align:right}
 :is(.mode-cluster,.comparison-view) :is(.pulse-table th,.cluster-table-panel th){font-weight:600}
 :is(.mode-cluster,.comparison-view) .cluster-table-panel thead button{font-weight:600}

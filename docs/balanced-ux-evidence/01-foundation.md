@@ -47,6 +47,13 @@ corrections. Mandatory Quality workflow remains unchanged.
   before initial measurement, preserving 13/26px assertions and capturing the
   font-size chain/UA if failure persists. A controlled empty delayed import did
   not reproduce the hosted symptom locally; no production defect is inferred.
+- Run `38396169710` at `e625bb1a8fe69914c94f72975e5fa63d2374d36b` failed the
+  same two assertions after resource readiness. Actual UA is Headless Edge152
+  and document compatibility is CSS1Compat; root32 still passed. The next scoped
+  CSS candidate assigns the same `.8125rem` directly to Product table/Pulse cells,
+  retaining approved 13px/26px values instead of relying on table inheritance.
+  The diagnostic assertion prints complete JSON rather than truncated dict repr.
+  This candidate must pass a fresh hosted run; no environmental cause is asserted.
 
 ## Live functional evidence
 
@@ -83,7 +90,7 @@ evidence, not a new claim of every lifecycle being manually replayed.
 
 ## Independent review
 
-Reviewer `/root/foundation_spec`, independent read-only Spec review. Final CSS
+Reviewer `/root/foundation_spec`, independent read-only Spec review. Initial CSS
 SHA256 `bc7e05950c67429c6b52c0990ee2d4b4182e588e8b612acf6475cf2085084b9f`.
 Inspector `78ed176c3d9b135f1790b0f4ddf79202a510e201cfb8aacf526fab6a6110c19b`;
 table `67a775c77bfd3d7bb84453fda22e95fbb7c839591e8e91e51cc2a9c6b2e5aeb2`.
@@ -92,6 +99,17 @@ inspected resize/Data Map screenshots and connected source. Final verdict PASS f
 ticket01 scope; all reported contrast/size/focus/help findings fixed. Standards is
 N/A for this slice: no new ownership/infrastructure seam. Reviewer did not claim
 independent full Quality, human acceptance or production readiness.
+
+The subsequent direct-cell candidate was independently reviewed at CSS SHA256
+`4cbcebdd784accf065df2859c52633a21beb6a9c9b61e7bf3ce18b04c7808852`
+and test SHA256
+`cc30decec5b7068bdf85b733079175b82f7bf37e245f96b9d329483ef890b1b3`.
+The reviewer reported PASS with two focused browser cases, zero skips; approved
+13/18px and resized 26/36px values and Data Map/business isolation were retained.
+Repeated local gates passed 138 frontend cases and 466 Python cases (including
+seven prepared, unpublished ticket04 guard cases), Ruff and dependency checks.
+Fresh live matrix/help/200% text smoke passed in both themes. Hosted verification
+is still required; local evidence does not establish the hosted failure cause.
 
 ## Reproduction and readiness
 
