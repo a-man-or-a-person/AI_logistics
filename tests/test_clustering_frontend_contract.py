@@ -1490,7 +1490,7 @@ def test_cluster_table_renders_and_interacts_through_the_product_ui_seam():
         stale: panel.classList.contains('stale'),
         headers: panel.querySelectorAll('thead th').length,
         rowIds: [...panel.querySelectorAll('tbody tr')].map(row => Number(row.dataset.clusterId)),
-        firstCells: [...panel.querySelector('tbody tr').children].map(cell => cell.textContent.trim()),
+        firstCells: [...panel.querySelector('tbody tr').children].map(cell => cell.innerText.trim()),
         periods: [...panel.querySelectorAll('.cluster-table-period')].map(item => item.textContent.trim()),
         methodology: panel.querySelector('.cluster-table-methodology').textContent.replace(/\\s+/g, ' ').trim(),
         coverageTitle: panel.querySelector('tbody tr td:last-child').title,
@@ -1628,7 +1628,7 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
       const bearModes = ['bear_zones', 'bear_volume_zones'].map(mode => {{
         state.result.data = {{analysis: {{mode}}, cluster_table: {{supported: false}}}};
         render();
-        return panel.classList.contains('hidden') && !panel.querySelector('[role="tooltip"]');
+        return !panel.classList.contains('hidden') && panel.textContent.includes('Bear') && !panel.querySelector('[role="tooltip"]');
       }});
       document.body.dataset.result = JSON.stringify({{
         hover, focus, hiddenAfterLeave, hiddenAfterBlur, hiddenAfterEscape, afterEnter, afterSpace,
@@ -1647,7 +1647,7 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
         "hiddenAfterEscape": True, "afterEnter": expected, "afterSpace": expected,
         "afterSort": expected, "collapsedHasNoTooltip": True,
         "afterReopen": expected, "supportedModes": [expected] * 3,
-        "allMetrics": [True] * 12, "hiddenAfterScroll": True, "bearModes": [True, True],
+        "allMetrics": [True] * 24, "hiddenAfterScroll": True, "bearModes": [True, True],
     }
 
 

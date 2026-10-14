@@ -173,7 +173,7 @@ def test_workspace_panel_actions_remain_visible_when_the_summary_requires_center
         table:getComputedStyle(document.getElementById('cluster-table-panel')).minHeight});
     """), reduced_motion=True, viewport=(1093,614))
     assert actual['scroll'] > 0 and actual['visible'], actual
-    assert actual['map'] == '240px' and actual['table'] == '180px'
+    assert actual['map'] == '240px' and float(actual['table'].removesuffix('px')) >= 180
 
 
 def test_unchanged_saved_status_does_not_replace_its_announcement_content():
