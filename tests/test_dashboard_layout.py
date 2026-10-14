@@ -153,10 +153,12 @@ def test_leaving_product_closes_its_comparison_and_keeps_cached_results():
       const s=workspace.getState(),saved=s.result.data,results=s.comparison.results,cache=s.comparison.cache;
       const before=requests.length;
       const navigation=document.querySelector('.mode-tab[data-view="data"]');navigation.focus();
+      const blocked=document.activeElement!==navigation;
       workspace.hide();
+      navigation.focus();
       document.body.dataset.result=JSON.stringify({closed:!s.comparison.open,
         hidden:document.getElementById('comparison-view').classList.contains('hidden'),
-        focus:document.activeElement===navigation,kept:s.result.data===saved,
+        blocked,focus:document.activeElement===navigation,kept:s.result.data===saved,
         results:s.comparison.results===results,cache:s.comparison.cache===cache,noRequests:requests.length===before});
     """), reduced_motion=True, viewport=(1093,614))
     assert all(actual.values()), actual

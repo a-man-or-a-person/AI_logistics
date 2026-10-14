@@ -83,7 +83,7 @@
     </aside>
 
     <div id="clustering-center" class="clustering-center">
-      <div class="workspace-actions"><button id="mobile-controls-btn" class="secondary-button" type="button" aria-controls="sidebar">Параметры</button><span id="selection-context" aria-live="polite"></span><button id="mobile-inspector-btn" class="secondary-button" type="button" aria-controls="clustering-inspector">Результат</button></div>
+      <div class="workspace-actions"><button id="mobile-controls-btn" class="secondary-button" type="button" aria-controls="sidebar">Параметры</button><span id="selection-context" aria-live="polite"></span><button id="mobile-inspector-btn" class="secondary-button" type="button" aria-controls="clustering-inspector">Результат</button><button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button></div>
       <section id="result-context" class="result-context hidden" aria-label="Сохранённый контекст"></section>
       <section id="result-summary" class="result-summary" aria-label="Сохранённый результат и качество данных">
         <div id="result-status" class="result-state hidden" role="status" aria-live="polite"></div>
@@ -117,7 +117,7 @@
           <button id="btn-cancel-export" class="text-button hidden" type="button">Отменить загрузку</button>
           <p id="export-status" class="cluster-table-state" role="status" aria-live="polite"></p>
         </section>
-        <section class="inspector-section"><div class="section-row"><h4>Кластеры и зоны</h4><button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button></div><div id="cluster-list" class="cluster-list"></div></section>
+        <section class="inspector-section"><h4>Кластеры и зоны</h4><div id="cluster-list" class="cluster-list"></div></section>
       </div>
     </aside>
   </section>
@@ -129,7 +129,7 @@
     <div id="comparison-loading" class="comparison-loading hidden" role="status" aria-live="polite">Сравниваем пять режимов…</div>
     <div id="comparison-error" class="state-banner error hidden" role="alert"></div>
     <nav id="comparison-tabs" class="comparison-tabs" aria-label="Результат на карте"></nav>
-    <div id="comparison-cards" class="comparison-cards"></div>
+    <div id="comparison-cards" class="comparison-cards" role="region" aria-label="Показатели пяти режимов" tabindex="0"></div>
   </section>
   <div id="panel-backdrop" class="panel-backdrop hidden" aria-hidden="true"></div>
 </div>

@@ -26,6 +26,7 @@ let runController;
 let pointRowsController;
 let pointOriginsController;
 let comparisonFocusReturn;
+let comparisonBackground = [];
 let activePanel;
 let panelFocusReturn;
 let panelBackground = [];
@@ -512,14 +513,20 @@ async function validateCachedResults(candidates, controller) {
     if (!controller.signal.aborted && error.code === 'STALE_DATA_SNAPSHOT') {
       results.forEach(result => rejectDataSnapshot(state, result.data_snapshot));
       renderAll();
+    } else if (!controller.signal.aborted) {
+      state.revisionUncertain = true;
+      renderAll();
     }
     throw error;
   }
   if (controller.signal.aborted) return false;
   if (typeof revision.data_snapshot !== 'string' || !Array.isArray(revision.available)
       || revision.available.length !== results.length || revision.available.some(value => typeof value !== 'boolean')) {
+    state.revisionUncertain = true;
+    renderAll();
     throw new Error('Некорректный ответ проверки актуальности данных');
   }
+  state.revisionUncertain = false;
   results.forEach((result, index) => {
     if (result.data_snapshot !== revision.data_snapshot) rejectDataSnapshot(state, result.data_snapshot);
     else if (!revision.available[index]) rejectUnavailableResult(state, result);
@@ -530,6 +537,7 @@ async function validateCachedResults(candidates, controller) {
 }
 
 function reset() {
+  if (state.comparison.open) closeComparison(false);
   clearFormValidation();
   cancelExport();
   cancelCalculation();
@@ -565,6 +573,9 @@ function showSingleRunTable(result) {
 function openComparison() {
   comparisonFocusReturn = activePanel ? panelFocusReturn : document.activeElement;
   closePanel(false);
+  comparisonBackground = [...document.querySelectorAll('.topbar,#workspace,#records-modal')]
+    .map(element => [element, element.inert]);
+  for (const [element] of comparisonBackground) element.inert = true;
   state.comparison.open = true;
   renderComparisonState();
   $('comparison-view').focus();
@@ -574,18 +585,20 @@ function openComparison() {
 function closeComparison(restoreFocus = true) {
   state.comparison.open = false;
   renderComparisonState();
+  for (const [element, wasInert] of comparisonBackground) element.inert = wasInert;
+  comparisonBackground = [];
   if (restoreFocus) comparisonFocusReturn?.focus?.();
 }
 
 function trapComparisonFocus(event) {
-  const focusable = [...$('comparison-view').querySelectorAll('button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')];
+  const focusable = panelFocusables($('comparison-view'));
   if (!focusable.length) return;
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
-  if (event.shiftKey && document.activeElement === first) {
+  if (event.shiftKey && (document.activeElement === first || document.activeElement === $('comparison-view'))) {
     event.preventDefault();
     last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
+  } else if (!event.shiftKey && (document.activeElement === last || !$('comparison-view').contains(document.activeElement))) {
     event.preventDefault();
     first.focus();
   }
@@ -688,6 +701,7 @@ function exportBlockedReason() {
   if (!result) return 'Сначала рассчитайте результат.';
   if (state.rejectedSnapshots.has(result.data_snapshot)) return 'Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.';
   if (state.unavailableResults.has(result)) return 'Сохранённый результат недоступен. Пересчитайте результат.';
+  if (state.revisionUncertain) return 'Не удалось проверить актуальность данных. Повторите расчёт или сравнение перед загрузкой XLSX.';
   if (result.cluster_table?.supported !== true) return 'XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).';
   if (!result.cluster_table.rows?.length) return 'В результате нет кластеров для экспорта.';
   return '';
@@ -748,7 +762,7 @@ async function downloadExport() {
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    exportStatus = { kind: 'success', message: `Файл ${file.filename} передан браузеру для сохранения.` };
+    exportStatus = { kind: 'success', message: `Файл ${file.filename} передан браузеру. Проверьте загрузку.` };
   } catch (error) {
     if (controller.signal.aborted || exportController !== controller || state.result.data !== result) return;
     if (error.code === 'STALE_DATA_SNAPSHOT') rejectDataSnapshot(state, result.data_snapshot);
