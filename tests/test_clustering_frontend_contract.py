@@ -982,7 +982,11 @@ def point_detail_presentations():
       const capture = () => {{
         renderInspector(state);
         return Object.fromEntries(Array.from(document.querySelectorAll('.point-facts > div'))
-          .map(row => [row.querySelector('dt').textContent, row.querySelector('dd').textContent]));
+          .map(row => {{
+            const value = row.querySelector('dd').cloneNode(true);
+            value.querySelectorAll('small').forEach(note => note.remove());
+            return [row.querySelector('dt').textContent, value.textContent];
+          }}));
       }};
       const selected = capture();
       state.form.periodTypes = ['retro'];

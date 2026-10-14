@@ -5,6 +5,7 @@ let helpId = 0;
 
 function count(value) { return value == null ? '—' : fmt(value); }
 function distance(value) { return km(value == null ? null : value / 1000); }
+function coverage(valid, total) { return `${count(valid)} / ${count(total)} (${valid != null && total > 0 ? `${decimal(valid / total * 100, 1)}%` : '—'})`; }
 
 function metric(label, value, hint = '') {
   const id = `metric-help-${++helpId}`;
@@ -76,15 +77,15 @@ export function renderInspector(state, handlers = {}) {
       <span class="cluster-symbol" data-index="${cluster.cluster_id}">${clusterLabel(cluster, mode)}</span>
       <span>${fmt(cluster.point_count)} точек</span><strong>${fmt(cluster.trip_count)} перевозок</strong>
     </button>`).join('');
-  $('cluster-list').classList.toggle('hidden', Boolean(selected));
-  $('cluster-details').classList.toggle('hidden', !selected);
-  if (selected) renderClusterDetails(result, selected, mode);
+  $('cluster-list').classList.toggle('hidden', Boolean(selected || selectedPoint));
+  $('cluster-details').classList.toggle('hidden', !selected || Boolean(selectedPoint));
+  if (selected && !selectedPoint) renderClusterDetails(result, selected, mode);
   document.querySelectorAll('[data-cluster-id]').forEach(button => {
     button.addEventListener('mouseenter', () => handlers.onClusterHover?.(Number(button.dataset.clusterId)));
     button.addEventListener('mouseleave', () => handlers.onClusterHover?.(null));
     button.addEventListener('click', () => handlers.onClusterSelect?.(Number(button.dataset.clusterId), true));
   });
-  document.querySelectorAll('[data-point-id]').forEach(button => {
+  if (selected && !selectedPoint) document.querySelectorAll('[data-point-id]').forEach(button => {
     button.addEventListener('mouseenter', () => handlers.onPointHover?.(button.dataset.pointId));
     button.addEventListener('focus', () => handlers.onPointHover?.(button.dataset.pointId));
     button.addEventListener('click', () => handlers.onPointSelect?.(button.dataset.pointId));
@@ -176,17 +177,34 @@ function qualityFor(quality) {
     ${metric('Исключено строк без FIAS', count(quality.excluded_missing_fias), 'Сохранённое число строк, исключённых из среза из-за отсутствующего FIAS назначения.')}`;
 }
 
+function canonicalClusterMetrics(result, cluster) {
+  const rows = result.cluster_table?.supported === true ? result.cluster_table.rows : null;
+  const row = Array.isArray(rows) ? rows.find(item => item.cluster_id === cluster.cluster_id) : null;
+  const hint = (key, raw, unit) => {
+    const coverage = row?.coverage?.[key];
+    return `Сохранённая таблица: сумма (значение точки × валидные машины этой метрики) / сумма валидных машин этой метрики. При отсутствии валидного веса среднее недоступно. Точное значение: ${raw == null ? 'недоступно' : `${raw} ${unit}`}. Покрытие: ${coverage?.valid_points ?? '—'}/${coverage?.total_points ?? '—'} точек; ${coverage?.valid_trip_count ?? '—'}/${coverage?.total_trip_count ?? '—'} машин.`;
+  };
+  return `<div class="cluster-primary"><h5>Основные средние — сохранённая таблица</h5>
+    ${result.analysis.mode === 'geo_cost' ? '' : '<p class="field-hint">Экономика показана описательно и не влияла на разбиение.</p>'}
+    ${!row ? '<p class="inline-warning">Строка сохранённой таблицы недоступна. Основные средние недоступны.</p>' : ''}
+    ${metric('Маршрут', km(row?.weighted_route_length), hint('route_length', row?.weighted_route_length, 'км'))}
+    ${metric('Средневзвешенная цена', row?.price?.weighted == null ? '—' : `${decimal(row.price.weighted, 0)} ₽`, hint('price', row?.price?.weighted, '₽'))}
+    ${metric('Средневзвешенный ₽/км', rubKm(row?.rub_per_km?.weighted), hint('rub_per_km', row?.rub_per_km?.weighted, '₽/км'))}
+  </div>`;
+}
+
 function renderClusterDetails(result, cluster, mode) {
   const points = result.points.filter(point => cluster.point_ids.includes(point.id));
   $('cluster-detail-title').textContent = clusterLabel(cluster, mode);
   $('cluster-detail-stats').innerHTML = `
-    <div><strong>${fmt(cluster.point_count)}</strong><span>точек</span></div>
-    <div><strong>${fmt(cluster.trip_count)}</strong><span>перевозок</span></div>
+    <div><strong>${count(cluster.point_count)}</strong><span>точек</span></div>
+    <div><strong>${count(cluster.trip_count)}</strong><span>перевозок</span></div>
     ${(cluster.relative_volume_delta ?? cluster.relative_rate_delta) == null ? '' : `<div><strong>${percent(cluster.relative_volume_delta ?? cluster.relative_rate_delta)}</strong><span>к базовому уровню</span></div>`}`;
-  $('cluster-detail-metrics').innerHTML = [
-    metric('Временный ориентир (medoid)', escapeHtml(representativeLabel(cluster)), 'Реальная точка кластера с минимальной суммой невзвешенных расстояний в проекции. Временный географический ориентир; выбор может измениться при изменении данных.'),
-    mode === 'geography' ? metric('Описательный ₽/км', rubKm(cluster.weighted_rub_per_km), 'Показатель не использовался при построении зоны.') : metric('Среднее ₽/км', rubKm(cluster.weighted_rub_per_km)),
-    mode === 'geo_cost' ? metric('Средневзвешенная цена', `${decimal(cluster.weighted_price, 0)} ₽`) : '',
+  const ordinary = ['geography', 'geo_cost', 'geo_volume'].includes(mode);
+  const representative = metric('Временный ориентир (medoid)', escapeHtml(representativeLabel(cluster)), 'Реальная точка кластера с минимальной суммой невзвешенных расстояний в проекции. Временный географический ориентир; выбор может измениться при изменении данных.');
+  const diagnostics = [
+    ordinary ? metric('Совместимый ₽/км: вес всего объёма доступных точек', rubKm(cluster.weighted_rub_per_km), `Сохранённый показатель: среднее ₽/км доступных точек, взвешенное по всему объёму машин этих точек; это не основной показатель с весами валидных машин таблицы. Точное значение: ${cluster.weighted_rub_per_km ?? '—'} ₽/км.`) : metric('Среднее ₽/км', rubKm(cluster.weighted_rub_per_km)),
+    ordinary ? metric('Совместимая цена: вес всего объёма доступных точек', cluster.weighted_price == null ? '—' : `${decimal(cluster.weighted_price, 0)} ₽`, `Сохранённый показатель: цена доступных точек с весом всего их объёма машин, не валидных машин цены. Точное значение: ${cluster.weighted_price ?? '—'} ₽.`) : '',
     mode === 'geo_cost' ? metric('Региональный ₽/км', rubKm(cluster.regional_weighted_rub_per_km)) : '',
     ['geo_volume', 'bear_volume_zones'].includes(mode) ? metric('Средний объём точки', `${decimal(cluster.mean_trip_count, 1)} перевозки`) : '',
     ['geo_volume', 'bear_volume_zones'].includes(mode) ? metric('Средний объём региона', `${decimal(cluster.regional_mean_trip_count, 1)} перевозки/точку`) : '',
@@ -194,11 +212,14 @@ function renderClusterDetails(result, cluster, mode) {
     cluster.mean_radius_km == null ? '' : metric('Средний радиус', km(cluster.mean_radius_km)),
     cluster.p95_radius_km == null ? '' : metric('P95 радиус', km(cluster.p95_radius_km)),
     cluster.max_radius_km == null ? '' : metric('Максимальный радиус', km(cluster.max_radius_km)),
-    metric('Пространственная связность', cluster.connected === true ? 'Да' : cluster.connected === false ? 'Нет' : '—'),
-    cluster.trip_count < 20 ? '<p class="inline-warning">Небольшой объём наблюдений · ' + fmt(cluster.trip_count) + ' перевозок</p>' : '',
   ].join('');
+  $('cluster-detail-metrics').innerHTML = representative + (ordinary
+    ? canonicalClusterMetrics(result, cluster) + `<details class="cluster-diagnostics"><summary>Расширенная аналитика и совместимые показатели</summary>${diagnostics}</details>`
+    : diagnostics)
+    + metric('Пространственная связность', cluster.connected === true ? 'Да' : cluster.connected === false ? 'Нет' : '—')
+    + (cluster.trip_count != null && cluster.trip_count < 20 ? '<p class="inline-warning">Небольшой объём наблюдений · ' + fmt(cluster.trip_count) + ' перевозок</p>' : '');
   $('cluster-points').innerHTML = points.map(point => `
-    <button type="button" data-point-id="${escapeHtml(point.id)}"><span>${escapeHtml(point.name)}</span><strong>${fmt(point.trip_count)}</strong></button>`).join('');
+    <button type="button" data-point-id="${escapeHtml(point.id)}"><span>${escapeHtml(point.name)}</span><strong>${count(point.trip_count)}</strong></button>`).join('');
 }
 
 function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false, periodTypes = []) {
@@ -209,8 +230,8 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
     spatial_outlier: 'Пространственно изолирована', economic_unavailable: 'Нет экономики',
   };
   const economics = !tableMode && mode !== 'bear_zones' ? '' : `
-      ${!tableMode && point.weighted_price == null ? '' : `<div><dt>Средневзвешенная цена</dt><dd>${point.weighted_price == null ? '—' : `${decimal(point.weighted_price, 0)} ₽`}</dd></div>`}
-      ${!tableMode && point.weighted_rub_per_km == null ? '' : `<div><dt>Средневзвешенный ₽/км</dt><dd>${rubKm(point.weighted_rub_per_km)}</dd></div>`}
+      ${!tableMode && point.weighted_price == null ? '' : `<div><dt>Средневзвешенная цена</dt><dd>${point.weighted_price == null ? '—' : `${decimal(point.weighted_price, 0)} ₽`}${tableMode ? `<small>Покрытие: ${coverage(point.valid_price_trip_count, point.trip_count)}</small>` : ''}</dd></div>`}
+      ${!tableMode && point.weighted_rub_per_km == null ? '' : `<div><dt>Средневзвешенный ₽/км</dt><dd>${rubKm(point.weighted_rub_per_km)}${tableMode ? `<small>Покрытие: ${coverage(point.valid_rub_per_km_trip_count, point.trip_count)}</small>` : ''}</dd></div>`}
       ${!tableMode && point.regional_weighted_rub_per_km == null ? '' : `<div><dt>Региональный ₽/км</dt><dd>${rubKm(point.regional_weighted_rub_per_km)}</dd></div>`}
       ${!tableMode && point.relative_rate_delta == null ? '' : `<div><dt>Отклонение</dt><dd>${percent(point.relative_rate_delta)}</dd></div>`}`;
   const volume = !['geo_volume', 'bear_volume_zones'].includes(mode) ? '' : `
@@ -251,10 +272,10 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
       <div><dt>FIAS</dt><dd>${escapeHtml(point.fias_id || point.id)}</dd></div>
       <div><dt>Статус</dt><dd>${escapeHtml(statuses[point.status] || point.status)}</dd></div>
       <div><dt>Кластер</dt><dd>${point.cluster_id == null ? 'Вне кластеров' : Number(point.cluster_id) + 1}</dd></div>
-      <div><dt>${tableMode ? 'Машины' : 'Перевозки'}</dt><dd>${fmt(point.trip_count)}</dd></div>
-      ${tableMode ? `<div><dt>Маршрут</dt><dd>${km(point.weighted_route_length)}</dd></div>` : ''}
+      <div><dt>${tableMode ? 'Машины' : 'Перевозки'}</dt><dd>${count(point.trip_count)}</dd></div>
+      ${tableMode ? `<div><dt>Маршрут</dt><dd>${km(point.weighted_route_length)}<small>Покрытие: ${coverage(point.valid_route_length_trip_count, point.trip_count)}</small></dd></div>` : ''}
       ${tableMode ? `<div><dt>Периоды</dt><dd>${periodTypes.map(value => escapeHtml(value === 'forecast' ? 'Прогноз Pulse' : PERIOD_LABELS[value] || value)).join(', ') || '—'}</dd></div>` : ''}
-      ${tableMode && point.data_quality_flags?.length ? `<div><dt>Качество</dt><dd>${point.data_quality_flags.map(escapeHtml).join(', ')}</dd></div>` : ''}
+      ${point.data_quality_flags?.length ? `<div><dt>Качество</dt><dd>${point.data_quality_flags.map(escapeHtml).join(', ')}</dd></div>` : ''}
       ${economics}
       ${volume}
     </dl>
@@ -286,13 +307,12 @@ function originSummary(handlers) {
     stale: 'Данные Pulse изменились. Пересчитайте результат.',
     unavailable: 'Сохранённый результат недоступен. Пересчитайте результат.',
   };
-  const coverage = (valid, total) => `${fmt(valid)} / ${fmt(total)} (${total ? `${decimal(valid / total * 100, 1)}%` : '—'})`;
   return `<section class="origin-summary" aria-label="Вклад отправлений"><h4>Вклад отправлений в точку</h4>
     <p>Источник: Pulse. Средние взвешены по машинам с валидным показателем. Покрытие: валидные машины / все машины отправления. Пропуски не равны нулю.</p>
     ${summary.status === 'success' ? (summary.origins || []).map(origin => `
       <button type="button" data-origin-fias="${escapeHtml(origin.origin_fias)}" aria-pressed="${handlers.selectedOrigin === origin.origin_fias}">
         <strong>${escapeHtml(origin.origin_name || 'Название недоступно')}</strong> · ${escapeHtml(origin.origin_fias)}
-        <span>${fmt(origin.trip_count)} машин · ${fmt(origin.source_row_count)} строк</span>
+        <span>${count(origin.trip_count)} машин · ${count(origin.source_row_count)} строк</span>
         <span>Маршрут: ${km(origin.weighted_route_length)} · покрытие ${coverage(origin.valid_route_length_trip_count, origin.trip_count)}</span>
         <span>Цена: ${origin.weighted_price == null ? '—' : `${decimal(origin.weighted_price, 0)} ₽`} · покрытие ${coverage(origin.valid_price_trip_count, origin.trip_count)}</span>
         <small>Регионы погрузки из строк: ${(origin.origin_regions || []).map(region => escapeHtml(region || 'Регион погрузки не определён')).join(', ')}</small>
