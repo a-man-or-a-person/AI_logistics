@@ -85,6 +85,13 @@
     <div id="clustering-center" class="clustering-center">
       <div class="workspace-actions"><button id="mobile-controls-btn" class="secondary-button" type="button" aria-controls="sidebar">Параметры</button><span id="selection-context" aria-live="polite"></span><button id="mobile-inspector-btn" class="secondary-button" type="button" aria-controls="clustering-inspector">Результат</button></div>
       <section id="result-context" class="result-context hidden" aria-label="Сохранённый контекст"></section>
+      <section id="result-summary" class="result-summary" aria-label="Сохранённый результат и качество данных">
+        <div id="result-status" class="result-state hidden" role="status" aria-live="polite"></div>
+        <section class="result-hero"><div><span class="eyebrow">Сохранённый метод</span><h3 id="result-title">—</h3><p id="result-subtitle">—</p></div><div class="hero-counts"><strong id="result-total-trips">—</strong><span id="result-outliers"></span></div></section>
+        <section id="result-warnings" class="result-warnings hidden" aria-live="polite"></section>
+        <section id="result-quality" class="summary-quality"></section>
+        <details class="result-diagnostics"><summary>Расширенная аналитика</summary><section id="result-metrics"></section></details>
+      </section>
     <main id="clustering-map" aria-label="Карта результата">
       <div id="map"></div>
       <div class="map-control base-layer-control"><label for="layer-select">Подложка</label><select id="layer-select"><option value="2gis">Карта</option><option value="hybrid">Спутник</option></select></div>
@@ -103,16 +110,11 @@
       <div class="panel-heading"><div><span class="eyebrow">Результат</span><h2>Анализ</h2></div><button class="panel-close mobile-only" data-close-panel="inspector" type="button" aria-label="Закрыть результат">×</button></div>
       <div id="inspector-empty" class="inspector-empty"><span class="inspector-empty-mark">C</span><strong>Результат появится здесь</strong><p>После расчёта будут доступны метрики, кластеры и точки.</p></div>
       <div id="inspector-result" class="inspector-content hidden">
-        <div id="result-status" class="result-state hidden"></div>
-        <section class="result-hero"><div><span class="eyebrow">Метод</span><h3 id="result-title">—</h3><p id="result-subtitle">—</p></div><div class="hero-counts"><strong id="result-total-trips">—</strong><span id="result-outliers"></span></div></section>
         <section id="export-controls" class="inspector-section" aria-label="Скачать таблицу">
           <button id="btn-export-clustering" class="secondary-button" type="button" aria-describedby="export-status">Скачать XLSX</button>
           <button id="btn-cancel-export" class="text-button hidden" type="button">Отменить загрузку</button>
           <p id="export-status" class="cluster-table-state" role="status" aria-live="polite"></p>
         </section>
-        <section id="result-warnings" class="result-warnings hidden" aria-live="polite"></section>
-        <section id="result-quality" class="inspector-section"></section>
-        <section id="result-metrics" class="inspector-section"></section>
         <section id="point-details" class="point-details hidden"></section>
         <section class="inspector-section"><div class="section-row"><h4>Кластеры и зоны</h4><button id="compare-modes" class="secondary-button" type="button">Сравнить режимы</button></div><div id="cluster-list" class="cluster-list"></div></section>
         <section id="cluster-details" class="cluster-details hidden"><button id="cluster-details-close" class="back-button" type="button">← Все кластеры</button><h4 id="cluster-detail-title">—</h4><div id="cluster-detail-stats" class="summary-grid"></div><div id="cluster-detail-metrics"></div><h5>Точки</h5><div id="cluster-points" class="point-list"></div></section>

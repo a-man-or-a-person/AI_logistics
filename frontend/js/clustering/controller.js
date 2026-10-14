@@ -215,6 +215,7 @@ function trapPanelFocus(event) {
 }
 
 function syncPanelLayout() {
+  $('workspace').classList.toggle('has-saved-result', Boolean(state.result.data));
   const selected = state.ui.selectedCluster != null || state.ui.selectedPoint != null;
   $('workspace').classList.toggle('has-inspector-selection', selected);
   const point = state.result.data?.points.find(item => item.id === state.ui.selectedPoint);
@@ -805,6 +806,7 @@ function renderInspectorState() {
   const focusedOrigin = focused?.dataset.originFias;
   const focusedPulse = focused?.matches?.('.pulse-details summary');
   renderInspector(state, {
+    isStale: () => isResultStale(state),
     onLayout: syncPanelLayout,
     pointRowsKey,
     pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
