@@ -109,8 +109,9 @@ Bear Cost и Bear Volume сохраняют прежнее представле�
 первую страницу только по запросу пользователя; смена точки, результата или comparison mode
 не позволяет позднему ответу попасть в новый контекст.
 
-Desktop использует три колонки. На tablet inspector становится drawer, на mobile
-controls и inspector открываются bottom-sheet поверх карты. Все drawers и dropdowns закрываются
+Desktop использует три колонки с постоянной аналитикой справа: [D-06](balanced-ux-evidence/12-right-sidebar-decision.md).
+На tablet inspector становится правым drawer поверх карты;
+ниже1040px controls открываются левым drawer. Все drawers и dropdowns закрываются
 по Escape; cluster/Bear labels не зависят только от цвета.
 
 Перед запуском форма показывает полный preview направления, источника Pulse, сегмента,

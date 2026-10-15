@@ -140,7 +140,7 @@ function wireEvents() {
     const cluster = state.ui.selectedCluster;
     selectCluster(null);
     [...document.querySelectorAll('#cluster-list [data-cluster-id]')]
-      .find(button => Number(button.dataset.clusterId) === cluster)?.focus({preventScroll: true});
+      .find(button => Number(button.dataset.clusterId) === cluster)?.focus();
   });
   $('compare-modes').addEventListener('click', openComparison);
   $('close-comparison').addEventListener('click', () => {
@@ -192,7 +192,7 @@ function closePanel(restoreFocus = true) {
 function openPanel(panel, opener) {
   closePanel(false);
   const docked = panel.id === 'sidebar' ? innerWidth >= 1040
-    : innerWidth >= 1320 && $('workspace').classList.contains('has-inspector-selection');
+    : innerWidth >= 1320;
   if (!docked) {
     activePanel = panel;
     panelFocusReturn = opener;
@@ -228,7 +228,7 @@ function syncPanelLayout() {
   $('selection-context').textContent = point?.name || (cluster ? clusterLabel(cluster, state.result.data.analysis.mode) : '');
   $('mobile-inspector-btn').textContent = selected ? 'Детали' : 'Результат';
   if (activePanel && ((activePanel.id === 'sidebar' && innerWidth >= 1040)
-      || (activePanel.id === 'clustering-inspector' && innerWidth >= 1320 && selected))) closePanel();
+      || (activePanel.id === 'clustering-inspector' && innerWidth >= 1320))) closePanel();
   if (!activePanel) {
     for (const [id, opener] of [['sidebar', 'mobile-controls-btn'], ['clustering-inspector', 'mobile-inspector-btn']]) {
       if (getComputedStyle($(id)).display === 'none' && ($(id).contains(document.activeElement)
@@ -585,6 +585,7 @@ function selectCluster(clusterId, focus = false) {
   state.ui.selectedCluster = clusterId;
   highlightCluster(clusterId, focus);
   renderInspectorState();
+  if (clusterId != null) $('clustering-inspector').scrollTop = 0;
   renderClusterTableState();
 }
 
@@ -880,7 +881,7 @@ function renderInspectorState() {
       const parent = state.ui.selectedCluster == null
         ? document.querySelector('.cluster-card')
         : [...document.querySelectorAll('[data-point-id]')].find(button => button.dataset.pointId === point);
-      parent?.focus({preventScroll: true});
+      parent?.focus();
     },
     onPointSummary: () => {
       const origin = state.ui.selectedOrigin;
@@ -972,6 +973,7 @@ function selectPoint(pointId, focus = false) {
   }
   if (pointId && focus) focusClusteringPoint(pointId);
   renderInspectorState();
+  if (pointId != null) $('clustering-inspector').scrollTop = 0;
   if (pointId && state.result.data.analysis.frozen_request) loadPointOrigins();
 }
 

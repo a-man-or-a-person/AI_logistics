@@ -50,7 +50,7 @@ def test_calculate_footer_and_saved_context_survive_form_scroll(viewport):
     assert actual['formScrollable'] is True
 
 
-def test_overview_has_no_docked_inspector_or_focusable_hidden_controls():
+def test_overview_has_persistent_docked_inspector():
     actual = _run_browser_script(_layout_script("""
       const panel=document.getElementById('clustering-inspector');
       const style=getComputedStyle(panel);
@@ -58,14 +58,69 @@ def test_overview_has_no_docked_inspector_or_focusable_hidden_controls():
         usefulWidth:document.getElementById('clustering-center').getBoundingClientRect().width,
         controlsWidth:document.getElementById('sidebar').getBoundingClientRect().width});
     """), reduced_motion=True)
-    assert actual['hidden'] is True, actual
+    assert actual['hidden'] is False, actual
     assert actual['usefulWidth'] >= 640
     assert actual['controlsWidth'] == 280
 
 
+def test_selection_reveals_details_after_scrolled_overview_without_resetting_rerenders():
+    from test_dashboard_table import _table_script
+
+    actual = _run_browser_script(_table_script("""
+      result.clusters=Array.from({length:8},(_,i)=>({cluster_id:i,point_count:1,trip_count:40,point_ids:['x']}));
+      result.points[0].cluster_id=7;workspace.show();
+      const panel=document.getElementById('clustering-inspector');
+      const last=document.querySelector('#cluster-list [data-cluster-id="7"]');
+      last.scrollIntoView({block:'center'});last.click();await pause();
+      const inside=id=>{const r=document.getElementById(id).getBoundingClientRect(),p=panel.getBoundingClientRect();
+        return r.top>=p.top&&r.bottom<=p.bottom};
+      const cluster=inside('cluster-details-close');
+      panel.scrollTop=100;workspace.show();const kept=panel.scrollTop===100;
+      document.querySelector('#cluster-points [data-point-id]').click();await pause();
+      const point=inside('point-details-close');
+      document.getElementById('point-details-close').click();await pause();
+      const parentPoint=document.activeElement;
+      const visible=e=>{const r=e.getBoundingClientRect(),p=panel.getBoundingClientRect();return r.top>=p.top&&r.bottom<=p.bottom};
+      const pointReturn=parentPoint.matches('[data-point-id]')&&visible(parentPoint);
+      document.getElementById('cluster-details-close').click();await pause();
+      const clusterReturn=document.activeElement.dataset.clusterId==='7'&&visible(document.activeElement);
+      document.body.dataset.result=JSON.stringify({cluster,point,kept,pointReturn,clusterReturn});
+    """), reduced_motion=True, viewport=(1440,900))
+    assert all(actual.values()), actual
+
+
+@pytest.mark.parametrize('viewport,baseline_area', [
+    ((1366,768),166460), ((1440,900),266112), ((1920,1080),551134),
+    ((1092,614),5173), ((1152,720),92586), ((1536,864),289152),
+])
+def test_sidebar_reclaims_visible_map_area_and_diagnostics_do_not_resize_center(viewport, baseline_area):
+    from test_dashboard_table import _table_script
+
+    actual = _run_browser_script(_table_script("""
+      const panel=document.getElementById('clustering-inspector');
+      const map=document.getElementById('clustering-map');
+      const before=map.getBoundingClientRect().toJSON();
+      document.querySelector('.result-diagnostics').open=true;await pause();
+      const after=map.getBoundingClientRect().toJSON();
+      document.body.dataset.result=JSON.stringify({
+        area:before.width*Math.max(0,Math.min(innerHeight,before.bottom)-Math.max(0,before.top)),
+        fullyVisible:before.top>=56&&before.bottom<=innerHeight,
+        unchanged:before.width===after.width&&before.height===after.height&&before.y===after.y,
+        owned:panel.contains(document.getElementById('result-summary')),
+        unique:document.querySelectorAll('#result-quality').length===1,
+        columns:document.querySelectorAll('#cluster-table-panel thead th').length,
+        overflow:document.getElementById('workspace').scrollWidth>innerWidth,
+        docked:getComputedStyle(panel).display!=='none'});
+    """), reduced_motion=True, viewport=viewport)
+    assert actual['area'] > baseline_area, actual
+    assert actual['fullyVisible'] and actual['unchanged'] and actual['owned'] and actual['unique'], actual
+    assert actual['columns'] == 14 and not actual['overflow'], actual
+    assert actual['docked'] is (viewport[0] >= 1320), actual
+
+
 @pytest.mark.parametrize("panel_id,opener_id,viewport", [
     ("clustering-inspector", "mobile-inspector-btn", (1093, 614)),
-    ("clustering-inspector", "mobile-inspector-btn", (1600, 1000)),
+    ("clustering-inspector", "mobile-inspector-btn", (1319, 900)),
     ("sidebar", "mobile-controls-btn", (900, 720)),
 ])
 def test_modal_panels_trap_focus_restore_opener_and_preserve_saved_state(panel_id, opener_id, viewport):

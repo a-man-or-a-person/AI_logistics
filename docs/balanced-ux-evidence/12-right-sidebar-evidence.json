@@ -1,0 +1,1823 @@
+{
+  "base": "cab287ff62840fc7b8de615f6e567330130899e1",
+  "ui_base": "ddbeeb466d5d79557e79a88fcd345a6782ad1408",
+  "source_fingerprint": {
+    "frontend/index.html": "ace8a119bfd513e32a2394e1911c9b644d1ffb4c5bde652667c170385e827176",
+    "frontend/css/style.css": "6ee8af69f50d2eb43eadaac1ea02327f5f5f998a01bafbab071977ad858c35f2",
+    "frontend/js/clustering/controller.js": "6ef160cedf36768fa374ecea6452fdf1cd4051d6d0a585bbf06f0a73262cf40b",
+    "frontend/js/clustering/inspector.js": "d6a93fcdcdf09cea3fdceab40e9ef957c0225298dcc3c280a0385f1ad9f39576",
+    "tests/test_dashboard_layout.py": "72e2c15b7439f824d1e305916df9a8cb98b8b764dea4a66b089e6e7b6b97d9af",
+    "tests/test_dashboard_summary.py": "7ffbf7cd97d60f106c7fa64484ca3326787ab5215393e6c14e76c173329bd1e0"
+  },
+  "geometry_method": "Actual Edge screenshots/DOM rectangles, same live Flask synthetic saved Geography result. Before headed, final after headless. 125% is viewport/DPR emulation, not native browser zoom. No human usability measurements.",
+  "map_rectangle_fields": [
+    "x",
+    "y",
+    "width",
+    "height",
+    "visible_height"
+  ],
+  "geometry": [
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "overview",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          1035.2000732421875,
+          240,
+          160.79998779296875
+        ],
+        "visible_area": 166460.1591406241,
+        "center_width": 1050.4000244140625,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          718,
+          352,
+          352
+        ],
+        "visible_area": 252736,
+        "center_width": 718,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 196,
+        "inspector": [
+          320,
+          688
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "expanded",
+      "before": {
+        "map": [
+          304,
+          804.8250122070312,
+          1035.2000732421875,
+          240,
+          0
+        ],
+        "visible_area": 0,
+        "center_width": 1050.4000244140625,
+        "context_height": 107.5999984741211,
+        "summary_height": 553.2250366210938,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": true,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          718,
+          352,
+          352
+        ],
+        "visible_area": 252736,
+        "center_width": 718,
+        "context_height": 64,
+        "summary_height": 1030.21875,
+        "table_height": 196,
+        "inspector": [
+          320,
+          688
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "cluster",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          703.2000122070312,
+          240,
+          160.79998779296875
+        ],
+        "visible_area": 113074.5533789061,
+        "center_width": 718.4000244140625,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          320,
+          688
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          718,
+          352,
+          352
+        ],
+        "visible_area": 252736,
+        "center_width": 718,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 196,
+        "inspector": [
+          320,
+          688
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "point",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          703.2000122070312,
+          240,
+          160.79998779296875
+        ],
+        "visible_area": 113074.5533789061,
+        "center_width": 718.4000244140625,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          320,
+          688
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          718,
+          352,
+          352
+        ],
+        "visible_area": 252736,
+        "center_width": 718,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 196,
+        "inspector": [
+          320,
+          688
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "overview",
+      "before": {
+        "map": [
+          304,
+          516.4000244140625,
+          1108.800048828125,
+          240,
+          240
+        ],
+        "visible_area": 266112.01171875,
+        "center_width": 1124,
+        "context_height": 107.5999984741211,
+        "summary_height": 264.8000183105469,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          792,
+          475.296875,
+          475.296875
+        ],
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 204.703125,
+        "inspector": [
+          320,
+          820
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "expanded",
+      "before": {
+        "map": [
+          304,
+          714.0250244140625,
+          1108.800048828125,
+          240,
+          185.9749755859375
+        ],
+        "visible_area": 206209.06201049685,
+        "center_width": 1124,
+        "context_height": 107.5999984741211,
+        "summary_height": 462.4250183105469,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          792,
+          475.296875,
+          475.296875
+        ],
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "context_height": 64,
+        "summary_height": 1030.21875,
+        "table_height": 204.703125,
+        "inspector": [
+          320,
+          820
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "cluster",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          776.7999877929688,
+          240,
+          240
+        ],
+        "visible_area": 186431.9970703125,
+        "center_width": 792,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          320,
+          820
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          792,
+          475.296875,
+          475.296875
+        ],
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 204.703125,
+        "inspector": [
+          320,
+          820
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "point",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          776.7999877929688,
+          240,
+          240
+        ],
+        "visible_area": 186431.9970703125,
+        "center_width": 792,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          320,
+          820
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          792,
+          475.296875,
+          475.296875
+        ],
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 204.703125,
+        "inspector": [
+          320,
+          820
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "overview",
+      "before": {
+        "map": [
+          304,
+          516.4000244140625,
+          1604,
+          343.6000061035156,
+          343.6000061035156
+        ],
+        "visible_area": 551134.4097900391,
+        "center_width": 1604,
+        "context_height": 107.5999984741211,
+        "summary_height": 264.8000183105469,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          1272,
+          601.296875,
+          601.296875
+        ],
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "context_height": 64,
+        "summary_height": 490,
+        "table_height": 258.703125,
+        "inspector": [
+          320,
+          1000
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "expanded",
+      "before": {
+        "map": [
+          304,
+          667.2250366210938,
+          1588.800048828125,
+          240,
+          240
+        ],
+        "visible_area": 381312.01171875,
+        "center_width": 1604,
+        "context_height": 107.5999984741211,
+        "summary_height": 415.625,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          1272,
+          601.296875,
+          601.296875
+        ],
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "context_height": 64,
+        "summary_height": 1030.21875,
+        "table_height": 258.703125,
+        "inspector": [
+          320,
+          1000
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "cluster",
+      "before": {
+        "map": [
+          304,
+          516.4000244140625,
+          1272,
+          343.6000061035156,
+          343.6000061035156
+        ],
+        "visible_area": 437059.2077636719,
+        "center_width": 1272,
+        "context_height": 107.5999984741211,
+        "summary_height": 264.8000183105469,
+        "table_height": 196,
+        "inspector": [
+          320,
+          1000
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          1272,
+          601.296875,
+          601.296875
+        ],
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 258.703125,
+        "inspector": [
+          320,
+          1000
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "point",
+      "before": {
+        "map": [
+          304,
+          516.4000244140625,
+          1272,
+          343.6000061035156,
+          343.6000061035156
+        ],
+        "visible_area": 437059.2077636719,
+        "center_width": 1272,
+        "context_height": 107.5999984741211,
+        "summary_height": 264.8000183105469,
+        "table_height": 196,
+        "inspector": [
+          320,
+          1000
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          1272,
+          601.296875,
+          601.296875
+        ],
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 258.703125,
+        "inspector": [
+          320,
+          1000
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "overview",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          760.7999877929688,
+          240,
+          6.79998779296875
+        ],
+        "visible_area": 5173.4306298829615,
+        "center_width": 776,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          761,
+          240,
+          240
+        ],
+        "visible_area": 182640,
+        "center_width": 776,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "expanded",
+      "before": {
+        "map": [
+          304,
+          898.4249877929688,
+          760.7999877929688,
+          240,
+          0
+        ],
+        "visible_area": 0,
+        "center_width": 776,
+        "context_height": 107.5999984741211,
+        "summary_height": 646.8250122070312,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": true,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          761,
+          240,
+          240
+        ],
+        "visible_area": 182640,
+        "center_width": 776,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "cluster",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          760.7999877929688,
+          240,
+          6.79998779296875
+        ],
+        "visible_area": 5173.4306298829615,
+        "center_width": 776,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          761,
+          240,
+          240
+        ],
+        "visible_area": 182640,
+        "center_width": 776,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "point",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          760.7999877929688,
+          240,
+          6.79998779296875
+        ],
+        "visible_area": 5173.4306298829615,
+        "center_width": 776,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          761,
+          240,
+          240
+        ],
+        "visible_area": 182640,
+        "center_width": 776,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "overview",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          820.7999877929688,
+          240,
+          112.79998779296875
+        ],
+        "visible_area": 92586.22860351577,
+        "center_width": 836,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          836,
+          304,
+          304
+        ],
+        "visible_area": 254144,
+        "center_width": 836,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "expanded",
+      "before": {
+        "map": [
+          304,
+          804.8250122070312,
+          820.7999877929688,
+          240,
+          0
+        ],
+        "visible_area": 0,
+        "center_width": 836,
+        "context_height": 107.5999984741211,
+        "summary_height": 553.2250366210938,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": true,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          836,
+          304,
+          304
+        ],
+        "visible_area": 254144,
+        "center_width": 836,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "cluster",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          820.7999877929688,
+          240,
+          112.79998779296875
+        ],
+        "visible_area": 92586.22860351577,
+        "center_width": 836,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          836,
+          304,
+          304
+        ],
+        "visible_area": 254144,
+        "center_width": 836,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "point",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          820.7999877929688,
+          240,
+          112.79998779296875
+        ],
+        "visible_area": 92586.22860351577,
+        "center_width": 836,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          836,
+          304,
+          304
+        ],
+        "visible_area": 254144,
+        "center_width": 836,
+        "context_height": 64,
+        "summary_height": 0,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "overview",
+      "before": {
+        "map": [
+          304,
+          516.4000244140625,
+          1204.800048828125,
+          240,
+          240
+        ],
+        "visible_area": 289152.01171875,
+        "center_width": 1220,
+        "context_height": 107.5999984741211,
+        "summary_height": 264.8000183105469,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          888,
+          448,
+          448
+        ],
+        "visible_area": 397824,
+        "center_width": 888,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 196,
+        "inspector": [
+          320,
+          784
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "expanded",
+      "before": {
+        "map": [
+          304,
+          714.0250244140625,
+          1204.800048828125,
+          240,
+          149.9749755859375
+        ],
+        "visible_area": 180689.85790893435,
+        "center_width": 1220,
+        "context_height": 107.5999984741211,
+        "summary_height": 462.4250183105469,
+        "table_height": 196,
+        "inspector": [
+          0,
+          0
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          888,
+          448,
+          448
+        ],
+        "visible_area": 397824,
+        "center_width": 888,
+        "context_height": 64,
+        "summary_height": 1030.21875,
+        "table_height": 196,
+        "inspector": [
+          320,
+          784
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "cluster",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          872.7999877929688,
+          240,
+          240
+        ],
+        "visible_area": 209471.9970703125,
+        "center_width": 888,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          320,
+          784
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          888,
+          448,
+          448
+        ],
+        "visible_area": 397824,
+        "center_width": 888,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 196,
+        "inspector": [
+          320,
+          784
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "point",
+      "before": {
+        "map": [
+          304,
+          607.2000122070312,
+          872.7999877929688,
+          240,
+          240
+        ],
+        "visible_area": 209471.9970703125,
+        "center_width": 888,
+        "context_height": 107.5999984741211,
+        "summary_height": 355.6000061035156,
+        "table_height": 196,
+        "inspector": [
+          320,
+          784
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          true,
+          false
+        ],
+        "columns": 14
+      },
+      "after": {
+        "map": [
+          304,
+          196,
+          888,
+          448,
+          448
+        ],
+        "visible_area": 397824,
+        "center_width": 888,
+        "context_height": 64,
+        "summary_height": 550,
+        "table_height": 196,
+        "inspector": [
+          320,
+          784
+        ],
+        "scroll_to_map": false,
+        "center_overflow": [
+          false,
+          false
+        ],
+        "columns": 14
+      }
+    }
+  ],
+  "openlayers_resize": {
+    "before": {
+      "center": [
+        4129953.10843045,
+        7381298.312185911
+      ],
+      "zoom": 11
+    },
+    "after": {
+      "center": [
+        4129953.10843045,
+        7381298.312185911
+      ],
+      "zoom": 11,
+      "size": [
+        762,
+        240
+      ],
+      "target": [
+        762,
+        240
+      ]
+    },
+    "observer": "OpenLayers built-in ResizeObserver -> updateSize()"
+  },
+  "traceability": {
+    "historical_ledger": "10-information-preservation.json",
+    "historical_sha256": "e87115a8b3b0da44d70781ecd10b916a3c41c1da139982fde03cccbfc14d8c39",
+    "criteria": [
+      "DS-01",
+      "DS-02",
+      "DS-03",
+      "WL-01",
+      "WL-02",
+      "WL-03",
+      "PM-01",
+      "PM-02",
+      "PM-03",
+      "EC-01",
+      "EC-02",
+      "EC-03",
+      "SR-01",
+      "SR-02",
+      "SR-03",
+      "MT-01",
+      "MT-02",
+      "MT-03",
+      "IN-01",
+      "IN-02",
+      "IN-03",
+      "IN-04",
+      "CX-01",
+      "CX-02",
+      "CX-03",
+      "CX-04",
+      "ST-01",
+      "ST-02",
+      "ST-03",
+      "ST-04",
+      "ST-05",
+      "IA-01",
+      "IA-02",
+      "IA-03",
+      "IA-04"
+    ],
+    "obligation_groups": {
+      "unchanged source/access; historical evidence inherited plus fresh required regressions": [
+        "CTX-origins",
+        "CTX-all-origins",
+        "CTX-destination-region",
+        "CTX-period-types",
+        "CTX-price-types",
+        "CTX-vehicle-types",
+        "CTX-tonnage-ids",
+        "CTX-facet-count",
+        "CTX-mode",
+        "CTX-k-mode",
+        "CTX-n-clusters",
+        "CTX-geography-weight",
+        "CTX-economics-weight",
+        "CTX-volume-weight",
+        "CTX-bear-threshold",
+        "CTX-volume-threshold",
+        "CTX-singleton-threshold",
+        "CTX-preview",
+        "CTX-form-warnings",
+        "MAP-points",
+        "MAP-labels",
+        "MAP-centers",
+        "MAP-outliers",
+        "MAP-candidates",
+        "MAP-base-layer",
+        "MAP-legend",
+        "CMP-context",
+        "CMP-mode",
+        "CMP-n-clusters",
+        "CMP-weights",
+        "CMP-p95-distance-to-medoid-m",
+        "CMP-economicCoverage",
+        "CMP-within-cluster-weighted-rubkm-mad",
+        "CMP-between-cluster-rate-spread",
+        "CMP-within-cluster-trip-count-mad",
+        "CMP-between-cluster-mean-trip-spread",
+        "CMP-threshold",
+        "CMP-candidate-count",
+        "CMP-bear-zone-count",
+        "CMP-singleton-count",
+        "CMP-covered-trip-count",
+        "CMP-resolved-points",
+        "CMP-trip-count-total",
+        "CMP-point-coverage-pct",
+        "CMP-outliers-length",
+        "CMP-neutral",
+        "XLS-table-rows",
+        "XLS-assigned-rows",
+        "XLS-source-row-id",
+        "XLS-source-timestamp",
+        "XLS-destination-fias",
+        "XLS-destination-name",
+        "XLS-cluster-id",
+        "XLS-context-metadata",
+        "XLS-methodology",
+        "XLS-coverage",
+        "XLS-exclusions",
+        "XLS-sheet-mapping",
+        "XLS-conflicting-origin-regions",
+        "XLS-export-created-at-utc",
+        "XLS-literal-types",
+        "XLS-complete-or-fail",
+        "XDT-period-id",
+        "XDT-period-type",
+        "XDT-price-type",
+        "XDT-vehicle-type",
+        "XDT-tonnage-id",
+        "XDT-price",
+        "XDT-route-length",
+        "XDT-rub-per-km",
+        "XDT-trip-count",
+        "XDT-warnings",
+        "XDT-origin-fias",
+        "XDT-origin-name",
+        "XDT-origin-region",
+        "LEG-shell-view",
+        "LEG-shell-theme",
+        "LEG-shell-status",
+        "LEG-shell-loading",
+        "LEG-shell-toast",
+        "LEG-shell-empty-state",
+        "LEG-shell-total-ship",
+        "LEG-shell-total-del",
+        "LEG-shell-geocoded",
+        "LEG-shell-geocode-running",
+        "LEG-shell-geocode-done",
+        "LEG-shell-geocode-total",
+        "LEG-shell-geocode-progress",
+        "LEG-shell-base-layer",
+        "LEG-filters-fromRegions",
+        "LEG-filters-toRegions",
+        "LEG-filters-region-catalog",
+        "LEG-filters-region-search",
+        "LEG-filters-region-tags",
+        "LEG-filters-periodTypes",
+        "LEG-filters-priceTypes",
+        "LEG-filters-section-collapsed",
+        "LEG-filters-apply",
+        "LEG-filters-reset",
+        "LEG-popup-town",
+        "LEG-popup-region",
+        "LEG-popup-type",
+        "LEG-popup-avg-price",
+        "LEG-popup-rub-per-km",
+        "LEG-popup-min-price",
+        "LEG-popup-max-price",
+        "LEG-popup-avg-length",
+        "LEG-popup-min-length",
+        "LEG-popup-max-length",
+        "LEG-popup-avg-bids",
+        "LEG-popup-count",
+        "LEG-popup-by-period-period-type",
+        "LEG-popup-by-period-count",
+        "LEG-popup-by-period-avg-price",
+        "LEG-popup-by-period-rub-per-km",
+        "LEG-popup-clustered-points",
+        "LEG-popup-regeocode",
+        "LEG-popup-details",
+        "LEG-popup-legend",
+        "LEG-record-town",
+        "LEG-record-price",
+        "LEG-record-route-length",
+        "LEG-record-rub-per-km",
+        "LEG-record-bid-count",
+        "LEG-record-period-type",
+        "LEG-record-price-type",
+        "LEG-record-confidence",
+        "LEG-record-ship-region",
+        "LEG-record-del-region",
+        "LEG-record-modal-error",
+        "LEG-record-modal-close"
+      ],
+      "right analytics/selected details; Result drawer below1320": [
+        "FRZ-frozen-request",
+        "FRZ-selection-intent",
+        "SUM-analysis-mode",
+        "SUM-analysis-parameters-n-clusters",
+        "SUM-points-with-lat",
+        "SUM-trip-count-total",
+        "SUM-outliers-length",
+        "SUM-bear-zone-count",
+        "SUM-singleton-count",
+        "SUM-status",
+        "SUM-warnings",
+        "QLT-resolved-points",
+        "QLT-destination-points-total",
+        "QLT-point-coverage-pct",
+        "QLT-trip-count-resolved",
+        "QLT-trip-count-total",
+        "QLT-trip-weight-coverage-pct",
+        "QLT-economic-valid-points",
+        "QLT-excluded-missing-fias",
+        "MET-silhouette",
+        "MET-mean-distance-to-medoid-m",
+        "MET-p95-distance-to-medoid-m",
+        "MET-within-cluster-weighted-rubkm-mad",
+        "MET-regional-weighted-rub-per-km",
+        "MET-within-cluster-trip-count-mad",
+        "MET-between-cluster-mean-trip-spread",
+        "MET-regional-volume-mean-trip-count-per-point",
+        "MET-candidate-count",
+        "MET-covered-point-count",
+        "MET-covered-trip-count",
+        "MET-calinski-harabasz",
+        "MET-davies-bouldin",
+        "MET-graph-node-count",
+        "MET-graph-edge-count",
+        "MET-graph-graph-component-count",
+        "MET-graph-connectivity-violations",
+        "CLU-cluster-id",
+        "CLU-point-count",
+        "CLU-trip-count",
+        "CLU-relative-rate-delta",
+        "CLU-relative-volume-delta",
+        "CLU-representative-name",
+        "CLU-medoid-point-id",
+        "CLU-weighted-rub-per-km",
+        "CLU-weighted-price",
+        "CLU-regional-weighted-rub-per-km",
+        "CLU-mean-trip-count",
+        "CLU-regional-mean-trip-count",
+        "CLU-mean-radius-km",
+        "CLU-p95-radius-km",
+        "CLU-max-radius-km",
+        "CLU-connected",
+        "CLU-small-sample-warning",
+        "CLU-point-ids",
+        "CLU-cluster-type",
+        "PNT-name",
+        "PNT-fias-id",
+        "PNT-status",
+        "PNT-cluster-id",
+        "PNT-trip-count",
+        "PNT-weighted-route-length",
+        "PNT-period-types",
+        "PNT-data-quality-flags",
+        "PNT-weighted-price",
+        "PNT-weighted-rub-per-km",
+        "PNT-regional-weighted-rub-per-km",
+        "PNT-relative-rate-delta",
+        "PNT-regional-mean-trip-count",
+        "PNT-relative-volume-delta",
+        "ORG-origin-name",
+        "ORG-origin-fias",
+        "ORG-trip-count",
+        "ORG-source-row-count",
+        "ORG-weighted-route-length",
+        "ORG-valid-route-length-trip-count",
+        "ORG-route-coverage-pct",
+        "ORG-weighted-price",
+        "ORG-valid-price-trip-count",
+        "ORG-price-coverage-pct",
+        "ORG-origin-regions",
+        "ORG-warnings",
+        "ROW-origin-name",
+        "ROW-origin-fias",
+        "ROW-origin-region",
+        "ROW-period-id",
+        "ROW-period-type",
+        "ROW-price-type",
+        "ROW-vehicle-type",
+        "ROW-tonnage-id",
+        "ROW-price",
+        "ROW-route-length",
+        "ROW-rub-per-km",
+        "ROW-trip-count",
+        "ROW-warnings",
+        "ROW-total",
+        "ROW-hasMore",
+        "ROW-selectedOrigin"
+      ],
+      "compact frozen context above map": [
+        "FRZ-origins",
+        "FRZ-origin-coverage-zero-match",
+        "FRZ-source",
+        "FRZ-data-snapshot",
+        "FRZ-stale",
+        "FRZ-rejected-snapshot",
+        "FRZ-unavailable-result"
+      ],
+      "full table below map; local horizontal scroll": [
+        "TBL-cluster-id",
+        "TBL-point-count",
+        "TBL-trip-count",
+        "TBL-trip-share",
+        "TBL-weighted-route-length",
+        "TBL-price-min",
+        "TBL-price-median",
+        "TBL-price-weighted",
+        "TBL-price-max",
+        "TBL-rub-per-km-min",
+        "TBL-rub-per-km-median",
+        "TBL-rub-per-km-weighted",
+        "TBL-rub-per-km-max",
+        "TBL-economic-coverage",
+        "COV-coverage-route-length-valid-points",
+        "COV-coverage-route-length-total-points",
+        "COV-coverage-route-length-valid-trip-count",
+        "COV-coverage-route-length-total-trip-count",
+        "COV-coverage-price-valid-points",
+        "COV-coverage-price-total-points",
+        "COV-coverage-price-valid-trip-count",
+        "COV-coverage-price-total-trip-count",
+        "COV-coverage-rub-per-km-valid-points",
+        "COV-coverage-rub-per-km-total-points",
+        "COV-coverage-rub-per-km-valid-trip-count",
+        "COV-coverage-rub-per-km-total-trip-count",
+        "COV-economic-coverage-valid-points",
+        "COV-economic-coverage-total-points",
+        "COV-economic-coverage-valid-trip-count",
+        "COV-economic-coverage-total-trip-count",
+        "TST-table-sort",
+        "TST-table-open",
+        "TST-selected-hovered-cluster",
+        "TST-period-types",
+        "TST-methodology-distributions",
+        "TST-methodology-weighted-values",
+        "TST-missing-values",
+        "TST-supported",
+        "TST-table-error-empty"
+      ],
+      "same lifecycle; selected detail scroll/focus refreshed": [
+        "NAV-drill-up",
+        "NAV-selection",
+        "NAV-map-view",
+        "NAV-focus",
+        "STA-empty",
+        "STA-loading",
+        "STA-error",
+        "STA-retry",
+        "STA-cancellation",
+        "STA-revision-cache",
+        "STA-failed-revision",
+        "STA-stale-recovery",
+        "STA-unavailable-recovery",
+        "XLS-eligibility",
+        "XLS-frozen-context",
+        "XLS-form-change-warning",
+        "XLS-loading",
+        "XLS-cancel",
+        "XLS-success",
+        "XLS-error-retry"
+      ]
+    },
+    "status": "294 unique IDs/35 criteria retained, source/access reconciled. See12-preservation-review.md. Historical values inherited, not294 new runtime observations. Native limits in12-right-sidebar.md."
+  },
+  "artifact_storage": {
+    "path": "C:\\folder\\Python\\AI_logistics_clean\\.scratch\\balanced-ux-worktree\\.scratch\\sidebar-20261016",
+    "availability": "Retained locally; no cleanup authorized.",
+    "files": {
+      "after-cluster-1440.png": "ece8a80d733bcb03ebeeb73b5276aa37d04332cad96dde3605e357241da34881",
+      "after-expanded-1440.png": "7ab846b0253b4b6e64fe2d14156ccab76d4b16ae517aa46ca268a25feb5633c4",
+      "after-geometry.json": "32855971422ecd59310bb544303e846a06bbc984c5caeb07f097e197accc7a5c",
+      "after-overview-1440.png": "96dabff51d61541c2e09dadc4e5d07cc0d77eaaf3d7379e05247ecc470cfd041",
+      "after-point-1440.png": "c1021b62170f02fb9d3010cc8611ebcc06cf0249d9a7412fd7a899ef41a19ac2",
+      "before-cluster-1440.png": "8fb6175e0c5310e0e3770afc2b8b0a5cf44051eef4eb7802add1a037c163c89d",
+      "before-expanded-1440.png": "4811b3e14e5813beb92be581de8943131ed8747a9180a2bcbd4dee834b1a7973",
+      "before-geometry.json": "27067a81ee9e282a55530fe199346ec0eee91e080f285e92c32bd758f123b6b2",
+      "before-overview-1440.png": "1766e196db01aa55c482663b5affcaca9d878261953698072f6b12c9d2c64623",
+      "before-point-1440.png": "404356ee602caaceed92ee95decbba088325af006a8b47ed3fa45b5dae69986e",
+      "candidate-source.json": "9814a3a085ecd427f0a8b742de66948a31eea1235bfbcbfac8a3a1434875116e",
+      "delivery-cluster-1440.png": "eec9082548d27b26e408cb2eb11475322e13e5e94fe6cea5927b98dc3da6adec",
+      "delivery-dark-text100.png": "b4c756841391849f4d91a323c5f88e6c26d67b1251b2ebbbafa0ea4b9d4aa161",
+      "delivery-dark-text200.png": "4bf5c41be9a2ef9af7e606ee0af8d934dfad7f3ff84de091257fd978580295e2",
+      "delivery-download.json": "c73dcbdd95bd3a1b1ca041a9d57b1c5c8d7155a3f9bb6008a323c03f3975ff30",
+      "delivery-expanded-1440.png": "355bed615f8877df2b26d8345e2fb17aac1a777cc17c455e2750348c769f3a79",
+      "delivery-geometry.json": "99b8f6d13d3d9c78f2883f6323533b03df8f54a2f624aaa3ed3d809731070418",
+      "delivery-map-resize.json": "9f5c354a221cb494dbe5503b404a4e1ebc5049a0742e75e583f523650d4c67c7",
+      "delivery-overview-1440.png": "f92d87310ae4127004caaba26bf00c6b89a5b51f4e95995c3ca12e18f0401747",
+      "delivery-point-1440.png": "cf6f7e037a946caaf1821ca6eb28c79b56b6a025b1764814496a93ac2f69d38f",
+      "early-tests.xml": "d71d67da64a10b2c0d1e67d0a86b2bc1d5b9d8e8c8feea5991042560b18d01fb",
+      "final-cluster-1440.png": "f47cc76156a28e9ae36d1c033e6729f1a5f2b6788b04c8f477f4cda7798a7514",
+      "final-expanded-1440.png": "7dd637018eaaf39dfbd81b6d01b5baac736aef3d5bdf06363b703a862a0fac5c",
+      "final-geometry.json": "f8c3379474a95cf496e4b902d6432eadcdc6ed4164e97c8c66720a05dd964310",
+      "final-overview-1440.png": "0cff5089c727f263de267843c692994b6197e5d5c517e8b18d43a61e9a45ecd1",
+      "final-point-1440.png": "cf6f7e037a946caaf1821ca6eb28c79b56b6a025b1764814496a93ac2f69d38f",
+      "final-source-cluster-1440.png": "eec9082548d27b26e408cb2eb11475322e13e5e94fe6cea5927b98dc3da6adec",
+      "final-source-dark-text100.png": "b4c756841391849f4d91a323c5f88e6c26d67b1251b2ebbbafa0ea4b9d4aa161",
+      "final-source-dark-text200.png": "54dacebe7b05e96d95d689db23a9f0b9c4bc57c39cb2646555187c801cf127c6",
+      "final-source-download.json": "584cc8ec439ba024d52dad0f58ba7d91d9fa1c252fc437d408174de93c88550a",
+      "final-source-expanded-1440.png": "355bed615f8877df2b26d8345e2fb17aac1a777cc17c455e2750348c769f3a79",
+      "final-source-geometry.json": "99b8f6d13d3d9c78f2883f6323533b03df8f54a2f624aaa3ed3d809731070418",
+      "final-source-map-resize.json": "9f5c354a221cb494dbe5503b404a4e1ebc5049a0742e75e583f523650d4c67c7",
+      "final-source-overview-1440.png": "f92d87310ae4127004caaba26bf00c6b89a5b51f4e95995c3ca12e18f0401747",
+      "final-source-point-1440.png": "cf6f7e037a946caaf1821ca6eb28c79b56b6a025b1764814496a93ac2f69d38f",
+      "focused.xml": "0adba3e8ed680a515011572e101be56f084d77cbe492cbdff9f8c678b7eca01a",
+      "local-gates.json": "9b0cf5fb9ba1eb8df0f9cad3a353c04d86374e71c32137214a80dfdee6a8ba3b",
+      "served-assets.json": "f5e528e167515e5c51d5572b86b48aa2f8e910bc4b0f0481f17bac71860d31cc",
+      "verified-cluster-1440.png": "eec9082548d27b26e408cb2eb11475322e13e5e94fe6cea5927b98dc3da6adec",
+      "verified-dark-text100.png": "08f982450416b96702eaccbf2cf6d69f9ae1c0a4309258fb07a9e61603f96941",
+      "verified-dark-text200.png": "a319b706b6cfafbab1ed8dc0d09a54c436482cb537c31da659f6a7fb9a1f7fbd",
+      "verified-expanded-1440.png": "355bed615f8877df2b26d8345e2fb17aac1a777cc17c455e2750348c769f3a79",
+      "verified-geometry.json": "99b8f6d13d3d9c78f2883f6323533b03df8f54a2f624aaa3ed3d809731070418",
+      "verified-map-resize.json": "9f5c354a221cb494dbe5503b404a4e1ebc5049a0742e75e583f523650d4c67c7",
+      "verified-overview-1440.png": "f92d87310ae4127004caaba26bf00c6b89a5b51f4e95995c3ca12e18f0401747",
+      "verified-point-1440.png": "cf6f7e037a946caaf1821ca6eb28c79b56b6a025b1764814496a93ac2f69d38f"
+    }
+  },
+  "git_source_binding": {
+    "frontend/index.html": {
+      "worktree_sha256": "ace8a119bfd513e32a2394e1911c9b644d1ffb4c5bde652667c170385e827176",
+      "git_blob_sha256": "53d6dbe863c4363e205658d5ab41b2d83a7d211c59138819f3ecccf5666c4a55",
+      "difference": "CRLF to LF only"
+    },
+    "frontend/css/style.css": {
+      "worktree_sha256": "6ee8af69f50d2eb43eadaac1ea02327f5f5f998a01bafbab071977ad858c35f2",
+      "git_blob_sha256": "b9595c03a62683cc342988d6d1d512f7023dd91c9b78f81857a58e9c21d85ade",
+      "difference": "CRLF to LF only"
+    },
+    "frontend/js/clustering/controller.js": {
+      "worktree_sha256": "6ef160cedf36768fa374ecea6452fdf1cd4051d6d0a585bbf06f0a73262cf40b",
+      "git_blob_sha256": "d91cc4b7bd7fb278af9326bb2654c048dca06da0ba891601bddf25a8117d17ce",
+      "difference": "CRLF to LF only"
+    },
+    "frontend/js/clustering/inspector.js": {
+      "worktree_sha256": "d6a93fcdcdf09cea3fdceab40e9ef957c0225298dcc3c280a0385f1ad9f39576",
+      "git_blob_sha256": "aa49bdf37e951a156b5bc5c25960350d6fd8341fbb75b28743faa616715cc2a8",
+      "difference": "CRLF to LF only"
+    },
+    "tests/test_dashboard_layout.py": {
+      "worktree_sha256": "72e2c15b7439f824d1e305916df9a8cb98b8b764dea4a66b089e6e7b6b97d9af",
+      "git_blob_sha256": "1c7288cfd6fb15bd024fe5c283eebbc107decccc61b375dad0e2496e3ff65e2a",
+      "difference": "CRLF to LF only"
+    },
+    "tests/test_dashboard_summary.py": {
+      "worktree_sha256": "7ffbf7cd97d60f106c7fa64484ca3326787ab5215393e6c14e76c173329bd1e0",
+      "git_blob_sha256": "3c44d9bd86eccd663d6fde7673e6524c82a9840a77a4273777276492e9805ee1",
+      "difference": "CRLF to LF only"
+    }
+  }
+}

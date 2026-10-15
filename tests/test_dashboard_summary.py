@@ -7,7 +7,7 @@ from test_clustering_frontend_contract import _run_browser_script
 from test_dashboard_layout import _layout_script
 
 
-def test_saved_quality_and_status_are_in_the_center_and_survive_draft_edits():
+def test_saved_quality_and_status_are_in_the_sidebar_and_survive_draft_edits():
     actual = _run_browser_script(_layout_script("""
       await choose('a');
       const region=document.getElementById('cluster-region');
@@ -22,7 +22,7 @@ def test_saved_quality_and_status_are_in_the_center_and_survive_draft_edits():
       saved.clusters=[{cluster_id:0,point_count:1,trip_count:10},{cluster_id:1,point_count:1,trip_count:10}];
       saved.metrics={point_coverage_pct:100,mean_distance_to_medoid_m:0,p95_distance_to_medoid_m:0};
       workspace.show();
-      const center=document.getElementById('clustering-center');
+      const center=document.getElementById('clustering-inspector');
       const ids=['result-title','result-subtitle','result-total-trips','result-status','result-warnings','result-quality'];
       const snapshot=()=>ids.filter(id=>id!=='result-status').map(id=>document.getElementById(id).textContent).join('|');
       const summary=snapshot();

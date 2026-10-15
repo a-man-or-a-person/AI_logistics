@@ -43,11 +43,15 @@ For reproducible defects, execute a minimal public-seam regression on unchanged 
 
 During development use focused tests. Run early real Flask smoke at the first usable changed API/UI transition; UI behavior also needs native Edge rendered state, mouse/keyboard, focus and observed HTTP. Keep unit, API, browser, integration and human evidence labeled separately.
 
+**Early Visual Workspace Gate:** after the first working layout, compare identical saved states and viewports with the baseline. Record visible map, table and analytics dimensions and material trade-offs before continuing UI development.
+
 For affected lifecycle contracts, record expected → observed for: fresh/cache hit and A→B→A reentry; form edits versus frozen display/export; stale source/coordinate generation and in-flight conflict; failed refresh → retry → successful fresh rows; cancel/late success/error; eviction/restart; parent selection/removal; native focus/scroll restoration. Mark genuinely unaffected transitions N/A with a reason; retain ticket-mandated branches.
 
 Metrics/data require independently hand-calculated constants with metric-valid denominators, membership and source-row reconciliation. Export requires an actual downloaded XLSX independently reopened: full row IDs/count/order, saved request/provenance/membership, types, missing versus zero, literal formula-like strings, leading-zero IDs, legal unique sheet names and generation/error completeness. HTTP 200 alone is insufficient.
 
 After the last production/test change, run the full required local suite when the environment is available; preserve every stronger ticket requirement. Report-only edits need focused document checks locally, while final-HEAD hosted CI stays full. New code/test/environment changes, integration conflicts or unresolved concerns require renewed affected checks. Record interpreter, locked dependencies, Node/Edge and temp paths before diagnosing a test failure.
+
+**Repeated CI Failure Diagnosis:** when the same hosted assertion fails again without local RED, collect the environment fingerprint, media preferences, animations, network/readiness observations and a minimal reproducer before another production fix. Publish a new fix only with evidence supporting its cause.
 
 The existing [Quality workflow](../../.github/workflows/quality.yml) remains unchanged: locked install, dependency check, Ruff, Node/Edge startup, frontend tests with empty/skipped-case rejection, Python suite. A missing browser, skipped mandatory test or failed gate blocks readiness. Record the exact PR head and successful run/job links; verify that the PR run belongs to that head (including the tested merge SHA when applicable). A new HEAD invalidates previous final-HEAD CI. Preserve effective branch-protection checks; unavailable protection reads remain UNKNOWN.
 

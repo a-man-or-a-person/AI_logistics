@@ -76,7 +76,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 /* Balanced workspace: form scrolling never owns the calculation actions. */
 :root{--header:56px;--controls:280px;--inspector:320px}
 .workspace{padding:12px;gap:12px;grid-template-columns:var(--controls) minmax(0,1fr)}
-.workspace.mode-cluster.has-inspector-selection{grid-template-columns:var(--controls) minmax(640px,1fr) var(--inspector)}
+.workspace.mode-cluster{grid-template-columns:var(--controls) minmax(0,1fr) var(--inspector)}
 .mode-cluster .control-panel{display:flex;flex-direction:column;overflow:hidden;overflow-wrap:anywhere;border:1px solid var(--border);border-radius:8px}
 .mode-cluster .mode-card-heading{flex-wrap:wrap}
 .mode-cluster .mode-card-heading small{max-width:100%;white-space:normal}
@@ -91,16 +91,16 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .mode-cluster .workspace-actions{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mode-cluster .workspace-actions button{padding:8px 12px}
 .mode-cluster #selection-context{flex:1;min-width:0;overflow-wrap:anywhere}
-.mode-cluster #result-context{flex:none;min-height:64px;margin:0;overflow-wrap:anywhere}
+.mode-cluster #result-context{flex:none;min-height:64px;margin:0;overflow-wrap:anywhere;flex-direction:row;align-items:center;flex-wrap:wrap;gap:4px 12px}.mode-cluster #result-context>strong{flex-basis:100%}
 .mode-cluster #clustering-map{flex:7 0 0;min-height:240px;width:100%;border-radius:8px;overflow:hidden}
 .mode-cluster .cluster-table-panel:not(.hidden){flex:3 0 0;min-height:180px}
 .mode-cluster .cluster-table-panel.collapsed{flex:0 0 auto;min-height:0}
 .mode-cluster .analysis-inspector{position:static;width:auto;transform:none;border:1px solid var(--border);border-radius:8px;z-index:auto}
-.mode-cluster:not(.has-inspector-selection) .analysis-inspector{display:none}
+
 .mode-data #selection-context,.mode-data #mobile-inspector-btn,.mode-data #result-context{display:none}
 .mode-data .workspace-actions{display:flex;padding-bottom:8px}
-@media(max-width:1319px){.workspace.mode-cluster.has-inspector-selection{grid-template-columns:var(--controls) minmax(0,1fr)}.mode-cluster .analysis-inspector{display:none}}
-@media(max-width:1039px){.workspace,.workspace.mode-data,.workspace.mode-cluster.has-inspector-selection{display:grid;grid-template-columns:minmax(0,1fr)}.workspace .control-panel{display:none}.clustering-center{height:100%}}
+@media(max-width:1319px){.workspace.mode-cluster{grid-template-columns:var(--controls) minmax(0,1fr)}.mode-cluster .analysis-inspector{display:none}}
+@media(max-width:1039px){.workspace,.workspace.mode-data,.workspace.mode-cluster{display:grid;grid-template-columns:minmax(0,1fr)}.workspace .control-panel{display:none}.clustering-center{height:100%}}
 .panel-backdrop{position:fixed;inset:var(--header) 0 0;z-index:29;background:rgb(0 0 0 / .4)}
 .workspace .panel-overlay{position:fixed;top:calc(var(--header) + 12px);bottom:12px;left:auto;right:12px;width:min(320px,calc(100vw - 24px));height:auto;display:block;transform:none;z-index:30;box-shadow:var(--shadow);border-radius:8px}
 .workspace .control-panel.panel-overlay{left:12px;right:auto;width:min(280px,calc(100vw - 24px));display:flex;flex-direction:column}
@@ -122,3 +122,5 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .ol-popup{font-size:.8125rem;max-width:min(500px,calc(100vw - 24px));max-height:calc(100vh - 80px);overflow:auto}.ol-popup [style*="font-size"]{font-size:.8125rem!important}.ol-popup .pd-name span:first-of-type{color:var(--text)!important}.ol-popup [style*="color:#4d5a73"]{color:var(--muted)!important}.ol-popup .popup-btn-details-small{color:var(--action-text)!important}.ol-popup button{min-width:40px;min-height:40px}.ol-popup .popup-header{padding-right:36px}.ol-popup .popup-title{overflow-wrap:anywhere}.product-point-popup>span,.product-point-popup dl div{font-size:.8125rem}.product-point-popup h3{font-size:1rem;margin-right:36px}
 
 #calculation-status:empty{display:none}
+.analysis-inspector .result-summary{padding:0;border:0}
+.analysis-inspector .summary-quality{grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr))}
