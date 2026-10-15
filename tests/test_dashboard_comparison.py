@@ -49,6 +49,22 @@ def test_compare_entry_is_reachable_without_a_selected_inspector():
     assert actual == {'visible': True}, actual
 
 
+@pytest.mark.parametrize('operation', ['run', 'compare'])
+def test_first_saved_result_removes_the_initial_map_prompt(operation):
+    actual = _run_browser_script(_layout_script("""
+      await choose('a');const region=document.getElementById('cluster-region');
+      region.value='R';region.dispatchEvent(new Event('change',{bubbles:true}));await pause();
+      document.getElementById(""" + json.dumps('btn-run-clustering' if operation == 'run' else 'compare-modes') + """).click();await pause();
+      if(!document.getElementById('comparison-view').classList.contains('hidden')){
+        document.querySelector('[data-show-on-map="geo_cost"]').click();await pause();
+      }
+      const prompt=document.getElementById('empty-state');
+      document.body.dataset.result=JSON.stringify({saved:!!workspace.getState().result.data,
+        hidden:prompt.classList.contains('hidden'),visible:prompt.checkVisibility()});
+    """), reduced_motion=True)
+    assert actual == {'saved': True, 'hidden': True, 'visible': False}, actual
+
+
 @pytest.mark.parametrize('kind', ['missing', 'zero'])
 def test_comparison_distinguishes_unavailable_zero_and_not_applicable(kind):
     actual = _run_browser_script(_comparison_script("""

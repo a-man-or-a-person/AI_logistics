@@ -7,6 +7,26 @@ from test_clustering_frontend_contract import _run_browser_script
 from test_dashboard_layout import _layout_script
 
 
+@pytest.mark.parametrize('saved_mode', ['geography', 'bear_zones', 'bear_volume_zones'])
+def test_candidate_layer_control_follows_saved_map_while_method_controls_follow_draft(saved_mode):
+    draft_mode = 'bear_zones' if saved_mode == 'geography' else 'geography'
+    actual = _run_browser_script(_layout_script("""
+      await choose('a');const region=document.getElementById('cluster-region');
+      region.value='R';region.dispatchEvent(new Event('change',{bubbles:true}));await pause();
+      document.querySelector(""" + json.dumps(f'input[name="analysis-mode"][value="{saved_mode}"]') + """).click();
+      document.getElementById('btn-run-clustering').click();await pause();
+      const saved=workspace.getState().result.data,count=requests.length;
+      document.querySelector(""" + json.dumps(f'input[name="analysis-mode"][value="{draft_mode}"]') + """).click();await pause();
+      document.body.dataset.result=JSON.stringify({savedMode:saved.analysis.mode,
+        sameSaved:workspace.getState().result.data===saved,noRequest:requests.length===count,
+        candidates:document.getElementById('candidate-layer-option').checkVisibility(),
+        draftBearControls:document.getElementById('bear-controls').checkVisibility()});
+    """), reduced_motion=True)
+    assert actual == {'savedMode': saved_mode, 'sameSaved': True, 'noRequest': True,
+                      'candidates': saved_mode != 'geography',
+                      'draftBearControls': draft_mode == 'bear_zones'}, actual
+
+
 def test_parameter_sections_reopen_without_changing_request_or_selection():
     actual = _run_browser_script(_layout_script("""
       const sections=[...document.querySelectorAll('#clustering-controls > details.form-section')];

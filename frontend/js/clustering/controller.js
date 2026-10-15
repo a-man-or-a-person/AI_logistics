@@ -834,7 +834,11 @@ function comparisonContext(form) {
 }
 
 function renderEmptyState() {
-  if (state.result.data || state.result.status === 'error') return;
+  if (state.result.data) {
+    $('empty-state').classList.add('hidden');
+    return;
+  }
+  if (state.result.status === 'error') return;
   const ready = Boolean((state.form.allOrigins || state.form.origins?.length || state.form.origin) && state.form.destinationRegion);
   $('empty-state').querySelector('.empty-title').textContent = ready
     ? 'Всё готово к расчёту.'
