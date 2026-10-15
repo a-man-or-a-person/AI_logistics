@@ -89,6 +89,7 @@ export function createClusteringState(options = {}) {
     rejectedSnapshots: new Set(),
     unavailableResults: new WeakSet(),
     revisionUncertain: false,
+    revisionPending: false,
     comparison: { open: false, status: 'empty', context: null, contextDisplay: null, results: {}, activeMode: null, error: null, cache: new Map() },
     ui: {
       selectedCluster: null,

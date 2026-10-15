@@ -38,12 +38,14 @@ function renderToggles(id, labels, selected, dataName) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `toggle-btn ${selected.has(value) ? 'active' : ''}`;
+    button.setAttribute('aria-pressed', String(selected.has(value)));
     button.dataset[dataName] = value;
     button.textContent = label;
     button.addEventListener('click', () => {
       if (selected.has(value)) selected.delete(value);
       else selected.add(value);
       button.classList.toggle('active', selected.has(value));
+      button.setAttribute('aria-pressed', String(selected.has(value)));
       onChange(getFilters());
     });
     container.appendChild(button);
@@ -62,6 +64,7 @@ function regionButton(kind, region) {
   const button = document.createElement('button');
   button.type = 'button';
   button.className = `region-chip ${selected.has(region) ? 'selected' : ''}`;
+  button.setAttribute('aria-pressed', String(selected.has(region)));
   button.dataset.region = region;
   button.innerHTML = `<span class="chip-check">${selected.has(region) ? '✓' : ''}</span><span></span>`;
   button.lastElementChild.textContent = region;
@@ -69,6 +72,7 @@ function regionButton(kind, region) {
     if (selected.has(region)) selected.delete(region);
     else selected.add(region);
     button.classList.toggle('selected', selected.has(region));
+    button.setAttribute('aria-pressed', String(selected.has(region)));
     button.querySelector('.chip-check').textContent = selected.has(region) ? '✓' : '';
     renderTags(kind);
     onChange(getFilters());
@@ -99,6 +103,8 @@ function renderTags(kind) {
     remove.addEventListener('click', () => {
       selected.delete(region);
       renderRegions(kind, kind === 'ship' ? shipRegions : deliveryRegions);
+      [...$(`region-list-${kind}`).querySelectorAll('button')]
+        .find(button => button.dataset.region === region)?.focus();
       onChange(getFilters());
     });
     tag.appendChild(remove);

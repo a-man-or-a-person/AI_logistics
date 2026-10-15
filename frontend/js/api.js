@@ -53,13 +53,13 @@ export function fetchPoints(
   return requestJson(`${API_BASE}/api/points?${params}`, { signal });
 }
 
-export function fetchRecords(town, region, type, filters = {}) {
+export function fetchRecords(town, region, type, filters = {}, { signal } = {}) {
   const params = new URLSearchParams({ town, region, type });
   if (filters.fromRegions?.length) params.set('from_regions', filters.fromRegions.join(','));
   if (filters.toRegions?.length) params.set('to_regions', filters.toRegions.join(','));
   if (filters.periodTypes?.length) params.set('period_types', filters.periodTypes.join(','));
   if (filters.priceTypes?.length) params.set('price_types', filters.priceTypes.join(','));
-  return requestJson(`${API_BASE}/api/records?${params}`);
+  return requestJson(`${API_BASE}/api/records?${params}`, { signal });
 }
 
 export function fetchGeocodeStatus() {

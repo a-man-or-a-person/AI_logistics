@@ -250,13 +250,16 @@ def test_data_map_request_cannot_publish_after_view_exit_or_reset(ending):
     source = source.split('if (document.readyState')[0]
     actual = _run_node_script(f"""
       const nodes=new Map();
-      const node=id=>{{if(!nodes.has(id)){{const classes=new Set();nodes.set(id,{{
+      const node=id=>{{if(!nodes.has(id)){{const classes=new Set(id==='records-modal'?['hidden']:[]);nodes.set(id,{{
         textContent:'',className:'',addEventListener(type,fn){{this[type]=fn}},
+        setAttribute(name,value){{this[name]=value}},
+        options:[],replaceChildren(){{this.options=[]}},add(option){{this.options.push(option)}},
         querySelector(){{return node(id+'-child')}},classList:{{
           add(...names){{names.forEach(n=>classes.add(n))}},remove(...names){{names.forEach(n=>classes.delete(n))}},
           contains(n){{return classes.has(n)}},toggle(n,on){{on?classes.add(n):classes.delete(n)}}}}
       }})}}return nodes.get(id)}};
-      const document={{getElementById:node,querySelectorAll:()=>[]}};
+      const document={{getElementById:node,querySelectorAll:()=>[],addEventListener(){{}}}};
+      function Option(text,value){{this.text=text;this.value=value}}
       const window={{dispatchEvent(){{}},addEventListener(){{}}}};
       const getFilters=()=>({{fromRegions:['R'],toRegions:[]}}),resetFilters=()=>{{}};
       const pending=[],maps=[];

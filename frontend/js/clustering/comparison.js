@@ -10,6 +10,7 @@ export function renderComparison(state, handlers = {}) {
   const focusedMode = document.activeElement?.dataset.comparisonMode;
   $('comparison-stale').classList.toggle('hidden', !handlers.isStale?.());
   $('comparison-loading').classList.toggle('hidden', comparison.status !== 'loading');
+  $('cancel-comparison').classList.toggle('hidden', comparison.status !== 'loading');
   $('comparison-error').classList.toggle('hidden', comparison.status !== 'error');
   $('comparison-error').textContent = comparison.error?.message || '';
   $('comparison-context').innerHTML = context(comparison.contextDisplay);

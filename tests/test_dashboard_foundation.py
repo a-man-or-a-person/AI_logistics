@@ -1,6 +1,7 @@
 """Rendered Product typography and theme checks at the approved DOM seam."""
 
 import json
+import re
 
 import pytest
 from test_clustering_frontend_contract import _product_workspace_script, _read, _run_browser_script
@@ -9,12 +10,11 @@ from test_clustering_frontend_contract import _product_workspace_script, _read, 
 @pytest.mark.parametrize('theme', ['light', 'dark'])
 @pytest.mark.parametrize('reduced_motion', [False, True], ids=['system-motion', 'reduced-motion'])
 def test_product_essential_values_and_actions_are_readable(theme, reduced_motion):
+    css = re.sub(r'^@import .+?\n', '', _read('frontend/css/style.css'))
     actual = _run_browser_script(f"""
       (async () => {{
       const sheet=document.createElement('style');
-      const loaded=new Promise(resolve=>{{sheet.onload=resolve;sheet.onerror=resolve;}});
-      sheet.textContent={json.dumps(_read('frontend/css/style.css'))};document.head.append(sheet);
-      await loaded;
+      sheet.textContent={json.dumps(css)};document.head.append(sheet);
       if ({json.dumps(theme)} === 'dark') document.documentElement.dataset.theme = 'dark';
       document.body.innerHTML = `<main class="workspace mode-cluster">
         <aside class="control-panel"><form id="clustering-controls"><p class="field-hint">Hint</p>

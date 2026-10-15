@@ -16,7 +16,7 @@
       <button class="mode-tab" data-view="data" type="button">Карта данных</button>
       <button class="mode-tab active" data-view="clustering" type="button" aria-current="page">Кластеризация</button>
     </nav>
-    <div class="topbar-actions"><span class="source-chip">Pulse</span><span class="system-status"><i id="status-dot" class="status-dot loading"></i><span id="status-text">Инициализация</span></span><button id="theme-toggle-header" class="icon-button" type="button" aria-label="Переключить тему">◐</button></div>
+    <div class="topbar-actions"><span class="source-chip">Pulse</span><span class="system-status" role="status" aria-live="polite"><i id="status-dot" class="status-dot loading"></i><span id="status-text">Инициализация</span></span><button id="theme-toggle-header" class="icon-button" type="button" aria-label="Переключить тему">◐</button></div>
   </header>
 
   <section id="workspace" class="workspace mode-cluster">
@@ -25,6 +25,7 @@
 
       <div id="data-map-view" class="controls-view hidden">
         <p class="panel-intro">Исследуйте исходные записи Pulse с прежними фильтрами и popup-карточками.</p>
+        <details id="data-point-navigation" class="form-section hidden"><summary>Точки карты</summary><label for="data-point-select">Точка с координатами</label><select id="data-point-select" disabled></select><button id="open-data-point" class="secondary-button" type="button" disabled>Открыть карточку</button></details>
         <section class="legacy-section" id="section-ship"><button class="section-header" type="button" aria-expanded="true"><span>Откуда</span><span>⌄</span></button><div class="section-body"><div id="tags-ship" class="selected-tags"></div><input id="search-ship" type="search" placeholder="Найти регион…"><div id="region-list-ship" class="region-list"></div></div></section>
         <section class="legacy-section collapsed" id="section-del"><button class="section-header" type="button" aria-expanded="false"><span>Куда</span><span>⌄</span></button><div class="section-body"><div id="tags-del" class="selected-tags"></div><input id="search-del" type="search" placeholder="Найти регион…"><div id="region-list-del" class="region-list"></div></div></section>
         <section class="legacy-section collapsed" id="section-period"><button class="section-header" type="button" aria-expanded="false"><span>Период</span><span>⌄</span></button><div class="section-body"><div id="period-toggles" class="toggle-group"></div></div></section>
@@ -79,7 +80,7 @@
         <div id="analysis-stale" class="state-banner hidden" role="status"><strong>Параметры анализа изменены</strong><span>Результат рассчитан для предыдущих настроек.</span></div>
         <div id="analysis-form-error" class="state-banner error hidden" role="alert"></div>
       </form>
-      <div id="clustering-actions" class="panel-actions sticky-actions"><span class="button-caption">Черновик: <span id="run-caption">Geography · Auto K</span></span><button id="btn-run-clustering" class="primary-button" type="submit" form="clustering-controls">Рассчитать</button><button id="btn-reset-clustering" class="text-button" type="button">Сбросить</button></div>
+      <div id="clustering-actions" class="panel-actions sticky-actions"><span class="button-caption">Черновик: <span id="run-caption">Geography · Auto K</span></span><button id="btn-run-clustering" class="primary-button" type="submit" form="clustering-controls">Рассчитать</button><button id="btn-cancel-calculation" class="text-button hidden" type="button">Отменить расчёт</button><button id="btn-reset-clustering" class="text-button" type="button">Сбросить</button><p id="calculation-status" class="field-hint" role="status" aria-live="polite"></p></div>
     </aside>
 
     <div id="clustering-center" class="clustering-center">
@@ -96,7 +97,7 @@
       <div id="map"></div>
       <div class="map-control base-layer-control"><label for="layer-select">Подложка</label><select id="layer-select"><option value="2gis">Карта</option><option value="hybrid">Спутник</option></select></div>
       <div id="cluster-layer-control" class="map-control layer-control"><strong>Слои</strong><label><input type="checkbox" data-clustering-layer="points" checked> Точки</label><label><input type="checkbox" data-clustering-layer="labels" checked> Подписи</label><label><input type="checkbox" data-clustering-layer="centers"> Центры</label><label><input type="checkbox" data-clustering-layer="outliers" checked> Изолированные</label><label id="candidate-layer-option" class="hidden"><input type="checkbox" data-clustering-layer="candidates" checked> Кандидаты</label></div>
-      <div id="popup" class="ol-popup hidden"><button id="popup-closer" class="ol-popup-closer" type="button" aria-label="Закрыть">×</button><div id="popup-content"></div></div>
+      <div id="popup" class="ol-popup hidden" role="region" aria-label="Карточка точки"><button id="popup-closer" class="ol-popup-closer" type="button" aria-label="Закрыть">×</button><div id="popup-content"></div></div>
       <div id="empty-state" class="map-empty-state"><div class="empty-graphic" aria-hidden="true"><span></span><span></span><span></span></div><strong class="empty-title">Выберите направление и параметры анализа.</strong><span class="empty-sub">Результат появится на карте.</span><ol><li>Выберите направление</li><li>Настройте сегмент</li><li>Рассчитайте результат</li></ol></div>
       <div id="map-info" class="map-info hidden"><strong>Данные на карте</strong><span>Отгрузки <b id="info-ship">—</b></span><span>Доставки <b id="info-del">—</b></span><span>С координатами <b id="info-geocoded">—</b></span></div>
       <div id="map-legend" class="map-legend hidden"><span><i class="legend-dot ship"></i> Отгрузка</span><span><i class="legend-dot del"></i> Доставка</span></div>
@@ -123,7 +124,7 @@
   </section>
 
   <section id="comparison-view" class="comparison-view hidden" role="dialog" aria-modal="true" aria-labelledby="comparison-title" tabindex="-1">
-    <header><div><span class="eyebrow">Один снимок данных</span><h2 id="comparison-title">Сравнение режимов</h2></div><button id="close-comparison" type="button">Закрыть</button></header>
+    <header><div><span class="eyebrow">Один снимок данных</span><h2 id="comparison-title">Сравнение режимов</h2></div><button id="cancel-comparison" class="secondary-button hidden" type="button">Отменить сравнение</button><button id="close-comparison" type="button">Закрыть</button></header>
     <section id="comparison-context" class="comparison-context" aria-label="Общая выборка"></section>
     <div id="comparison-stale" class="state-banner hidden"><strong>Сравнение устарело</strong><span>Фильтры исходной выборки изменились.</span><button id="rerun-comparison" type="button">Пересчитать</button></div>
     <div id="comparison-loading" class="comparison-loading hidden" role="status" aria-live="polite">Сравниваем пять режимов…</div>
@@ -134,8 +135,8 @@
   <div id="panel-backdrop" class="panel-backdrop hidden" aria-hidden="true"></div>
 </div>
 
-<div id="records-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div id="modal-overlay" class="modal-overlay"></div><div class="modal-content"><div class="modal-header"><h2 id="modal-title">Данные города</h2><button id="modal-close" type="button" aria-label="Закрыть">×</button></div><div id="modal-error" class="state-banner error hidden"></div><div class="table-wrap"><table><thead><tr><th>Цена</th><th>Маршрут</th><th>₽/км</th><th>Перевозки</th><th>Период</th><th>Тип</th><th>Confidence</th><th>Откуда</th><th>Куда</th></tr></thead><tbody id="records-tbody"></tbody></table></div></div></div>
-<div id="geocode-status" class="geocode-status hidden"><span id="geocode-status-text"></span><i><span id="geocode-progress-fill"></span></i></div>
+<div id="records-modal" class="modal hidden" tabindex="-1" aria-busy="false" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div id="modal-overlay" class="modal-overlay"></div><div class="modal-content"><div class="modal-header"><h2 id="modal-title">Данные города</h2><button id="modal-close" type="button" aria-label="Закрыть">×</button></div><div id="modal-error" class="state-banner error hidden" role="alert"></div><div class="table-wrap" tabindex="0" role="region" aria-labelledby="modal-title"><table aria-labelledby="modal-title"><thead><tr><th>Цена</th><th>Маршрут</th><th>₽/км</th><th>Перевозки</th><th>Период</th><th>Тип</th><th>Confidence</th><th>Откуда</th><th>Куда</th></tr></thead><tbody id="records-tbody"></tbody></table></div></div></div>
+<div id="geocode-status" class="geocode-status hidden" role="status" aria-live="polite"><span id="geocode-status-text"></span><i><span id="geocode-progress-fill"></span></i></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="/js/ol.js"></script>
 <script type="module" src="/js/app.js"></script>

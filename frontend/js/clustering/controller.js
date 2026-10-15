@@ -46,7 +46,7 @@ export async function initClustering() {
   await searchOrigins('');
   $('options-status').classList.add('hidden');
   renderAll();
-  return { show, hide, getState: () => state };
+  return { show, hide, closePanel, getState: () => state };
 }
 
 export function show() {
@@ -55,6 +55,7 @@ export function show() {
 }
 
 function hide() {
+  cancelPointDetailRequests();
   closePanel(false);
   if (state.comparison.open) closeComparison(false);
   cancelCalculation();
@@ -65,7 +66,10 @@ function wireEvents() {
   wirePanelPresentation();
   $('btn-export-clustering').addEventListener('click', downloadExport);
   $('btn-cancel-export').addEventListener('click', () => { cancelExport(); $('btn-export-clustering').focus(); });
-  window.addEventListener('pagehide', cancelExport);
+  $('btn-cancel-calculation').addEventListener('click', cancelRequestedCalculation);
+  $('cancel-comparison').addEventListener('click', cancelRequestedCalculation);
+  window.addEventListener('pagehide', hide);
+  window.addEventListener('pageshow', event => { if (event.persisted) renderAll(); });
   $('clustering-controls').addEventListener('submit', event => {
     event.preventDefault();
     executeRun();
@@ -439,14 +443,27 @@ function validate(request) {
 function cancelCalculation() {
   runController?.abort();
   runController = null;
+  if (state.revisionPending) state.revisionUncertain = true;
+  state.revisionPending = false;
   $('loading-overlay').classList.add('hidden');
   $('update-badge').classList.add('hidden');
   $('loading-sub').textContent = '';
   $('btn-run-clustering').disabled = false;
+  $('btn-cancel-calculation').classList.add('hidden');
+  $('cancel-comparison').classList.add('hidden');
   if (state.result.status === 'loading') state.result.status = state.result.data?.status || 'empty';
   if (state.comparison.status === 'loading') {
     state.comparison.status = Object.keys(state.comparison.results).length ? 'success' : 'empty';
   }
+}
+
+function cancelRequestedCalculation() {
+  const comparison = state.comparison.status === 'loading';
+  cancelCalculation();
+  if (state.comparison.open) closeComparison();
+  renderAll();
+  $('calculation-status').textContent = comparison ? 'Сравнение отменено.' : 'Расчёт отменён.';
+  $(comparison ? 'compare-modes' : 'btn-run-clustering').focus();
 }
 
 async function executeRun() {
@@ -454,6 +471,7 @@ async function executeRun() {
   const request = buildRequest(state.form);
   const error = validate(request);
   if (error) return showFormError(error.message, error.field);
+  $('calculation-status').textContent = '';
   cancelExport();
   cancelCalculation();
   $('analysis-form-error').classList.add('hidden');
@@ -468,6 +486,8 @@ async function executeRun() {
   $('loading-text').textContent = 'Рассчитываем зоны…';
   $('loading-sub').textContent = MODE_LABELS[state.form.mode] || state.form.mode;
   $('btn-run-clustering').disabled = true;
+  $('btn-cancel-calculation').textContent = 'Отменить расчёт';
+  $('btn-cancel-calculation').classList.remove('hidden');
   try {
     const valid = (!cached && !state.result.data) || await validateCachedResults(cached ? [cached] : [], controller);
     if (controller.signal.aborted) return;
@@ -507,9 +527,12 @@ async function validateCachedResults(candidates, controller) {
     ...frozenPointContext(result), data_snapshot: result.data_snapshot,
   }));
   let revision;
+  state.revisionPending = true;
+  renderAll();
   try {
     revision = await fetchClusteringRevision(contexts, {signal: controller.signal});
   } catch (error) {
+    if (!controller.signal.aborted) state.revisionPending = false;
     if (!controller.signal.aborted && error.code === 'STALE_DATA_SNAPSHOT') {
       results.forEach(result => rejectDataSnapshot(state, result.data_snapshot));
       renderAll();
@@ -520,6 +543,7 @@ async function validateCachedResults(candidates, controller) {
     throw error;
   }
   if (controller.signal.aborted) return false;
+  state.revisionPending = false;
   if (typeof revision.data_snapshot !== 'string' || !Array.isArray(revision.available)
       || revision.available.length !== results.length || revision.available.some(value => typeof value !== 'boolean')) {
     state.revisionUncertain = true;
@@ -537,6 +561,7 @@ async function validateCachedResults(candidates, controller) {
 }
 
 function reset() {
+  $('calculation-status').textContent = '';
   if (state.comparison.open) closeComparison(false);
   clearFormValidation();
   cancelExport();
@@ -609,10 +634,13 @@ async function runComparison() {
   const dataset = datasetSnapshot(state.form);
   const error = validate(buildRequest(state.form));
   if (error) return showFormError(error.message, error.field);
+  $('calculation-status').textContent = '';
   cancelExport();
   cancelCalculation();
   const controller = new AbortController();
   runController = controller;
+  $('btn-cancel-calculation').textContent = 'Отменить сравнение';
+  $('btn-cancel-calculation').classList.remove('hidden');
   const cache = state.comparison.cache || new Map();
   const signature = requestSignature(dataset);
   const cached = cache.get(signature);
@@ -653,7 +681,7 @@ async function runComparison() {
     state.comparison.status = 'error';
     state.comparison.error = { code: error.code, message: error.message };
   }
-  if (runController === controller) runController = null;
+  if (runController === controller) cancelCalculation();
   renderComparisonState();
 }
 
@@ -701,6 +729,7 @@ function exportBlockedReason() {
   if (!result) return 'Сначала рассчитайте результат.';
   if (state.rejectedSnapshots.has(result.data_snapshot)) return 'Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.';
   if (state.unavailableResults.has(result)) return 'Сохранённый результат недоступен. Пересчитайте результат.';
+  if (state.revisionPending) return 'Проверяем актуальность данных. Дождитесь завершения проверки перед загрузкой XLSX.';
   if (state.revisionUncertain) return 'Не удалось проверить актуальность данных. Повторите расчёт или сравнение перед загрузкой XLSX.';
   if (result.cluster_table?.supported !== true) return 'XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).';
   if (!result.cluster_table.rows?.length) return 'В результате нет кластеров для экспорта.';
@@ -821,11 +850,13 @@ function renderInspectorState() {
   const focusedPulse = focused?.matches?.('.pulse-details summary');
   renderInspector(state, {
     isStale: () => isResultStale(state),
+    detailsBlocked: detailsBlocked(),
     onLayout: syncPanelLayout,
     pointRowsKey,
     pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
     selectedOrigin: state.ui.selectedOrigin,
     onOriginSelect: origin => {
+      if (detailsBlocked()) return;
       cancelPointDetailRequests();
       state.ui.selectedOrigin = origin;
       const detail = pointRowsForSelection();
@@ -861,6 +892,11 @@ function renderInspectorState() {
     },
     onPulseToggle: open => {
       const detail = pointRowsForSelection();
+      if (open && detailsBlocked()) {
+        detail.open = false;
+        renderInspectorState();
+        return;
+      }
       detail.open = open;
       if (!open) cancelPointDetailRequests();
       else if (detail.status === 'idle') loadPointRows();
@@ -935,10 +971,16 @@ function selectPoint(pointId, focus = false) {
   if (pointId && state.result.data.analysis.frozen_request) loadPointOrigins();
 }
 
+function detailsBlocked() {
+  const result = state.result.data;
+  return state.revisionPending || state.revisionUncertain || state.unavailableResults?.has(result)
+    || state.rejectedSnapshots?.has(result?.data_snapshot);
+}
+
 async function loadPointOrigins() {
   const result = state.result.data;
   const key = pointOriginsKey();
-  if (!key || state.unavailableResults?.has(result) || state.rejectedSnapshots?.has(result.data_snapshot)) return;
+  if (!key || detailsBlocked()) return;
   const cache = state.ui.pointOrigins ||= new Map();
   const summary = cache.get(key) || {status: 'idle', origins: []};
   cache.set(key, summary);
@@ -970,7 +1012,7 @@ async function loadPointRows({restart = false} = {}) {
   const result = state.result.data;
   const point = result?.points.find(item => item.id === state.ui.selectedPoint);
   if (!point || (result.cluster_table?.supported !== true && !state.ui.selectedOrigin)) return;
-  if (state.unavailableResults?.has(result) || state.rejectedSnapshots?.has(result.data_snapshot)) return;
+  if (detailsBlocked()) return;
   const key = pointRowsKey();
   const detail = pointRowsForSelection();
   detail.open = true;

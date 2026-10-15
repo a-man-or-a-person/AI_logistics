@@ -34,6 +34,8 @@ export function renderInspector(state, handlers = {}) {
   const notices = [];
   if (state.unavailableResults?.has(result)) notices.push('Сохранённый результат недоступен. Рассчитайте заново; детализация и XLSX недоступны.');
   else if (state.rejectedSnapshots?.has(result.data_snapshot)) notices.push('Данные Pulse или координаты изменились. Рассчитайте заново; детализация и XLSX недоступны.');
+  else if (state.revisionPending) notices.push('Проверяем актуальность данных. Показан сохранённый результат; детализация и XLSX недоступны до завершения проверки.');
+  else if (state.revisionUncertain) notices.push('Не удалось проверить актуальность данных. Показан сохранённый результат; детализация и XLSX недоступны до успешной проверки. Повторите расчёт или сравнение.');
   else if (handlers.isStale?.()) notices.push('Форма изменена. Карта, таблица и файл относятся к сохранённому результату.');
   if (result.graph_metrics?.connectivity_violations > 0 && result.status !== 'invalid_connectedness') notices.push(`Нарушения связности: ${count(result.graph_metrics.connectivity_violations)}. Разбиение не может использоваться как итоговое.`);
   if (state.result.status === 'loading') notices.push('Рассчитываем. Показан предыдущий сохранённый результат.');
@@ -258,7 +260,7 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
           ? '<p class="pulse-state">Для точки нет строк Pulse в выбранном срезе.</p>'
           : '';
   const pulseDetails = tableMode || handlers.selectedOrigin ? `<details class="pulse-details" ${pulse.open ? 'open' : ''}>
-    <summary>Исходные строки Pulse${pulse.total == null ? '' : ` (${fmt(pulse.total)})`}</summary>
+    <summary aria-disabled="${Boolean(handlers.detailsBlocked && !pulse.open)}">Исходные строки Pulse${pulse.total == null ? '' : ` (${fmt(pulse.total)})`}</summary>
     ${!handlers.selectedOrigin ? '<button type="button" class="back-button" data-point-summary>← К сводке точки</button>' : ''}
     ${pulseState}
     ${handlers.selectedOrigin ? `<p>Отправление: ${escapeHtml(handlers.selectedOrigin)} → ${escapeHtml(point.fias_id || point.id)} · Источник: Pulse</p>` : ''}
@@ -287,6 +289,7 @@ function renderPointDetails(point, mode, handlers, pulse = {}, tableMode = false
   document.querySelector('.pulse-details summary')?.addEventListener('click', event => {
     event.preventDefault();
     const details = event.currentTarget.parentElement;
+    if (!details.open && handlers.detailsBlocked) return;
     details.open = !details.open;
     handlers.onPulseToggle?.(details.open);
   });
@@ -310,7 +313,7 @@ function originSummary(handlers) {
   return `<section class="origin-summary" aria-label="Вклад отправлений"><h4>Вклад отправлений в точку</h4>
     <p>Источник: Pulse. Средние взвешены по машинам с валидным показателем. Покрытие: валидные машины / все машины отправления. Пропуски не равны нулю.</p>
     ${summary.status === 'success' ? (summary.origins || []).map(origin => `
-      <button type="button" data-origin-fias="${escapeHtml(origin.origin_fias)}" aria-pressed="${handlers.selectedOrigin === origin.origin_fias}">
+      <button type="button" data-origin-fias="${escapeHtml(origin.origin_fias)}" aria-disabled="${Boolean(handlers.detailsBlocked)}" aria-pressed="${handlers.selectedOrigin === origin.origin_fias}">
         <strong>${escapeHtml(origin.origin_name || 'Название недоступно')}</strong> · ${escapeHtml(origin.origin_fias)}
         <span>${count(origin.trip_count)} машин · ${count(origin.source_row_count)} строк</span>
         <span>Маршрут: ${km(origin.weighted_route_length)} · покрытие ${coverage(origin.valid_route_length_trip_count, origin.trip_count)}</span>
