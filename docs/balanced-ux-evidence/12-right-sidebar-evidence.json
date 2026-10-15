@@ -7,7 +7,8 @@
     "frontend/js/clustering/controller.js": "6ef160cedf36768fa374ecea6452fdf1cd4051d6d0a585bbf06f0a73262cf40b",
     "frontend/js/clustering/inspector.js": "d6a93fcdcdf09cea3fdceab40e9ef957c0225298dcc3c280a0385f1ad9f39576",
     "tests/test_dashboard_layout.py": "72e2c15b7439f824d1e305916df9a8cb98b8b764dea4a66b089e6e7b6b97d9af",
-    "tests/test_dashboard_summary.py": "7ffbf7cd97d60f106c7fa64484ca3326787ab5215393e6c14e76c173329bd1e0"
+    "tests/test_dashboard_summary.py": "7ffbf7cd97d60f106c7fa64484ca3326787ab5215393e6c14e76c173329bd1e0",
+    "tests/test_clustering_frontend_contract.py": "7894ddf43eb8d61de61ffdef04e73076147e9d2f2b45c8ba813631038c2cca35"
   },
   "geometry_method": "Actual Edge screenshots/DOM rectangles, same live Flask synthetic saved Geography result. Before headed, final after headless. 125% is viewport/DPR emulation, not native browser zoom. No human usability measurements.",
   "map_rectangle_fields": [
@@ -1818,6 +1819,22 @@
       "worktree_sha256": "7ffbf7cd97d60f106c7fa64484ca3326787ab5215393e6c14e76c173329bd1e0",
       "git_blob_sha256": "3c44d9bd86eccd663d6fde7673e6524c82a9840a77a4273777276492e9805ee1",
       "difference": "CRLF to LF only"
+    },
+    "tests/test_clustering_frontend_contract.py": {
+      "worktree_sha256": "7894ddf43eb8d61de61ffdef04e73076147e9d2f2b45c8ba813631038c2cca35",
+      "git_blob_sha256": "f86670ccf624c81c2ea918aa5a512eaf058d2e3a9f347073ad81d7ce9178cb3c",
+      "difference": "CRLF to LF only"
     }
+  },
+  "local_gate_progress": {
+    "superseded": {
+      "frontend": {
+        "passed": 133,
+        "failed": 3,
+        "skipped": 0,
+        "cause": "Three connected controller test fixtures did not provide inspector DOM; fixtures repaired, targeted3 PASS."
+      }
+    },
+    "final": "Full split rerun in .scratch/sidebar-20261016/final2; outcomes in timestamped PR supplement."
   }
 }

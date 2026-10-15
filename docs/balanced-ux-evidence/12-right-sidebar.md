@@ -87,6 +87,9 @@ cluster/point visibility, RED again for `clusterReturn:false`, then GREEN for
 reviewers repeated the fixed paths. Six geometry regressions compare against
 measured baseline areas and retain14 columns and invariant map geometry when
 diagnostics expand. Existing modal/frozen-summary assertions were updated for D-06.
+The first full frontend gate found three controller test doubles lacking inspector
+DOM (133 passed,3 failed). Only those fixtures were completed; their three focused
+checks pass. This failed attempt is retained separately from the full final rerun.
 
 Independent [Spec](12-spec-review.md) and [Standards/targeted Ponytail](12-standards-review.md)
 PASS within their source/renderer scope; both MAJORs are resolved. Their final

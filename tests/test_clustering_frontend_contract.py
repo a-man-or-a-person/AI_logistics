@@ -1716,6 +1716,7 @@ def test_cluster_table_controller_handlers_keep_map_inspector_and_panel_in_sync(
         flags=re.MULTILINE,
     ).replace("export ", "")
     script = f"""
+      document.body.innerHTML = '<aside id="clustering-inspector"></aside>';
       const calls = {{renders: 0, map: [], hover: [], inspector: [], runs: 0}};
       let tableHandlers;
       function renderClusterTable(currentState, handlers) {{
@@ -1771,6 +1772,8 @@ def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_chan
         flags=re.MULTILINE,
     ).replace("export ", "")
     script = f"""
+      const inspectorPanel = {{scrollTop: 0}};
+      globalThis.document = {{getElementById: () => inspectorPanel}};
       const requests = [];
       let renders = 0;
       function fetchClusteringPointRows(payload, options) {{
@@ -2365,6 +2368,8 @@ def test_origin_summary_and_detail_cancel_late_responses_and_reject_all_related_
     state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
     controller = re.sub(r"^import[\s\S]*?;\n", "", _read("frontend/js/clustering/controller.js"), flags=re.MULTILINE).replace("export ", "")
     actual = _run_node_script(f"""
+      const inspectorPanel = {{scrollTop: 0}};
+      globalThis.document = {{getElementById: () => inspectorPanel}};
       const summaries = [], pages = [];
       function pendingRequest(list, payload, options) {{
         let resolve, reject; const promise = new Promise((yes,no) => {{resolve=yes; reject=no}});
