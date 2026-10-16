@@ -51,6 +51,10 @@
     "tests/test_dashboard_workspace_cleanup.py": {
       "worktree_sha256": "13e2b152a515b36f45214e8583ccf4ff7ee860376fd4f2b5f0fff1b18205b9f3",
       "git_normalized_sha256": "13e2b152a515b36f45214e8583ccf4ff7ee860376fd4f2b5f0fff1b18205b9f3"
+    },
+    "tests/test_product_cluster_table.py": {
+      "worktree_sha256": "11cc13ce06a09a02cb6512ed0952b22af137494d79eb7c45e7e39c9824e2189f",
+      "git_normalized_sha256": "328167ba3979a79e8142b397f74f6ebe2d74f39abca0d899c525230860911fa0"
     }
   },
   "geometry": [

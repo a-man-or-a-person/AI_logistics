@@ -71,7 +71,12 @@ dependency check, Ruff and Node/Edge startup have passed; full frontend: 136 pas
 zero skips. Earlier lint ordering, two frontend expectations and one inspector
 direct-child expectation were corrected; failed attempts remain local. The latter
 retains the exact selected-section-first assertion through the new wrapper and
-passed its targeted GREEN. Final Python is repeated on that test-only correction.
+passed its targeted GREEN. The completed Python attempt reported 652 passed and
+two fixture failures: that ordering check and a Node DOM mock missing
+`scrollIntoView`. Adding the no-op DOM method retained all real HTTP 409, frozen
+identity, cache and recovery assertions; targeted GREEN passed. The already
+queued Python repeat was stopped on this known-invalid fixture revision; final
+Python is repeated after both test-only corrections. Production bytes are unchanged.
 Final suite totals, exact committed HEAD, hosted run/jobs and served asset binding
 are recorded in the timestamped Draft PR #22 supplement after completion, avoiding
 a self-referential evidence commit. No pending gate is claimed as passed here.
