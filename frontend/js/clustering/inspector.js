@@ -111,8 +111,8 @@ function contextFor(analysis) {
     : `${parameters.k_mode === 'auto' ? `Auto K → ${count(analysis.parameters?.n_clusters)}` : `K = ${count(parameters.n_clusters)}`}`
       + (mode === 'geo_cost' ? ` · География ${percent(parameters.geography_weight)} / Стоимость ${percent(parameters.economics_weight)}`
         : mode === 'geo_volume' ? ` · География ${percent(parameters.geography_weight)} / Объём ${percent(parameters.volume_weight)}` : '');
-  return `<strong>${all ? 'Все отправления' : escapeHtml(origins.map(origin => origin.name || origin.fias_id).join(', '))} → ${escapeHtml(analysis.destination_region)}</strong>
-    ${all ? `<details><summary>Сохранённые отправления: ${origins.length}</summary>${origins.map(origin => `<small>${escapeHtml(origin.name || origin.fias_id)} · ${escapeHtml(origin.fias_id)}</small>`).join('')}</details>` : ''}
+  return `<strong>${all ? 'Все отправления' : origins.length > 1 ? `Объединение отправлений: ${origins.length}` : escapeHtml(origins.map(origin => origin.name || origin.fias_id).join(', '))} → ${escapeHtml(analysis.destination_region)}</strong>
+    ${all || origins.length > 1 ? `<details><summary>Сохранённые отправления: ${origins.length}</summary>${origins.map(origin => `<small>${escapeHtml(origin.name || origin.fias_id)} · ${escapeHtml(origin.fias_id)}</small>`).join('')}</details>` : `<small>FIAS: ${escapeHtml(origins[0]?.fias_id || '—')}</small>`}
     <span>Источник: Pulse</span>
     <small>${escapeHtml(MODE_LABELS[mode] || mode)} · ${escapeHtml(settings)}</small>
     ${zeroMatch.length ? `<small>Без строк по выбранным фильтрам: ${escapeHtml(zeroMatch.map(item => origins.find(origin => origin.fias_id === item.fias_id)?.name || item.fias_id).join(', '))}</small>` : ''}

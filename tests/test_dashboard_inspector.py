@@ -79,7 +79,8 @@ def test_point_selection_shows_the_point_level_and_keeps_its_real_parent():
 def test_selected_level_precedes_export_and_overview_content():
     actual = _run_browser_script(_inspector_script("""
       const root=document.getElementById('inspector-result');
-      document.body.dataset.result=JSON.stringify({first:[...root.children].find(e=>e.checkVisibility())?.id});
+      const sections=root.querySelectorAll(':scope > section, :scope > #selection-context > section');
+      document.body.dataset.result=JSON.stringify({first:[...sections].find(e=>e.checkVisibility())?.id});
     """), reduced_motion=True)
     assert actual == {'first': 'cluster-details'}, actual
 

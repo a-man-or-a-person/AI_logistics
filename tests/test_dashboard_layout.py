@@ -39,14 +39,14 @@ def test_calculate_footer_and_saved_context_survive_form_scroll(viewport):
         association:button.form===form,oneCalculate:document.querySelectorAll('#btn-run-clustering').length===1,
         visible:box.top>=0&&box.bottom<=innerHeight&&box.height>=40,
         footerHeight:footer.getBoundingClientRect().height,
-        contextInCenter:document.getElementById('clustering-center').contains(context),
-        contextVisible:context.getBoundingClientRect().height>=64,
+        contextInInspector:document.getElementById('clustering-inspector').contains(context),
+        contextReachable:innerWidth>=1320?context.checkVisibility():document.getElementById('mobile-inspector-btn').checkVisibility(),
         formScrollable:getComputedStyle(form).overflowY==='auto'});
     """), reduced_motion=True, viewport=viewport)
     assert actual['outside'] is True, actual
     assert actual['association'] is True and actual['oneCalculate'] is True
     assert actual['visible'] is True and actual['footerHeight'] >= 72
-    assert actual['contextInCenter'] is True and actual['contextVisible'] is True
+    assert actual['contextInInspector'] is True and actual['contextReachable'] is True
     assert actual['formScrollable'] is True
 
 
@@ -223,6 +223,7 @@ def test_hidden_dock_returns_focus_even_when_browser_blurs_to_body_first():
     actual = _run_browser_script(_layout_script("""
       const panel=document.getElementById('sidebar');
       const input=document.getElementById('cluster-origin');input.focus();
+      document.getElementById('mobile-controls-btn').style.display='block';
       panel.style.display='none';
       document.body.getBoundingClientRect();
       window.dispatchEvent(new Event('resize'));

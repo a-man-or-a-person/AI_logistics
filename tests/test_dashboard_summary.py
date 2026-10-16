@@ -158,7 +158,7 @@ def test_missing_saved_parameters_never_render_nan_or_undefined(mode):
     assert '—' in actual['text']
 
 
-def test_workspace_panel_actions_remain_visible_when_the_summary_requires_center_scroll():
+def test_compact_overlay_controls_do_not_require_center_scroll():
     actual = _run_browser_script(_layout_script("""
       await choose('a');
       const region=document.getElementById('cluster-region');
@@ -172,7 +172,7 @@ def test_workspace_panel_actions_remain_visible_when_the_summary_requires_center
         map:getComputedStyle(document.getElementById('clustering-map')).minHeight,
         table:getComputedStyle(document.getElementById('cluster-table-panel')).minHeight});
     """), reduced_motion=True, viewport=(1093,614))
-    assert actual['scroll'] > 0 and actual['visible'], actual
+    assert actual['scroll'] == 0 and actual['visible'], actual
     assert actual['map'] == '240px' and float(actual['table'].removesuffix('px')) >= 180
 
 

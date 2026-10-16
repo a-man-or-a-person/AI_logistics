@@ -193,14 +193,12 @@ def test_value_help_scrolls_into_the_area_clear_of_sticky_identity_and_header():
     assert actual['hit'], actual
 
 
-def test_text_growth_keeps_the_methodology_summary_inside_the_table_panel():
+def test_text_growth_keeps_the_full_table_without_methodology_disclosure():
     actual = _run_browser_script(_table_script("""
       document.documentElement.style.fontSize='200%';
-      const panel=document.getElementById('cluster-table-panel'),summary=panel.querySelector('.cluster-table-methodology summary');
-      summary.scrollIntoView({block:'end',behavior:'instant'});
-      const inside=summary.getBoundingClientRect().bottom<=panel.getBoundingClientRect().bottom;
-      const method=summary.closest('details');method.open=true;method.scrollTop=method.scrollHeight;
-      document.body.dataset.result=JSON.stringify({inside,overflow:panel.scrollHeight-panel.clientHeight,
-        methodScrollable:getComputedStyle(method).overflowY==='auto'&&method.scrollTop>0});
+      const panel=document.getElementById('cluster-table-panel'),scroll=panel.querySelector('.cluster-table-scroll');
+      document.body.dataset.result=JSON.stringify({removed:!panel.querySelector('.cluster-table-methodology'),
+        columns:panel.querySelectorAll('thead th').length,scrollable:getComputedStyle(scroll).overflowX==='auto',
+        height:scroll.getBoundingClientRect().height});
     """), reduced_motion=True)
-    assert actual['inside'] and actual['overflow'] <= 1 and actual['methodScrollable'], actual
+    assert actual['removed'] and actual['columns'] == 14 and actual['scrollable'] and actual['height'] > 0, actual

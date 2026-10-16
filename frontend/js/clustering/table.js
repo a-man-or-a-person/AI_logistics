@@ -87,26 +87,6 @@ function rowHtml(row, selected, hovered) {
   </tr>`;
 }
 
-function methodologyHtml(result) {
-  const facts = result.cluster_table.methodology || {};
-  const distribution = facts.distributions === 'unweighted_destination_points'
-    ? 'Min, медиана и max рассчитаны по точкам назначения без весов.'
-    : 'Распределение рассчитано backend.';
-  const weighted = facts.weighted_values === 'metric_valid_trip_count'
-    ? 'Средневзвешенные значения учитывают машины только с доступной метрикой.'
-    : 'Средневзвешенные значения рассчитаны backend.';
-  const mode = result.analysis?.mode;
-  const periods = (result.cluster_table.period_types || [])
-    .map(value => value === 'forecast' ? 'Прогноз Pulse' : PERIOD_LABELS[value] || value)
-    .join(', ') || '—';
-  const influence = mode === 'geography'
-    ? 'экономика показана описательно и не влияла на разбиение.'
-    : mode === 'geo_cost'
-      ? 'география и ₽/км влияли на разбиение.'
-      : 'география и объём влияли на разбиение.';
-  return `<details class="cluster-table-methodology"><summary>Методика расчёта</summary> <p>${distribution} ${weighted} Пропуски не превращаются в нули и отражены в покрытии. Периоды: ${escapeHtml(periods)}. Режим: ${escapeHtml(MODE_LABELS[mode] || mode)} — ${influence}</p></details>`;
-}
-
 export function renderClusterTable(state, handlers = {}) {
   const panel = $('cluster-table-panel');
   const scroll = panel.querySelector('.cluster-table-scroll');
@@ -140,17 +120,19 @@ export function renderClusterTable(state, handlers = {}) {
   const sort = state.ui.tableSort || { key: 'trip_count', direction: 'desc' };
   const periods = (table.period_types || []).map(value => `<span class="cluster-table-period">${escapeHtml(value === 'forecast' ? 'Прогноз Pulse' : PERIOD_LABELS[value] || value)}</span>`).join('');
   const rows = Array.isArray(table.rows) ? sortedRows(table.rows, sort) : null;
+  const influence = result.analysis.mode === 'geography'
+    ? 'Экономика показана описательно и не влияла на разбиение.'
+    : result.analysis.mode === 'geo_cost' ? 'География и ₽/км влияли на разбиение.' : 'География и объём влияли на разбиение; экономика показана описательно.';
   panel.innerHTML = `<header class="cluster-table-header"><div><span class="eyebrow">Кластеры результата</span><div class="cluster-table-periods">${periods}</div></div><button type="button" data-table-toggle aria-expanded="${open}">${open ? 'Свернуть таблицу' : 'Открыть таблицу'}</button></header>
     <div class="cluster-table-content ${open ? '' : 'hidden'}">
       ${stale ? '<p class="cluster-table-state">Таблица рассчитана для предыдущих параметров.</p>' : ''}
       ${rows == null ? '<p class="cluster-table-state error">Некорректные данные таблицы.</p>' : rows.length === 0 ? '<p class="cluster-table-state">В результате нет кластеров для таблицы.</p>' : `<div class="cluster-table-scroll"><table><thead><tr>
         ${header('cluster_id', 'Кластер')}${header('point_count', 'Точки')}${header('trip_count', 'Машины', 'Сумма машин в точках кластера.')}${header('trip_share', 'Доля машин', 'Доля машин кластера от всех машин кластеризованного результата.')}
         ${header('weighted_route_length', 'Маршрут', 'Сумма (длина маршрута точки × машины с доступной длиной) / сумма машин с доступной длиной. Пропуски исключены; при отсутствии данных — «—».')}
-        ${header('price.min', 'Мин. цена', 'Минимум доступных средневзвешенных цен точек назначения.')}${header('price.median', 'Медианная цена', 'Медиана доступных средневзвешенных цен точек без весов; при чётном числе точек — среднее двух центральных значений.')}${header('price.weighted', 'Ср.-взв. цена', 'Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—».')}${header('price.max', 'Макс. цена', 'Максимум доступных средневзвешенных цен точек назначения.')}
+        ${header('price.min', 'Мин. цена', 'Минимум доступных средневзвешенных цен точек назначения без весов.')}${header('price.median', 'Медианная цена', 'Медиана доступных средневзвешенных цен точек без весов; при чётном числе точек — среднее двух центральных значений.')}${header('price.weighted', 'Ср.-взв. цена', `Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—». ${influence}`)}${header('price.max', 'Макс. цена', 'Максимум доступных средневзвешенных цен точек назначения без весов.')}
         ${header('rub_per_km.min', 'Мин. ₽/км', 'Минимум доступных средневзвешенных ₽/км точек назначения.')}${header('rub_per_km.median', 'Медианный ₽/км', 'Медиана доступных средневзвешенных ₽/км точек без весов; при чётном числе точек — среднее двух центральных значений.')}${header('rub_per_km.weighted', 'Ср.-взв. ₽/км', 'Сумма (₽/км точки × машины с доступным ₽/км) / сумма машин с доступным ₽/км. В Pulse ₽/км = цена / длина маршрута каждой строки, затем взвешивание по машинам; это не отношение средних цены и длины. Пропуски исключены; при отсутствии данных — «—».')}${header('rub_per_km.max', 'Макс. ₽/км', 'Максимум доступных средневзвешенных ₽/км точек назначения.')}
         ${header('economic_coverage', 'Покрытие экономики', 'Доля точек с доступными ценой и ₽/км от всех точек кластера; доля машин строк с положительными ценой и длиной маршрута от всех машин кластера. Доли показаны в процентах.')}
       </tr></thead><tbody>${rows.map(row => rowHtml(row, state.ui.selectedCluster, state.ui.hoveredCluster)).join('')}</tbody></table></div>`}
-      ${methodologyHtml(result)}
     </div>`;
 
   const hideHelp = () => panel.querySelectorAll('.cluster-table-tooltip:popover-open').forEach(tip => tip.hidePopover());

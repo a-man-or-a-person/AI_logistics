@@ -1,0 +1,2665 @@
+{
+  "base": "a843a2ab4d23c16f8a53d579e1e5be70288c8a9d",
+  "historical_ledger": {
+    "path": "10-information-preservation.json",
+    "sha256": "e87115a8b3b0da44d70781ecd10b916a3c41c1da139982fde03cccbfc14d8c39"
+  },
+  "decision": "D07_USER_APPROVED_REMOVAL_OF_METHODOLOGY_DISCLOSURE; backend methodology preserved.",
+  "traceability_method": "48 explicit independent path corrections in13-standards-review.md, plus owner projection of D06 right-summary/diagnostics notices and D07 Compare entry. Other routes inherited only where unchanged. Historical value evidence remains per matching ID in10-information-preservation.json. No claim of294 fresh native visibility passes.",
+  "geometry_method": "Same live Flask synthetic saved Geography/a/current/spot/Region A result and24 matched viewport/state identities. Headless actual Edge renders.125% equivalent viewport/DPR; not native zoom UI.",
+  "source_binding": {
+    "frontend/css/style.css": {
+      "worktree_sha256": "5dad2ca63fd736b92026e4db2eba3b82dc521288f08a153e0a3371909ab0befc",
+      "git_normalized_sha256": "8f63f03a380c2cf06498d6c01ed60493f04562896267bba1df42f5d0b02fde85"
+    },
+    "frontend/index.html": {
+      "worktree_sha256": "ff47d2295d52d9fde858d75fb6517e4e0db4826f0b76b4751f298a60d2e0b66c",
+      "git_normalized_sha256": "fbaeadba54762d2df55f2f839c3b5c01302726fd5ed0f597ee4288a5e5b53925"
+    },
+    "frontend/js/clustering/controller.js": {
+      "worktree_sha256": "ad9dae517b059af48aab5eba7d6e7756d7c3a19e087d6e21d478815ba45bc9d4",
+      "git_normalized_sha256": "4a3449021203ac900544f83240498f0c59dad33a579774d192e7f7414742182c"
+    },
+    "frontend/js/clustering/inspector.js": {
+      "worktree_sha256": "1d679be6ae53a141085791ed29840788031ec8066f00496e978d029901e60fb9",
+      "git_normalized_sha256": "f0ca3a87278fa331b10d9a471ebd130edd0e9f3f0cc1fb92adf940660003f01a"
+    },
+    "frontend/js/clustering/table.js": {
+      "worktree_sha256": "4846c780c8bc0a7ceb04f5544b48af9246fea36f6d616c4ae0b30cef1b93dade",
+      "git_normalized_sha256": "d83fb2a88d9dd495516f13357f05426ecd92419671398bcac20999118e23e224"
+    },
+    "tests/test_clustering_frontend_contract.py": {
+      "worktree_sha256": "9d887494ebc7648376f2adb3c468905fb0c3f4b1590b405b2cb83c3eefd125db",
+      "git_normalized_sha256": "c8eb680d6cf1d1335c85f98d028d84cf636798a30b9c1343c7403058f8227316"
+    },
+    "tests/test_dashboard_inspector.py": {
+      "worktree_sha256": "5f8ee7aab3c4c32d47589532ff5ee9fb4e36e37c9ee59dc0c62a0497fb4f1e47",
+      "git_normalized_sha256": "5f8ee7aab3c4c32d47589532ff5ee9fb4e36e37c9ee59dc0c62a0497fb4f1e47"
+    },
+    "tests/test_dashboard_layout.py": {
+      "worktree_sha256": "0bb955a54bdc4812097bebbaf55c46ec26e05a5cc01f36590ec3ab9546a5b155",
+      "git_normalized_sha256": "d630934d34286e6b3380759bb513eb6a3678aa57a6f6a05aee33430ed7fc8a0e"
+    },
+    "tests/test_dashboard_summary.py": {
+      "worktree_sha256": "6020b471d467528d99a0ecbbe5f81b1f37a73a7587c503697e2a43edbe41bc6a",
+      "git_normalized_sha256": "4a5165e0f77277eacfbde01b6987b8ee3b569e70db107d8554939ca5cc21816e"
+    },
+    "tests/test_dashboard_table.py": {
+      "worktree_sha256": "3e45a9a32a874076ee61844e84b933203ac5fce8ddf5c9f7078470a6ff78c751",
+      "git_normalized_sha256": "a069b3d0b1d3701f5c9e78c91e1a6e0130aa03c0b238e7185b5c98b466503325"
+    },
+    "tests/test_dashboard_workspace_cleanup.py": {
+      "worktree_sha256": "13e2b152a515b36f45214e8583ccf4ff7ee860376fd4f2b5f0fff1b18205b9f3",
+      "git_normalized_sha256": "13e2b152a515b36f45214e8583ccf4ff7ee860376fd4f2b5f0fff1b18205b9f3"
+    }
+  },
+  "geometry": [
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "overview",
+      "before": {
+        "map_top": 196,
+        "map_width": 718,
+        "map_height": 352,
+        "map_visible_height": 352,
+        "visible_area": 252736,
+        "center_width": 718,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 718,
+        "map_height": 472.5,
+        "map_visible_height": 472.5,
+        "visible_area": 339255,
+        "center_width": 718,
+        "table_height": 203.5,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "expanded",
+      "before": {
+        "map_top": 196,
+        "map_width": 718,
+        "map_height": 352,
+        "map_visible_height": 352,
+        "visible_area": 252736,
+        "center_width": 718,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 718,
+        "map_height": 472.5,
+        "map_visible_height": 472.5,
+        "visible_area": 339255,
+        "center_width": 718,
+        "table_height": 203.5,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "cluster",
+      "before": {
+        "map_top": 196,
+        "map_width": 718,
+        "map_height": 352,
+        "map_visible_height": 352,
+        "visible_area": 252736,
+        "center_width": 718,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 718,
+        "map_height": 472.5,
+        "map_visible_height": 472.5,
+        "visible_area": 339255,
+        "center_width": 718,
+        "table_height": 203.5,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 100,
+      "state": "point",
+      "before": {
+        "map_top": 196,
+        "map_width": 718,
+        "map_height": 352,
+        "map_visible_height": 352,
+        "visible_area": 252736,
+        "center_width": 718,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 718,
+        "map_height": 472.5,
+        "map_visible_height": 472.5,
+        "visible_area": 339255,
+        "center_width": 718,
+        "table_height": 203.5,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "overview",
+      "before": {
+        "map_top": 196,
+        "map_width": 792,
+        "map_height": 475.296875,
+        "map_visible_height": 475.296875,
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "table_height": 204.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 792,
+        "map_height": 564.90625,
+        "map_visible_height": 564.90625,
+        "visible_area": 447405.75,
+        "center_width": 792,
+        "table_height": 243.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "expanded",
+      "before": {
+        "map_top": 196,
+        "map_width": 792,
+        "map_height": 475.296875,
+        "map_visible_height": 475.296875,
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "table_height": 204.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 792,
+        "map_height": 564.90625,
+        "map_visible_height": 564.90625,
+        "visible_area": 447405.75,
+        "center_width": 792,
+        "table_height": 243.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "cluster",
+      "before": {
+        "map_top": 196,
+        "map_width": 792,
+        "map_height": 475.296875,
+        "map_visible_height": 475.296875,
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "table_height": 204.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 792,
+        "map_height": 564.90625,
+        "map_visible_height": 564.90625,
+        "visible_area": 447405.75,
+        "center_width": 792,
+        "table_height": 243.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 100,
+      "state": "point",
+      "before": {
+        "map_top": 196,
+        "map_width": 792,
+        "map_height": 475.296875,
+        "map_visible_height": 475.296875,
+        "visible_area": 376435.125,
+        "center_width": 792,
+        "table_height": 204.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 792,
+        "map_height": 564.90625,
+        "map_visible_height": 564.90625,
+        "visible_area": 447405.75,
+        "center_width": 792,
+        "table_height": 243.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "overview",
+      "before": {
+        "map_top": 196,
+        "map_width": 1272,
+        "map_height": 601.296875,
+        "map_visible_height": 601.296875,
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "table_height": 258.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 1272,
+        "map_height": 690.90625,
+        "map_visible_height": 690.90625,
+        "visible_area": 878832.75,
+        "center_width": 1272,
+        "table_height": 297.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "expanded",
+      "before": {
+        "map_top": 196,
+        "map_width": 1272,
+        "map_height": 601.296875,
+        "map_visible_height": 601.296875,
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "table_height": 258.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 1272,
+        "map_height": 690.90625,
+        "map_visible_height": 690.90625,
+        "visible_area": 878832.75,
+        "center_width": 1272,
+        "table_height": 297.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "cluster",
+      "before": {
+        "map_top": 196,
+        "map_width": 1272,
+        "map_height": 601.296875,
+        "map_visible_height": 601.296875,
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "table_height": 258.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 1272,
+        "map_height": 690.90625,
+        "map_visible_height": 690.90625,
+        "visible_area": 878832.75,
+        "center_width": 1272,
+        "table_height": 297.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 100,
+      "state": "point",
+      "before": {
+        "map_top": 196,
+        "map_width": 1272,
+        "map_height": 601.296875,
+        "map_visible_height": 601.296875,
+        "visible_area": 764849.625,
+        "center_width": 1272,
+        "table_height": 258.703125,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 1272,
+        "map_height": 690.90625,
+        "map_visible_height": 690.90625,
+        "visible_area": 878832.75,
+        "center_width": 1272,
+        "table_height": 297.09375,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "overview",
+      "before": {
+        "map_top": 196,
+        "map_width": 761,
+        "map_height": 240,
+        "map_visible_height": 240,
+        "visible_area": 182640,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          true,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 776,
+        "map_height": 326,
+        "map_visible_height": 326,
+        "visible_area": 252976,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "expanded",
+      "before": {
+        "map_top": 196,
+        "map_width": 761,
+        "map_height": 240,
+        "map_visible_height": 240,
+        "visible_area": 182640,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          true,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 776,
+        "map_height": 326,
+        "map_visible_height": 326,
+        "visible_area": 252976,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "cluster",
+      "before": {
+        "map_top": 196,
+        "map_width": 761,
+        "map_height": 240,
+        "map_visible_height": 240,
+        "visible_area": 182640,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          true,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 776,
+        "map_height": 326,
+        "map_visible_height": 326,
+        "visible_area": 252976,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1366,
+        768
+      ],
+      "zoom_equivalent": 125,
+      "state": "point",
+      "before": {
+        "map_top": 196,
+        "map_width": 761,
+        "map_height": 240,
+        "map_visible_height": 240,
+        "visible_area": 182640,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          true,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 776,
+        "map_height": 326,
+        "map_visible_height": 326,
+        "visible_area": 252976,
+        "center_width": 776,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "overview",
+      "before": {
+        "map_top": 196,
+        "map_width": 836,
+        "map_height": 304,
+        "map_visible_height": 304,
+        "visible_area": 254144,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 836,
+        "map_height": 432,
+        "map_visible_height": 432,
+        "visible_area": 361152,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "expanded",
+      "before": {
+        "map_top": 196,
+        "map_width": 836,
+        "map_height": 304,
+        "map_visible_height": 304,
+        "visible_area": 254144,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 836,
+        "map_height": 432,
+        "map_visible_height": 432,
+        "visible_area": 361152,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "cluster",
+      "before": {
+        "map_top": 196,
+        "map_width": 836,
+        "map_height": 304,
+        "map_visible_height": 304,
+        "visible_area": 254144,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 836,
+        "map_height": 432,
+        "map_visible_height": 432,
+        "visible_area": 361152,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1440,
+        900
+      ],
+      "zoom_equivalent": 125,
+      "state": "point",
+      "before": {
+        "map_top": 196,
+        "map_width": 836,
+        "map_height": 304,
+        "map_visible_height": 304,
+        "visible_area": 254144,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 836,
+        "map_height": 432,
+        "map_visible_height": 432,
+        "visible_area": 361152,
+        "center_width": 836,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "overview",
+      "before": {
+        "map_top": 196,
+        "map_width": 888,
+        "map_height": 448,
+        "map_visible_height": 448,
+        "visible_area": 397824,
+        "center_width": 888,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 888,
+        "map_height": 539.703125,
+        "map_visible_height": 539.703125,
+        "visible_area": 479256.375,
+        "center_width": 888,
+        "table_height": 232.296875,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "expanded",
+      "before": {
+        "map_top": 196,
+        "map_width": 888,
+        "map_height": 448,
+        "map_visible_height": 448,
+        "visible_area": 397824,
+        "center_width": 888,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 888,
+        "map_height": 539.703125,
+        "map_visible_height": 539.703125,
+        "visible_area": 479256.375,
+        "center_width": 888,
+        "table_height": 232.296875,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "cluster",
+      "before": {
+        "map_top": 196,
+        "map_width": 888,
+        "map_height": 448,
+        "map_visible_height": 448,
+        "visible_area": 397824,
+        "center_width": 888,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 888,
+        "map_height": 539.703125,
+        "map_visible_height": 539.703125,
+        "visible_area": 479256.375,
+        "center_width": 888,
+        "table_height": 232.296875,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "physical": [
+        1920,
+        1080
+      ],
+      "zoom_equivalent": 125,
+      "state": "point",
+      "before": {
+        "map_top": 196,
+        "map_width": 888,
+        "map_height": 448,
+        "map_visible_height": 448,
+        "visible_area": 397824,
+        "center_width": 888,
+        "table_height": 196,
+        "center_overflow": [
+          false,
+          false
+        ]
+      },
+      "after": {
+        "map_top": 68,
+        "map_width": 888,
+        "map_height": 539.703125,
+        "map_visible_height": 539.703125,
+        "visible_area": 479256.375,
+        "center_width": 888,
+        "table_height": 232.296875,
+        "center_overflow": [
+          false,
+          false
+        ]
+      }
+    }
+  ],
+  "openlayers_resize": {
+    "before": {
+      "center": [
+        4129953.10843045,
+        7381298.312185911
+      ],
+      "zoom": 11
+    },
+    "after": {
+      "center": [
+        4129953.10843045,
+        7381298.312185911
+      ],
+      "zoom": 11,
+      "size": [
+        777,
+        326
+      ],
+      "target": [
+        777,
+        326
+      ]
+    },
+    "observer": "OpenLayers built-in ResizeObserver -> updateSize()"
+  },
+  "live_routes": {
+    "hit": {
+      "expected": "synthetic-07",
+      "pixel": [
+        570.762666666662,
+        180.6319309730461
+      ],
+      "client": [
+        874.762666666662,
+        248.6319309730461
+      ],
+      "target": ""
+    },
+    "origin": {
+      "point": "Точка назначения\n← К кластеру\nSynthetic Destination 07\nFIAS\nsynthetic-07\nСтатус\nВ кластере\nКластер\n2\nМашины\n10\nМаршрут\n100 км\nПокрытие: 10 / 10 (100%)\nПериоды\nТекущий\nСредневзвешенная цена\n1 000 ₽\nПокрытие: 10 / 10 (100%)\nСредневзвешенный ₽/км\n10 ₽/км\nПокрытие: 10 / 10 (100%)\nРегиональный ₽/км\n—\nОтклонение\n—\n← К сводке точки\nВклад отправлений в точку\n\nИсточник: Pulse. Средние взвешены по машинам с валидным показателем. Покрытие: валидные машины / все машины отправления. Пропуски не равны нулю.\n\nSynthetic a · a\n10 машин · 1 строк\nМаршрут: 100 км · покрытие 10 / 10 (100%)\nЦена: 1 000 ₽ · покрытие 10 / 10 (100%)\nРегионы погрузки из строк: Origin Region\nИсходные строки Pulse (1)\n\nОтправление: a → synthetic-07 · Источник: Pulse\n\nОтправление / FIAS\tРегион погрузки из строки\tПериод\tТип периода\tТип цены\tТранспорт\tТоннаж\tЦена\tМаршрут\t₽/км\tМашины\tПредупреждения\nSynthetic aa\tOrigin Region\t202608\tcurrent\tspot\ttent\t20\t1 000\t100 км\t10 ₽/км\t10\t—",
+      "rows": 1
+    },
+    "modes": [
+      {
+        "mode": "geography",
+        "title": "По географии",
+        "top": 68,
+        "columns": 14,
+        "methodology": false
+      },
+      {
+        "mode": "geo_cost",
+        "title": "География + стоимость",
+        "top": 68,
+        "columns": 14,
+        "methodology": false
+      },
+      {
+        "mode": "geo_volume",
+        "title": "География + объём",
+        "top": 68,
+        "columns": 14,
+        "methodology": false
+      },
+      {
+        "mode": "bear_zones",
+        "title": "Медвежьи зоны",
+        "top": 68,
+        "columns": 0,
+        "methodology": false
+      },
+      {
+        "mode": "bear_volume_zones",
+        "title": "Медвежьи зоны по объёму",
+        "top": 68,
+        "columns": 0,
+        "methodology": false
+      }
+    ],
+    "comparisonModes": 5,
+    "dataMap": {
+      "active": true,
+      "top": 68,
+      "compareVisible": false,
+      "mapSize": [
+        1124,
+        820
+      ]
+    }
+  },
+  "records": [
+    {
+      "id": "CTX-origins",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-all-origins",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-destination-region",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-period-types",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-price-types",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-vehicle-types",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-tonnage-ids",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-facet-count",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-mode",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-k-mode",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-n-clusters",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-geography-weight",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-economics-weight",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-volume-weight",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-bear-threshold",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-volume-threshold",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-singleton-threshold",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-preview",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CTX-form-warnings",
+      "access": "Parameters > Direction / Segment / Method; compact: open Parameters first",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "FRZ-frozen-request",
+      "access": "#clustering-inspector #result-context: route strong + saved method/K/weights/filter small elements; full request remains API/XLSX provenance, not literal UI JSON",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-selection-intent",
+      "access": "#clustering-inspector #result-context > strong: explicit All / Union count / single origin",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-origins",
+      "access": "#clustering-inspector #result-context details > summary then small names/FIAS for Union/All; single strong + FIAS small",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-origin-coverage-zero-match",
+      "access": "#clustering-inspector #result-context > small: zero-match saved origins notice",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-source",
+      "access": "#clustering-inspector #result-context > span: source attribution Pulse",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-data-snapshot",
+      "access": "Saved identity stays in state.result.data.data_snapshot and frozen detail/export requests; not visibly rendered by contextFor (old ledger must not imply visible snapshot)",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-stale",
+      "access": "#clustering-inspector #result-status: form-change notice; table .cluster-table-state; narrow #mobile-inspector-btn warning dot and accessible label",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-rejected-snapshot",
+      "access": "#clustering-inspector #result-status: changed Pulse/coordinates notice and blocked detail/XLSX; narrow result button warning dot",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "FRZ-unavailable-result",
+      "access": "#clustering-inspector #result-status: saved result unavailable notice and blocked detail/XLSX; narrow result button warning dot",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-analysis-mode",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-analysis-parameters-n-clusters",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-points-with-lat",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-trip-count-total",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-outliers-length",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-bear-zone-count",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-singleton-count",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-status",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "SUM-warnings",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-resolved-points",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-destination-points-total",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-point-coverage-pct",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-trip-count-resolved",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-trip-count-total",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-trip-weight-coverage-pct",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-economic-valid-points",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "QLT-excluded-missing-fias",
+      "access": "#clustering-inspector #result-summary: saved summary/warnings/quality; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-cluster-id",
+      "access": "#cluster-table-panel thead [data-sort-key=\"cluster_id\"] and matching tbody column; local horizontal/vertical scroll; row identity button for cluster ID",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-point-count",
+      "access": "#cluster-table-panel thead [data-sort-key=\"point_count\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-trip-count",
+      "access": "#cluster-table-panel thead [data-sort-key=\"trip_count\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-trip-share",
+      "access": "#cluster-table-panel thead [data-sort-key=\"trip_share\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-weighted-route-length",
+      "access": "#cluster-table-panel thead [data-sort-key=\"weighted_route_length\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-price-min",
+      "access": "#cluster-table-panel thead [data-sort-key=\"price.min\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-price-median",
+      "access": "#cluster-table-panel thead [data-sort-key=\"price.median\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-price-weighted",
+      "access": "#cluster-table-panel thead [data-sort-key=\"price.weighted\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-price-max",
+      "access": "#cluster-table-panel thead [data-sort-key=\"price.max\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-rub-per-km-min",
+      "access": "#cluster-table-panel thead [data-sort-key=\"rub_per_km.min\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-rub-per-km-median",
+      "access": "#cluster-table-panel thead [data-sort-key=\"rub_per_km.median\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-rub-per-km-weighted",
+      "access": "#cluster-table-panel thead [data-sort-key=\"rub_per_km.weighted\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-rub-per-km-max",
+      "access": "#cluster-table-panel thead [data-sort-key=\"rub_per_km.max\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TBL-economic-coverage",
+      "access": "#cluster-table-panel thead [data-sort-key=\"economic_coverage\"] and matching tbody column; local horizontal/vertical scroll; focus/hover matching .cluster-value-help for raw precision/unit/coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-route-length-valid-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-weighted_route_length\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-route-length-total-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-weighted_route_length\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-route-length-valid-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-weighted_route_length\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-route-length-total-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-weighted_route_length\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-price-valid-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-price.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-price-total-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-price.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-price-valid-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-price.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-price-total-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-price.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-rub-per-km-valid-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-rub_per_km.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-rub-per-km-total-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-rub_per_km.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-rub-per-km-valid-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-rub_per_km.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-coverage-rub-per-km-total-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-rub_per_km.weighted\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-economic-coverage-valid-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-economic_coverage\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-economic-coverage-total-points",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-economic_coverage\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-economic-coverage-valid-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-economic_coverage\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "COV-economic-coverage-total-trip-count",
+      "access": "#cluster-table-panel tbody .cluster-value-help[aria-describedby=\"cluster-value-<cluster_id>-economic_coverage\"] > .cluster-table-tooltip: own valid/total points and machines; focus/hover/click help; no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-table-sort",
+      "access": "#cluster-table-panel thead [data-sort-key]: all 14 headers, horizontal scroll where required; aria-sort and retained focus",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-table-open",
+      "access": "#cluster-table-panel [data-table-toggle]: collapse/reopen; local .cluster-table-scroll offsets",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-selected-hovered-cluster",
+      "access": "#cluster-table-panel tbody tr[data-cluster-id]: selected/hovered classes; row identity button opens inspector detail",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-period-types",
+      "access": "#cluster-table-panel .cluster-table-periods .cluster-table-period: saved table.period_types pills (including Pulse forecast); no methodology disclosure",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-methodology-distributions",
+      "access": "Existing column formula helps: #cluster-formula-price.min/.median/.max and #cluster-formula-rub_per_km.min/.median/.max; destination-point min/max and explicitly unweighted median retained; no replacement block",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-methodology-weighted-values",
+      "access": "Existing #cluster-formula-weighted_route_length, #cluster-formula-price.weighted, #cluster-formula-rub_per_km.weighted: metric-valid machine denominators; matching value helps expose metric coverage",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-missing-values",
+      "access": "Existing weighted metric formula helps say missing excluded / dash; per-value help distinguishes unavailable from true zero; coverage own denominators retained",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-supported",
+      "access": "#cluster-table-panel: supported ordinary 14-column table; Bear unsupported text and existing map/details, no fabricated ordinary rows",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "TST-table-error-empty",
+      "access": "#cluster-table-panel .cluster-table-state[.error]: malformed/empty rows; independent of selected inspector detail",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-silhouette",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-mean-distance-to-medoid-m",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-p95-distance-to-medoid-m",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-within-cluster-weighted-rubkm-mad",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-regional-weighted-rub-per-km",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-within-cluster-trip-count-mad",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-between-cluster-mean-trip-spread",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-regional-volume-mean-trip-count-per-point",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-candidate-count",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-covered-point-count",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-covered-trip-count",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-calinski-harabasz",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-davies-bouldin",
+      "access": "#clustering-inspector .result-diagnostics > Technical analytics disclosure > graph metric row/help",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-graph-node-count",
+      "access": "#clustering-inspector .result-diagnostics > Open single Technical analytics disclosure > graph metric/help row",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-graph-edge-count",
+      "access": "#clustering-inspector .result-diagnostics > Open single Technical analytics disclosure > graph metric/help row",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-graph-graph-component-count",
+      "access": "#clustering-inspector .result-diagnostics > Open single Technical analytics disclosure > graph metric/help row",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "MET-graph-connectivity-violations",
+      "access": "#clustering-inspector .result-diagnostics > Open single Technical analytics disclosure > graph metric/help row",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CLU-cluster-id",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-point-count",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-trip-count",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-relative-rate-delta",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-relative-volume-delta",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-representative-name",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-medoid-point-id",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-weighted-rub-per-km",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-weighted-price",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-regional-weighted-rub-per-km",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-mean-trip-count",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-regional-mean-trip-count",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-mean-radius-km",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-p95-radius-km",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-max-radius-km",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-connected",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-small-sample-warning",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-point-ids",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CLU-cluster-type",
+      "access": "Activate raw cluster ID row/marker > selected cluster inspector; ordinary/Bear appropriate level",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-name",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-fias-id",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-status",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-cluster-id",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-trip-count",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-weighted-route-length",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-period-types",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-data-quality-flags",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-weighted-price",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-weighted-rub-per-km",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-regional-weighted-rub-per-km",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-relative-rate-delta",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-regional-mean-trip-count",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "PNT-relative-volume-delta",
+      "access": "Cluster > member point > selected point inspector before export/overview",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-origin-name",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-origin-fias",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-trip-count",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-source-row-count",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-weighted-route-length",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-valid-route-length-trip-count",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-route-coverage-pct",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-weighted-price",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-valid-price-trip-count",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-price-coverage-pct",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-origin-regions",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ORG-warnings",
+      "access": "Point > contributing origins > exact origin; explicit saved request, not edited form",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-origin-name",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-origin-fias",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-origin-region",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-period-id",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-period-type",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-price-type",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-vehicle-type",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-tonnage-id",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-price",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-route-length",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-rub-per-km",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-trip-count",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-warnings",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-total",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-hasMore",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "ROW-selectedOrigin",
+      "access": "Point > Pulse rows disclosure; optional selected origin, page at most50, More/Retry",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "NAV-drill-up",
+      "access": "Overview > cluster > point > origin > rows > back; preserve map/table/cache state",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "NAV-selection",
+      "access": "Overview > cluster > point > origin > rows > back; preserve map/table/cache state",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "NAV-map-view",
+      "access": "Overview > cluster > point > origin > rows > back; preserve map/table/cache state",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "NAV-focus",
+      "access": "Overview > cluster > point > origin > rows > back; preserve map/table/cache state",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "MAP-points",
+      "access": "Product map Layers toggles; ordinary/Bear membership from saved result; base-layer selector",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "MAP-labels",
+      "access": "Product map Layers toggles; ordinary/Bear membership from saved result; base-layer selector",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "MAP-centers",
+      "access": "Product map Layers toggles; ordinary/Bear membership from saved result; base-layer selector",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "MAP-outliers",
+      "access": "Product map Layers toggles; ordinary/Bear membership from saved result; base-layer selector",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "MAP-candidates",
+      "access": "Product map Layers toggles; ordinary/Bear membership from saved result; base-layer selector",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "MAP-base-layer",
+      "access": "Product map Layers toggles; ordinary/Bear membership from saved result; base-layer selector",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "MAP-legend",
+      "access": "Product map Layers toggles; ordinary/Bear membership from saved result; base-layer selector",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "CMP-context",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-mode",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-n-clusters",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-weights",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-p95-distance-to-medoid-m",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-economicCoverage",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-within-cluster-weighted-rubkm-mad",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-between-cluster-rate-spread",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-within-cluster-trip-count-mad",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-between-cluster-mean-trip-spread",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-threshold",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-candidate-count",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-bear-zone-count",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-singleton-count",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-covered-trip-count",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-resolved-points",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-trip-count-total",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-point-coverage-pct",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-outliers-length",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "CMP-neutral",
+      "access": "#clustering-inspector #compare-modes (narrow Result drawer) > five semantic columns > cached mode tabs / Show on map",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-empty",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-loading",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-error",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-retry",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-cancellation",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-revision-cache",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-failed-revision",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-stale-recovery",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "STA-unavailable-recovery",
+      "access": "Run/Compare/detail retry controls and distinct #clustering-inspector #result-status notices; narrow Result drawer",
+      "disposition": "D07_CURRENT_ACCESS_RECONCILED"
+    },
+    {
+      "id": "XLS-eligibility",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-frozen-context",
+      "access": "Ordinary saved result > XLSX; previous draft/selected child/table collapse must not constrain full saved export",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-form-change-warning",
+      "access": "Ordinary saved result > XLSX; previous draft/selected child/table collapse must not constrain full saved export",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-loading",
+      "access": "Ordinary saved result > XLSX; previous draft/selected child/table collapse must not constrain full saved export",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-cancel",
+      "access": "Ordinary saved result > XLSX; previous draft/selected child/table collapse must not constrain full saved export",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-success",
+      "access": "Ordinary saved result > XLSX; previous draft/selected child/table collapse must not constrain full saved export",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-error-retry",
+      "access": "Ordinary saved result > XLSX; previous draft/selected child/table collapse must not constrain full saved export",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-table-rows",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-assigned-rows",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-source-row-id",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-source-timestamp",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-destination-fias",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-destination-name",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-cluster-id",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-context-metadata",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-methodology",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-coverage",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-exclusions",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-sheet-mapping",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-conflicting-origin-regions",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-export-created-at-utc",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-literal-types",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XLS-complete-or-fail",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-period-id",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-period-type",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-price-type",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-vehicle-type",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-tonnage-id",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-price",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-route-length",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-rub-per-km",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-trip-count",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-warnings",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-origin-fias",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-origin-name",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "XDT-origin-region",
+      "access": "Actual browser download > independently reopened OOXML cells/metadata; never infer full rows from UI first page",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-view",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-theme",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-status",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-loading",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-toast",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-empty-state",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-total-ship",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-total-del",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-geocoded",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-geocode-running",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-geocode-done",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-geocode-total",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-geocode-progress",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-shell-base-layer",
+      "access": "Top Data Map tab; shell status, filters, map legend, base layer, loading/error; return Product without implicit Run",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-fromRegions",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-toRegions",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-region-catalog",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-region-search",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-region-tags",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-periodTypes",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-priceTypes",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-section-collapsed",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-apply",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-filters-reset",
+      "access": "Data Map controls > from/to regions, search/tags, period/price toggles > Apply/Reset",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-town",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-region",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-type",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-avg-price",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-rub-per-km",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-min-price",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-max-price",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-avg-length",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-min-length",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-max-length",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-avg-bids",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-count",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-by-period-period-type",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-by-period-count",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-by-period-avg-price",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-by-period-rub-per-km",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-clustered-points",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-regeocode",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-details",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-popup-legend",
+      "access": "Data Map > keyboard point selector or actual marker/group > same popup > detail/regeocode actions",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-town",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-price",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-route-length",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-rub-per-km",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-bid-count",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-period-type",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-price-type",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-confidence",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-ship-region",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-del-region",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-modal-error",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    },
+    {
+      "id": "LEG-record-modal-close",
+      "access": "Data Map popup Details > named record dialog/table > local keyboard scroll > Close/Escape",
+      "disposition": "UNCHANGED_SOURCE_ROUTE_INHERITED_VALUES"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "DS-01",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Apply exact Product typography, spacing and color roles from design-tokens.md. Rendered normal text contrast >=4.5:1 and large text/action/focus >=3:1 in both themes; dark solid button foreground changes independently of links."
+    },
+    {
+      "id": "DS-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "All essential table/Pulse values >=13px, tabular numbers, right alignment and visible units; at 200% text resize content and actions remain reachable without dropping any of fourteen columns."
+    },
+    {
+      "id": "DS-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Native Tab/Enter/Space/Escape help and visible focus work; Data Map theme, units, values and existing formulas retain their own semantics."
+    },
+    {
+      "id": "WL-01",
+      "disposition": "D07 supersedes placement only: frozen context in right inspector, compact openers over map on narrow layouts; original calculation/frozen/drawer requirements retained.",
+      "historical_obligation": "One Calculate and draft footer remain outside form scroll for all six specified desktop/zoom cases. Saved context/table are not hidden; center scrolls vertically when map240 + table180 + context minima exceed viewport."
+    },
+    {
+      "id": "WL-02",
+      "disposition": "D07 supersedes placement only: frozen context in right inspector, compact openers over map on narrow layouts; original calculation/frozen/drawer requirements retained.",
+      "historical_obligation": "CSS width >=1320 docks selected inspector;1040..1319 uses overlay;<1040 also uses controls drawer. Dialog entry/trap/inert/Escape/return and hidden Tab exclusion work; opening panels preserves saved selection and sort."
+    },
+    {
+      "id": "WL-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Product/Data Map navigation, themes/base layer, existing DOM action IDs and handlers work; presentation show/hide does not silently run clustering."
+    },
+    {
+      "id": "PM-01",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Single/union tokens persist independently of search and explicit All toggle; full regional All is resolved before common filters, not limited to30 suggestions. Manual tokens restore; invalid selectors and empty period/price are guarded."
+    },
+    {
+      "id": "PM-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Four filters retain selected values/facets and clear human labels. Empty vehicle/tonnage means all; forecast/mixed warnings visible; unknown enums safely preserved; late options cannot overwrite current query."
+    },
+    {
+      "id": "PM-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "All five modes and manual K/weights/Bear/singleton controls follow backend capabilities, defaults and ranges. No duplicate catalog or invented Bear business purpose."
+    },
+    {
+      "id": "EC-01",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Independent arithmetic/source oracles reconcile canonical price200/rate20/route10, legacy118.1818/11.81818 and2/2 points versus20/110 machines. Include full/missing/invalid/unequal metric weights, even median, unassigned and multi-origin; rate12.5 is distinct from ratio13.3333."
+    },
+    {
+      "id": "EC-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Baseline public values/keys, membership, regional baselines, diagnostics and Bear outputs are preserved across all five modes. Specify frontend frozen-row lookup by cluster_id; individual diagnostic formulas stay distinct."
+    },
+    {
+      "id": "EC-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Record no required backend extension when current payload suffices. Any required gap needs exact field/population and additive compatibility proposal approved separately. Guard completes via existing source/API oracle tests; downstream UI proof belongs07/08, no circular preservation ownership."
+    },
+    {
+      "id": "SR-01",
+      "disposition": "D07 supersedes placement only: frozen context in right inspector, compact openers over map on narrow layouts; original calculation/frozen/drawer requirements retained.",
+      "historical_obligation": "Saved strip reads frozen origins/intent/region/fourfilters/mode/params; All full set and zero-match accessible. Draft edits leave displayed/detail/export saved context unchanged."
+    },
+    {
+      "id": "SR-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "KPI uses saved machines, coordinate points, actual clusters or Bear zones/singletons with original populations. no_bears is normal success-empty; invalid connectedness is L1. No invented total budget or global canonical economic mean."
+    },
+    {
+      "id": "SR-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Coordinate point and machine coverage, economic availability and critical warnings stay near affected values. All technical diagnostics are reachable with their individual formulas. Missing displays unavailable; real numeric zero stays zero."
+    },
+    {
+      "id": "MT-01",
+      "disposition": "D07 removes methodology disclosure only. Definitions survive in existing per-metric helps, saved context and period pills; all14 columns/values retained.",
+      "historical_obligation": "All 14 keys/labels/formulas/values retained: destination-mean min/median/max, even median, assigned-trip share and per-metric coverage. Unsupported Bear table explains cause; no ordinary rows fabricated."
+    },
+    {
+      "id": "MT-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "All 14 raw keys sort both directions, null last and raw cluster_id ascending ties; initial trip_count descending. Sticky identity/header/local scroll, collapse/reopen scroll and aria-sort work."
+    },
+    {
+      "id": "MT-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Hover/focus highlights matching cluster; activation synchronizes map/table/inspector ID. Points-only layer/labels/medoid/outliers/candidates/base/legend retain meaning; help exposes full precision, unit and exact per-metric valid/total denominators without clipping."
+    },
+    {
+      "id": "IN-01",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Inspector starts at selected cluster/zone. Ordinary primary route/price/rate uses same frozen canonical table row and coverage, never fallback to legacy mean. Existing public weighted values remain separately labeled diagnostics; members/medoid/Bear fields retained."
+    },
+    {
+      "id": "IN-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Destination name/FIAS/status/real parent or unassigned absence, machines/means/coverage/periods/quality are shown. Origin contributions use exact saved source and individual valid weights."
+    },
+    {
+      "id": "IN-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Pooled point and origin-filtered rows distinct. Origin name/FIAS/row regions, counts/route/price/valid weights/coverage/warnings accessible. Show50newest then <=50 next pages with total/hasMore. Preserve12 UI fields listed in spec and raw missing/invalid/source attribution."
+    },
+    {
+      "id": "IN-04",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Drill-up and valid detail cacheA-B-A preserve map/sort/tableopen/scroll/nativefocus/saved context. Parent change/removal cancels obsolete child; no late success/error mutation; transient retry same frozen key/page and rejected source entries never revived."
+    },
+    {
+      "id": "CX-01",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Five aligned neutral columns use common frozen input/snapshot and explicit GeographyAuto,GeoCost/Volume70:30Auto,Bear35%/catalogsingleton. All 20 CMPfields preserved; point economic coverage distinct from machine coverage; N/A/missing/no_bears distinct; no winner."
+    },
+    {
+      "id": "CX-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Valid cached activationA-B-A causes no run/revision request, installs selected saved result, resets overview/defaulttrip_countdesc/opens supported table and synchronizes controls. Compare close/Escape restores focus; no mixed generations."
+    },
+    {
+      "id": "CX-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Saved-context XLSX uses complete frozen request/intent/snapshot and current raw sort. Full 14 column table and all assigned source rows regardless selection/collapse/loaded50; draft-edit allowed with warning; unsupported/no-data/rejected/unavailable/revision uncertainty guarded."
+    },
+    {
+      "id": "CX-04",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Cancel export on Calculate/Compare/cachedactivation/reset/Productexit/pagehide, suppress late success/error/file; same-result drill-up preserves pending export. Retry same saved operation; success only browser handoff. Independently reopen actual downloaded workbook and verify all IDs/count/order/types/null-zero/literals/context/legal sheets/completeness."
+    },
+    {
+      "id": "ST-01",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Draft-edit, changed source/coords and unavailable result have distinct visible causes; saved detail/export allowed for draft-edit only when validated. Explicit Calculate applies current draft."
+    },
+    {
+      "id": "ST-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Source/coords/in-flight conflict/eviction/restart/revision-validation failure retain old display with typed uncertainty and guard unsafe detail/export. Rejected cache never resurrects; appropriate check retry or explicit fresh run recovers."
+    },
+    {
+      "id": "ST-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Initial/refresh loading, NO_DATA/no_bears/invalid-connectedness, network run/detail/compare/export failure and retry/cancel are coherent. Retry valid saved operation without implicit run; no missing-to-zero or false fresh."
+    },
+    {
+      "id": "ST-04",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Separate delayed success/error/cancel/cacheA-B-A/parent removal/reset/exit/pagehide scenarios never overwrite context/focus/download. Restore scroll and focus to valid logical identity or nearest parent."
+    },
+    {
+      "id": "ST-05",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Keyboard names/headings/help-hover-dismiss/dialogfocus/live status/alerts/contrast/200%resize/applicable320pxreflow/reduced-motion pass applicable audit. All 56 LEGACYIDs retain filters/popups/stats/geocodeprogress/recordmodal empty-error-close semantics and accessibility."
+    },
+    {
+      "id": "IA-01",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Every DS/WL/PM/EC/SR/MT/IN/CX/ST criterion and all 294 unique source/access/method/value/state obligations independently reconciled with no orphan/duplicate/missing; no unresolved BLOCKER/MAJOR."
+    },
+    {
+      "id": "IA-02",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Actual served checkout/HEAD/port/assets match candidate; full desktop/theme/zoom/live lifecycle/Bear/DataMap evidence. Final HEAD mandatory local/hosted Quality has zero skipped mandatory tests; independent Spec/Standards plus targeted Ponytail inspect/replay high-risk integration."
+    },
+    {
+      "id": "IA-03",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Independent metric/source-ID oracles and actual browser-downloaded XLSX reopened verify full assigned IDs/count/order/provenance/types/null-zero/literal IDs/formula-like strings/legal sheets and generation-complete-or-fail; HTTP200 alone insufficient."
+    },
+    {
+      "id": "IA-04",
+      "disposition": "Behavior retained; source/targeted/final regression evidence, not a new human acceptance.",
+      "historical_obligation": "Actual AS-IS baseline and same tasks TO-BE T01..T10 observed, targets set before TO-BE, actual n/errors/time/serverwait separately; functional/human/production verdicts separate. If human sessions unavailable, mark human gate UNVERIFIED, never claim superiority from mockup."
+    }
+  ],
+  "limits": {
+    "native": "UNVERIFIED: Computer Use could not determine browser URL confidently.",
+    "human": "UNVERIFIED",
+    "production": "UNVERIFIED",
+    "final_gates": "Exact HEAD/run/job and local outcomes recorded in timestamped PR supplement."
+  },
+  "artifact_storage": {
+    "path": "C:\\folder\\Python\\AI_logistics_clean\\.scratch\\balanced-ux-worktree\\.scratch\\d07-workspace",
+    "availability": "Retained locally; no cleanup authorized.",
+    "files": {
+      "after-cluster-1440.png": "c4c4ed87e7a28e212fc2d8735b9163d0fc28c5c57026eb6b7ceeee3f209d2759",
+      "after-dark-text100.png": "913d7c65ccaaf338d4a4ac34323e6262f788b7e8a89de35546b9bbf8692357f9",
+      "after-dark-text200.png": "96d5dca7ecbbe6b86768e9dd9780d6e8f791c38d29c75d33ab3a781287abaa1d",
+      "after-download.json": "20bb2dfc6b105f2770ea7ba407908284f3c889818c4c8666f92e6b18d8093bae",
+      "after-expanded-1440.png": "50e80b31f25915a8709bff7efbc16fb1c62238c0e635df4db42cae4e30fcccd1",
+      "after-geometry.json": "5d77d73b196cf29d2c2cd6340d81a111417d6f78cf526fd27a46b3764ef221da",
+      "after-map-resize.json": "18d74845a881805b5b9f81b36a43871dd3d54f0f3fc5c255a64226631372de77",
+      "after-overview-1440.png": "f2bbe0b7cfaa15a9fb999271e6a4eefda185a73b9127d5ed0ede6b5e20e2d43c",
+      "after-point-1440.png": "be00e9132524d79b206297aa8ac7c0384df42caac07fd78a00086fd65a13b102",
+      "before-cluster-1440.png": "f47cc76156a28e9ae36d1c033e6729f1a5f2b6788b04c8f477f4cda7798a7514",
+      "before-dark-text100.png": "b4c756841391849f4d91a323c5f88e6c26d67b1251b2ebbbafa0ea4b9d4aa161",
+      "before-dark-text200.png": "54dacebe7b05e96d95d689db23a9f0b9c4bc57c39cb2646555187c801cf127c6",
+      "before-download.json": "148decd8f1dd89f122d26e21f38f7d22fb0fb1c5483ece9e2ea5c092e0c5d3b2",
+      "before-expanded-1440.png": "7dd637018eaaf39dfbd81b6d01b5baac736aef3d5bdf06363b703a862a0fac5c",
+      "before-geometry.json": "f8c3379474a95cf496e4b902d6432eadcdc6ed4164e97c8c66720a05dd964310",
+      "before-map-resize.json": "9f5c354a221cb494dbe5503b404a4e1ebc5049a0742e75e583f523650d4c67c7",
+      "before-overview-1440.png": "b7e95ea6146038b8e175b7793057bf09a4b9de662f757b78cee6d1e43bac3345",
+      "before-point-1440.png": "bd06d9cbca47cacff8f4097d48ad6a10a3049d323ed5b3c273793f55a727cfe3",
+      "final-cluster-1440.png": "f36d3aa359083ec2b4f801995bb67b4be56a323fc7d07d982b1600899323bc93",
+      "final-dark-text100.png": "0f275fdd162fd3bf8b2a32c82703b58bc29ebee79374cce5823ec7ee06b0b53c",
+      "final-dark-text200.png": "37a7cdc0dd30bcae4e77a3b08c4a9b03b33ff95bda3c2504b9df9dcdcdf0ae4c",
+      "final-download.json": "0c4ac2490dea0b30f622a21823a9258a6e7c88d4e1447a53dbe356a4c971745f",
+      "final-expanded-1440.png": "1df946a2c313b66f02c4167eb56e3033eb5674be2cf26d9204da2d7ceb6a287b",
+      "final-geometry.json": "73b60732d5830c81e7805fe5db40f56188ffcffb3f0e9e6638da9b4e4d24a969",
+      "final-map-resize.json": "18d74845a881805b5b9f81b36a43871dd3d54f0f3fc5c255a64226631372de77",
+      "final-overview-1440.png": "43847056dce8f8f04f6d2150ee701200b2779294c9dfd4f9b445ff81073ee05b",
+      "final-point-1440.png": "02f849cbf4736d1a222b082b4c9bc2321c180782ccfaae0d2f60964cb21b4eff",
+      "fixes-green.xml": "7fa6de180973c80608b4190063ad94e3770f228c3ac7759e75c8e6a91c3a6a52",
+      "neighbors.xml": "4aba938a63f27abe090bb8dd3bcc5dcd07573b0af0da07f7ea3d548a7cdc8c2f",
+      "served-assets.json": "6e55bb6cbb396e0cd78816194a2d74abf2bb16151cf3597f5e031ba1899a288b",
+      "verified-cluster-1440.png": "fdc117af88edea8f823e28edf29e09dce8c372d565c29c75335cf517ed3987a1",
+      "verified-dark-text100.png": "0f275fdd162fd3bf8b2a32c82703b58bc29ebee79374cce5823ec7ee06b0b53c",
+      "verified-dark-text200.png": "37a7cdc0dd30bcae4e77a3b08c4a9b03b33ff95bda3c2504b9df9dcdcdf0ae4c",
+      "verified-download.json": "a1d85498ac8611085ecca042367f3d3bf7020c731053accd838714ec31aeff14",
+      "verified-expanded-1440.png": "0e651af201f2c253272edb254046c681a76d1fa66642c103350f24816abbbb2f",
+      "verified-geometry.json": "73b60732d5830c81e7805fe5db40f56188ffcffb3f0e9e6638da9b4e4d24a969",
+      "verified-live-routes.json": "a8e1938bc1785304fc3704803f46a5ddb0de00e6d279eb7574c3a6d0e5e1f8a8",
+      "verified-map-resize.json": "18d74845a881805b5b9f81b36a43871dd3d54f0f3fc5c255a64226631372de77",
+      "verified-overview-1440.png": "e7b9c3cd80ee10cef2f6476f8742c1873cec01281bf39232b91bb40f1f2dc382",
+      "verified-point-1440.png": "2e828f1bc578b74a813bbdd3cf0bdc39737dd08551647b7f643d6526f92626a3"
+    }
+  }
+}

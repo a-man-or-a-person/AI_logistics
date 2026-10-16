@@ -9,7 +9,7 @@ import {
 import { readChecks, renderFormState, renderOptionControls } from './controls.js';
 import { renderErrorState, renderInspector } from './inspector.js';
 import { renderComparison } from './comparison.js';
-import { clusterLabel, MODE_LABELS, PERIOD_LABELS, PRICE_LABELS } from './formatters.js';
+import { MODE_LABELS, PERIOD_LABELS, PRICE_LABELS } from './formatters.js';
 import { renderClusterTable } from './table.js';
 import {
   clearClusteringResult, focusClusteringPoint, highlightCluster, hoverCluster,
@@ -26,6 +26,7 @@ let runController;
 let pointRowsController;
 let pointOriginsController;
 let comparisonFocusReturn;
+let comparisonPanelReturn;
 let comparisonBackground = [];
 let activePanel;
 let panelFocusReturn;
@@ -163,7 +164,7 @@ function wireEvents() {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
       if (document.querySelector('.metric-help-popover:popover-open')) return;
-      if (state.comparison.open) closeComparison();
+      if (state.comparison.open) { closeComparison(); return; }
       hideOriginOptions();
       closePanel();
     }
@@ -205,7 +206,15 @@ function openPanel(panel, opener) {
     $('panel-backdrop').classList.remove('hidden');
   }
   panel.setAttribute('tabindex', '-1');
-  (panelFocusables(panel)[0] || panel).focus();
+  const selection = panel.id === 'clustering-inspector' ? revealInspectorSelection() : null;
+  (selection || panelFocusables(panel)[0] || panel).focus();
+}
+
+function revealInspectorSelection() {
+  const target = state.ui.selectedPoint != null ? $('point-details-close')
+    : state.ui.selectedCluster != null ? $('cluster-details-close') : null;
+  target?.scrollIntoView({block: 'center'});
+  return target;
 }
 
 function trapPanelFocus(event) {
@@ -223,10 +232,12 @@ function syncPanelLayout() {
   $('workspace').classList.toggle('has-saved-result', Boolean(state.result.data));
   const selected = state.ui.selectedCluster != null || state.ui.selectedPoint != null;
   $('workspace').classList.toggle('has-inspector-selection', selected);
-  const point = state.result.data?.points.find(item => item.id === state.ui.selectedPoint);
-  const cluster = state.result.data?.clusters.find(item => item.cluster_id === state.ui.selectedCluster);
-  $('selection-context').textContent = point?.name || (cluster ? clusterLabel(cluster, state.result.data.analysis.mode) : '');
-  $('mobile-inspector-btn').textContent = selected ? 'Детали' : 'Результат';
+  const attention = Boolean(state.result.error || isResultStale(state) || state.revisionUncertain
+    || state.rejectedSnapshots?.has(state.result.data?.data_snapshot) || state.unavailableResults?.has(state.result.data)
+    || state.result.data?.status === 'invalid_connectedness' || state.result.data?.graph_metrics?.connectivity_violations > 0
+    || state.result.data?.warnings?.length);
+  $('mobile-inspector-btn').textContent = `${selected ? 'Детали' : 'Результат'}${attention ? ' •' : ''}`;
+  $('mobile-inspector-btn').setAttribute('aria-label', attention ? 'Открыть результат: есть предупреждения' : 'Открыть результат');
   if (activePanel && ((activePanel.id === 'sidebar' && innerWidth >= 1040)
       || (activePanel.id === 'clustering-inspector' && innerWidth >= 1320))) closePanel();
   if (!activePanel) {
@@ -585,7 +596,7 @@ function selectCluster(clusterId, focus = false) {
   state.ui.selectedCluster = clusterId;
   highlightCluster(clusterId, focus);
   renderInspectorState();
-  if (clusterId != null) $('clustering-inspector').scrollTop = 0;
+  if (clusterId != null) revealInspectorSelection();
   renderClusterTableState();
 }
 
@@ -597,7 +608,8 @@ function showSingleRunTable(result) {
 }
 
 function openComparison() {
-  comparisonFocusReturn = activePanel ? panelFocusReturn : document.activeElement;
+  comparisonFocusReturn = document.activeElement;
+  comparisonPanelReturn = activePanel ? { panel: activePanel, opener: panelFocusReturn } : null;
   closePanel(false);
   comparisonBackground = [...document.querySelectorAll('.topbar,#workspace,#records-modal')]
     .map(element => [element, element.inert]);
@@ -613,7 +625,11 @@ function closeComparison(restoreFocus = true) {
   renderComparisonState();
   for (const [element, wasInert] of comparisonBackground) element.inert = wasInert;
   comparisonBackground = [];
-  if (restoreFocus) comparisonFocusReturn?.focus?.();
+  if (restoreFocus) {
+    if (comparisonPanelReturn) openPanel(comparisonPanelReturn.panel, comparisonPanelReturn.opener);
+    comparisonFocusReturn?.focus?.();
+  }
+  comparisonPanelReturn = null;
 }
 
 function trapComparisonFocus(event) {
@@ -973,7 +989,7 @@ function selectPoint(pointId, focus = false) {
   }
   if (pointId && focus) focusClusteringPoint(pointId);
   renderInspectorState();
-  if (pointId != null) $('clustering-inspector').scrollTop = 0;
+  if (pointId != null) revealInspectorSelection();
   if (pointId && state.result.data.analysis.frozen_request) loadPointOrigins();
 }
 

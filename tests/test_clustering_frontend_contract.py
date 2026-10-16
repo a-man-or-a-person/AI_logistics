@@ -1235,8 +1235,10 @@ def test_clustering_modules_reference_existing_dom_ids():
         )
     )
     html_ids = set(re.findall(r'id="([^"]+)"', html))
+    rendered_ids = set(re.findall(r'id="([^"]+)"', modules))
     referenced_ids = set(re.findall(r"\$\('([^']+)'\)", modules))
-    assert referenced_ids - html_ids == set()
+    assert 'point-details-close' in rendered_ids
+    assert referenced_ids - html_ids - rendered_ids == set()
 
 
 def test_frontend_honors_published_capabilities_when_compatibility_values_drift():
@@ -1496,7 +1498,7 @@ def test_cluster_table_renders_and_interacts_through_the_product_ui_seam():
         rowIds: [...panel.querySelectorAll('tbody tr')].map(row => Number(row.dataset.clusterId)),
         firstCells: [...panel.querySelector('tbody tr').children].map(cell => cell.innerText.trim()),
         periods: [...panel.querySelectorAll('.cluster-table-period')].map(item => item.textContent.trim()),
-        methodology: panel.querySelector('.cluster-table-methodology').textContent.replace(/\\s+/g, ' ').trim(),
+        methodologyAbsent: !panel.querySelector('.cluster-table-methodology'),
         coverageTitle: panel.querySelector('tbody tr td:last-child').title,
         sort: panel.querySelector('[data-sort-key="trip_count"]').closest('th').getAttribute('aria-sort'),
         selectedRows: panel.querySelectorAll('tbody tr.selected').length,
@@ -1527,13 +1529,7 @@ def test_cluster_table_renders_and_interacts_through_the_product_ui_seam():
                 "30,0 ₽/км", "75,0% точек · 55,6% машин",
             ],
             "periods": ["Текущий", "Прогноз Pulse"],
-            "methodology": (
-                "Методика расчёта Min, медиана и max рассчитаны по точкам назначения без весов. "
-                "Средневзвешенные значения учитывают машины только с доступной метрикой. "
-                "Пропуски не превращаются в нули и отражены в покрытии. "
-                "Периоды: Текущий, Прогноз Pulse. "
-                "Режим: По географии — экономика показана описательно и не влияла на разбиение."
-            ),
+            "methodologyAbsent": True,
             "coverageTitle": (
                 "Покрытие: 3/4 точек; 5/9 машин; цена: 4/4 точек, 8/9 машин; "
                 "₽/км: 3/4 точек, 5/9 машин"
@@ -1640,7 +1636,7 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
       }});
     """
     expected = {
-        "text": "Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—».",
+        "text": "Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—». Экономика показана описательно и не влияла на разбиение.",
         "role": "tooltip",
         "readable": True,
         "inViewport": True,
@@ -1650,7 +1646,11 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
         "hover": expected, "focus": expected, "hiddenAfterLeave": True, "hiddenAfterBlur": True,
         "hiddenAfterEscape": True, "afterEnter": expected, "afterSpace": expected,
         "afterSort": expected, "collapsedHasNoTooltip": True,
-        "afterReopen": expected, "supportedModes": [expected] * 3,
+        "afterReopen": expected, "supportedModes": [
+            expected,
+            {**expected, 'text': expected['text'].replace('Экономика показана описательно и не влияла на разбиение.', 'География и ₽/км влияли на разбиение.')},
+            {**expected, 'text': expected['text'].replace('Экономика показана описательно и не влияла на разбиение.', 'География и объём влияли на разбиение; экономика показана описательно.')},
+        ],
         "allMetrics": [True] * 24, "hiddenAfterScroll": True, "bearModes": [True, True],
     }
 
@@ -1772,7 +1772,7 @@ def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_chan
         flags=re.MULTILINE,
     ).replace("export ", "")
     script = f"""
-      const inspectorPanel = {{scrollTop: 0}};
+      const inspectorPanel = {{scrollTop: 0, scrollIntoView() {{}}}};
       globalThis.document = {{getElementById: () => inspectorPanel}};
       const requests = [];
       let renders = 0;
@@ -2368,7 +2368,7 @@ def test_origin_summary_and_detail_cancel_late_responses_and_reject_all_related_
     state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
     controller = re.sub(r"^import[\s\S]*?;\n", "", _read("frontend/js/clustering/controller.js"), flags=re.MULTILINE).replace("export ", "")
     actual = _run_node_script(f"""
-      const inspectorPanel = {{scrollTop: 0}};
+      const inspectorPanel = {{scrollTop: 0, scrollIntoView() {{}}}};
       globalThis.document = {{getElementById: () => inspectorPanel}};
       const summaries = [], pages = [];
       function pendingRequest(list, payload, options) {{
