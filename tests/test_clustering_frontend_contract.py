@@ -109,7 +109,7 @@ def _edge_path() -> str | None:
     return next((str(path) for path in candidates if path.exists()), None)
 
 
-def _run_browser_script(script: str) -> dict:
+def _run_browser_script(script: str, *, reduced_motion: bool = False, viewport=(1600, 1000)) -> dict:
     edge = _edge_path()
     if edge is None:
         if os.environ.get("REQUIRE_FRONTEND_BROWSER") == "1":
@@ -167,8 +167,9 @@ def _run_browser_script(script: str) -> dict:
               socket.send(JSON.stringify({{id, method, params}}));
             }});
             // Headless focus must be deterministic for the existing keyboard assertions.
-            await send('Emulation.setDeviceMetricsOverride', {{width: 1600, height: 1000, deviceScaleFactor: 1, mobile: false}});
+            await send('Emulation.setDeviceMetricsOverride', {{width: {viewport[0]}, height: {viewport[1]}, deviceScaleFactor: 1, mobile: false}});
             await send('Emulation.setFocusEmulationEnabled', {{enabled: true}});
+            if ({json.dumps(reduced_motion)}) await send('Emulation.setEmulatedMedia', {{features: [{{name: 'prefers-reduced-motion', value: 'reduce'}}]}});
             await send('Page.navigate', {{url: {json.dumps(page.as_uri())}}});
             for (let attempt = 0; attempt < 200; attempt++) {{
               const reply = await send('Runtime.evaluate', {{expression: 'document.body?.dataset.result', returnByValue: true}});
@@ -981,7 +982,11 @@ def point_detail_presentations():
       const capture = () => {{
         renderInspector(state);
         return Object.fromEntries(Array.from(document.querySelectorAll('.point-facts > div'))
-          .map(row => [row.querySelector('dt').textContent, row.querySelector('dd').textContent]));
+          .map(row => {{
+            const value = row.querySelector('dd').cloneNode(true);
+            value.querySelectorAll('small').forEach(note => note.remove());
+            return [row.querySelector('dt').textContent, value.textContent];
+          }}));
       }};
       const selected = capture();
       state.form.periodTypes = ['retro'];
@@ -1230,8 +1235,10 @@ def test_clustering_modules_reference_existing_dom_ids():
         )
     )
     html_ids = set(re.findall(r'id="([^"]+)"', html))
+    rendered_ids = set(re.findall(r'id="([^"]+)"', modules))
     referenced_ids = set(re.findall(r"\$\('([^']+)'\)", modules))
-    assert referenced_ids - html_ids == set()
+    assert 'point-details-close' in rendered_ids
+    assert referenced_ids - html_ids - rendered_ids == set()
 
 
 def test_frontend_honors_published_capabilities_when_compatibility_values_drift():
@@ -1489,9 +1496,9 @@ def test_cluster_table_renders_and_interacts_through_the_product_ui_seam():
         stale: panel.classList.contains('stale'),
         headers: panel.querySelectorAll('thead th').length,
         rowIds: [...panel.querySelectorAll('tbody tr')].map(row => Number(row.dataset.clusterId)),
-        firstCells: [...panel.querySelector('tbody tr').children].map(cell => cell.textContent.trim()),
+        firstCells: [...panel.querySelector('tbody tr').children].map(cell => cell.innerText.trim()),
         periods: [...panel.querySelectorAll('.cluster-table-period')].map(item => item.textContent.trim()),
-        methodology: panel.querySelector('.cluster-table-methodology').textContent.replace(/\\s+/g, ' ').trim(),
+        methodologyAbsent: !panel.querySelector('.cluster-table-methodology'),
         coverageTitle: panel.querySelector('tbody tr td:last-child').title,
         sort: panel.querySelector('[data-sort-key="trip_count"]').closest('th').getAttribute('aria-sort'),
         selectedRows: panel.querySelectorAll('tbody tr.selected').length,
@@ -1522,13 +1529,7 @@ def test_cluster_table_renders_and_interacts_through_the_product_ui_seam():
                 "30,0 ₽/км", "75,0% точек · 55,6% машин",
             ],
             "periods": ["Текущий", "Прогноз Pulse"],
-            "methodology": (
-                "Методика расчёта Min, медиана и max рассчитаны по точкам назначения без весов. "
-                "Средневзвешенные значения учитывают машины только с доступной метрикой. "
-                "Пропуски не превращаются в нули и отражены в покрытии. "
-                "Периоды: Текущий, Прогноз Pulse. "
-                "Режим: По географии — экономика показана описательно и не влияла на разбиение."
-            ),
+            "methodologyAbsent": True,
             "coverageTitle": (
                 "Покрытие: 3/4 точек; 5/9 машин; цена: 4/4 точек, 8/9 машин; "
                 "₽/км: 3/4 точек, 5/9 машин"
@@ -1591,6 +1592,12 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
       const focus = visibleHelp();
       help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Escape', bubbles: true}}));
       const hiddenAfterEscape = !visibleHelp()?.readable;
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Enter', bubbles: true}}));
+      const afterEnter = visibleHelp();
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Escape', bubbles: true}}));
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: ' ', bubbles: true}}));
+      const afterSpace = visibleHelp();
+      help.dispatchEvent(new KeyboardEvent('keydown', {{key: 'Escape', bubbles: true}}));
       help.blur();
       const hiddenAfterBlur = !visibleHelp()?.readable;
       const focusPriceHelp = () => {{
@@ -1621,15 +1628,15 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
       const bearModes = ['bear_zones', 'bear_volume_zones'].map(mode => {{
         state.result.data = {{analysis: {{mode}}, cluster_table: {{supported: false}}}};
         render();
-        return panel.classList.contains('hidden') && !panel.querySelector('[role="tooltip"]');
+        return !panel.classList.contains('hidden') && panel.textContent.includes('Bear') && !panel.querySelector('[role="tooltip"]');
       }});
       document.body.dataset.result = JSON.stringify({{
-        hover, focus, hiddenAfterLeave, hiddenAfterBlur, hiddenAfterEscape,
+        hover, focus, hiddenAfterLeave, hiddenAfterBlur, hiddenAfterEscape, afterEnter, afterSpace,
         afterSort, collapsedHasNoTooltip, afterReopen, supportedModes, allMetrics, hiddenAfterScroll, bearModes,
       }});
     """
     expected = {
-        "text": "Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—».",
+        "text": "Сумма (цена точки × машины с доступной ценой) / сумма машин с доступной ценой. Пропуски исключены; при отсутствии данных — «—». Экономика показана описательно и не влияла на разбиение.",
         "role": "tooltip",
         "readable": True,
         "inViewport": True,
@@ -1637,9 +1644,14 @@ def test_cluster_formula_help_is_visible_on_hover_and_keyboard_focus_without_cli
     }
     assert _run_browser_script(script) == {
         "hover": expected, "focus": expected, "hiddenAfterLeave": True, "hiddenAfterBlur": True,
-        "hiddenAfterEscape": True, "afterSort": expected, "collapsedHasNoTooltip": True,
-        "afterReopen": expected, "supportedModes": [expected] * 3,
-        "allMetrics": [True] * 12, "hiddenAfterScroll": True, "bearModes": [True, True],
+        "hiddenAfterEscape": True, "afterEnter": expected, "afterSpace": expected,
+        "afterSort": expected, "collapsedHasNoTooltip": True,
+        "afterReopen": expected, "supportedModes": [
+            expected,
+            {**expected, 'text': expected['text'].replace('Экономика показана описательно и не влияла на разбиение.', 'География и ₽/км влияли на разбиение.')},
+            {**expected, 'text': expected['text'].replace('Экономика показана описательно и не влияла на разбиение.', 'География и объём влияли на разбиение; экономика показана описательно.')},
+        ],
+        "allMetrics": [True] * 24, "hiddenAfterScroll": True, "bearModes": [True, True],
     }
 
 
@@ -1704,6 +1716,7 @@ def test_cluster_table_controller_handlers_keep_map_inspector_and_panel_in_sync(
         flags=re.MULTILINE,
     ).replace("export ", "")
     script = f"""
+      document.body.innerHTML = '<aside id="clustering-inspector"></aside>';
       const calls = {{renders: 0, map: [], hover: [], inspector: [], runs: 0}};
       let tableHandlers;
       function renderClusterTable(currentState, handlers) {{
@@ -1759,6 +1772,8 @@ def test_point_rows_are_lazy_paginated_retryable_and_cancelled_on_selection_chan
         flags=re.MULTILINE,
     ).replace("export ", "")
     script = f"""
+      const inspectorPanel = {{scrollTop: 0, scrollIntoView() {{}}}};
+      globalThis.document = {{getElementById: () => inspectorPanel}};
       const requests = [];
       let renders = 0;
       function fetchClusteringPointRows(payload, options) {{
@@ -2353,6 +2368,8 @@ def test_origin_summary_and_detail_cancel_late_responses_and_reject_all_related_
     state_module = _read("frontend/js/clustering/state.js").replace("export ", "")
     controller = re.sub(r"^import[\s\S]*?;\n", "", _read("frontend/js/clustering/controller.js"), flags=re.MULTILINE).replace("export ", "")
     actual = _run_node_script(f"""
+      const inspectorPanel = {{scrollTop: 0, scrollIntoView() {{}}}};
+      globalThis.document = {{getElementById: () => inspectorPanel}};
       const summaries = [], pages = [];
       function pendingRequest(list, payload, options) {{
         let resolve, reject; const promise = new Promise((yes,no) => {{resolve=yes; reject=no}});

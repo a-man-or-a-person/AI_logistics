@@ -26,6 +26,13 @@ let runController;
 let pointRowsController;
 let pointOriginsController;
 let comparisonFocusReturn;
+let comparisonPanelReturn;
+let comparisonBackground = [];
+let activePanel;
+let panelFocusReturn;
+let panelBackground = [];
+let panelFocusOwner;
+let invalidField;
 let exportController;
 let exportResult;
 let exportStatus = { kind: 'idle', message: '' };
@@ -40,7 +47,7 @@ export async function initClustering() {
   await searchOrigins('');
   $('options-status').classList.add('hidden');
   renderAll();
-  return { show, hide: cancelExport, getState: () => state };
+  return { show, hide, closePanel, getState: () => state };
 }
 
 export function show() {
@@ -48,10 +55,22 @@ export function show() {
   renderAll();
 }
 
+function hide() {
+  cancelPointDetailRequests();
+  closePanel(false);
+  if (state.comparison.open) closeComparison(false);
+  cancelCalculation();
+  cancelExport();
+}
+
 function wireEvents() {
+  wirePanelPresentation();
   $('btn-export-clustering').addEventListener('click', downloadExport);
   $('btn-cancel-export').addEventListener('click', () => { cancelExport(); $('btn-export-clustering').focus(); });
-  window.addEventListener('pagehide', cancelExport);
+  $('btn-cancel-calculation').addEventListener('click', cancelRequestedCalculation);
+  $('cancel-comparison').addEventListener('click', cancelRequestedCalculation);
+  window.addEventListener('pagehide', hide);
+  window.addEventListener('pageshow', event => { if (event.persisted) renderAll(); });
   $('clustering-controls').addEventListener('submit', event => {
     event.preventDefault();
     executeRun();
@@ -94,8 +113,9 @@ function wireEvents() {
       event.preventDefault();
       options[(index + (event.key === 'ArrowDown' ? 1 : options.length - 1)) % options.length]?.focus();
     } else if (event.key === 'Escape') {
-      hideOriginOptions();
+      event.stopPropagation();
       $('cluster-origin').focus();
+      hideOriginOptions();
     }
   });
   $('cluster-region').addEventListener('change', async () => {
@@ -121,7 +141,7 @@ function wireEvents() {
     const cluster = state.ui.selectedCluster;
     selectCluster(null);
     [...document.querySelectorAll('#cluster-list [data-cluster-id]')]
-      .find(button => Number(button.dataset.clusterId) === cluster)?.focus({preventScroll: true});
+      .find(button => Number(button.dataset.clusterId) === cluster)?.focus();
   });
   $('compare-modes').addEventListener('click', openComparison);
   $('close-comparison').addEventListener('click', () => {
@@ -143,15 +163,111 @@ function wireEvents() {
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
-      if (state.comparison.open) closeComparison();
+      if (document.querySelector('.metric-help-popover:popover-open')) return;
+      if (state.comparison.open) { closeComparison(); return; }
       hideOriginOptions();
-      document.querySelectorAll('.control-panel.open,.analysis-inspector.open').forEach(panel => panel.classList.remove('open'));
+      closePanel();
     }
     if (event.key === 'Tab' && state.comparison.open) trapComparisonFocus(event);
+    else if (event.key === 'Tab' && activePanel) trapPanelFocus(event);
   });
 }
 
+function panelFocusables(panel) {
+  return [...panel.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]')]
+    .filter(element => !element.disabled && element.tabIndex >= 0 && element.getClientRects().length);
+}
+
+function closePanel(restoreFocus = true) {
+  if (!activePanel) return;
+  activePanel.classList.remove('open', 'panel-overlay');
+  activePanel.removeAttribute('role');
+  activePanel.removeAttribute('aria-modal');
+  activePanel = null;
+  for (const [element, wasInert] of panelBackground) element.inert = wasInert;
+  panelBackground = [];
+  $('panel-backdrop').classList.add('hidden');
+  if (restoreFocus) panelFocusReturn?.focus();
+}
+
+function openPanel(panel, opener) {
+  closePanel(false);
+  const docked = panel.id === 'sidebar' ? innerWidth >= 1040
+    : innerWidth >= 1320;
+  if (!docked) {
+    activePanel = panel;
+    panelFocusReturn = opener;
+    panel.classList.add('open', 'panel-overlay');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panelBackground = [...document.querySelectorAll('.topbar,#sidebar,#clustering-center,#clustering-inspector,#comparison-view,#records-modal')]
+      .filter(element => element !== panel).map(element => [element, element.inert]);
+    for (const [element] of panelBackground) element.inert = true;
+    $('panel-backdrop').classList.remove('hidden');
+  }
+  panel.setAttribute('tabindex', '-1');
+  const selection = panel.id === 'clustering-inspector' ? revealInspectorSelection() : null;
+  (selection || panelFocusables(panel)[0] || panel).focus();
+}
+
+function revealInspectorSelection() {
+  const target = state.ui.selectedPoint != null ? $('point-details-close')
+    : state.ui.selectedCluster != null ? $('cluster-details-close') : null;
+  target?.scrollIntoView({block: 'center'});
+  return target;
+}
+
+function trapPanelFocus(event) {
+  const elements = panelFocusables(activePanel);
+  const first = elements[0] || activePanel;
+  const last = elements.at(-1) || activePanel;
+  if (event.shiftKey && (document.activeElement === first || document.activeElement === activePanel)) {
+    event.preventDefault(); last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !activePanel.contains(document.activeElement))) {
+    event.preventDefault(); first.focus();
+  }
+}
+
+function syncPanelLayout() {
+  $('workspace').classList.toggle('has-saved-result', Boolean(state.result.data));
+  const selected = state.ui.selectedCluster != null || state.ui.selectedPoint != null;
+  $('workspace').classList.toggle('has-inspector-selection', selected);
+  const attention = Boolean(state.result.error || isResultStale(state) || state.revisionUncertain
+    || state.rejectedSnapshots?.has(state.result.data?.data_snapshot) || state.unavailableResults?.has(state.result.data)
+    || state.result.data?.status === 'invalid_connectedness' || state.result.data?.graph_metrics?.connectivity_violations > 0
+    || state.result.data?.warnings?.length);
+  $('mobile-inspector-btn').textContent = `${selected ? 'Детали' : 'Результат'}${attention ? ' •' : ''}`;
+  $('mobile-inspector-btn').setAttribute('aria-label', attention ? 'Открыть результат: есть предупреждения' : 'Открыть результат');
+  if (activePanel && ((activePanel.id === 'sidebar' && innerWidth >= 1040)
+      || (activePanel.id === 'clustering-inspector' && innerWidth >= 1320))) closePanel();
+  if (!activePanel) {
+    for (const [id, opener] of [['sidebar', 'mobile-controls-btn'], ['clustering-inspector', 'mobile-inspector-btn']]) {
+      if (getComputedStyle($(id)).display === 'none' && ($(id).contains(document.activeElement)
+          || (document.activeElement === document.body && panelFocusOwner === $(id)))) $(opener).focus();
+    }
+  }
+}
+
+function wirePanelPresentation() {
+  // Browsers can move focus to body before resize fires when a dock becomes hidden.
+  document.addEventListener('focusin', event => {
+    if (event.target !== document.body) panelFocusOwner = event.target.closest('#sidebar,#clustering-inspector');
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!event.target.closest('#sidebar,#clustering-inspector')) panelFocusOwner = null;
+  });
+  $('panel-backdrop').addEventListener('click', () => closePanel());
+  $('mobile-controls-btn').addEventListener('click', event => openPanel($('sidebar'), event.currentTarget));
+  $('mobile-inspector-btn').addEventListener('click', event => openPanel($('clustering-inspector'), event.currentTarget));
+  document.querySelectorAll('[data-close-panel]').forEach(button => button.addEventListener('click', () => closePanel()));
+  window.addEventListener('resize', syncPanelLayout);
+  for (const query of ['(min-width: 1040px)', '(min-width: 1320px)']) {
+    matchMedia(query).addEventListener('change', syncPanelLayout);
+  }
+}
+
 function syncForm(event) {
+  if (invalidField?.contains(event.target)) clearFormValidation();
   const form = state.form;
   form.periodTypes = readChecks('cluster-periods');
   form.priceTypes = readChecks('cluster-prices');
@@ -202,7 +318,10 @@ function onOriginKeydown(event) {
     event.preventDefault();
     showOriginOptions();
     (options.find(item => item.classList.contains('active'))?.nextElementSibling || options[0])?.focus();
-  } else if (event.key === 'Escape') hideOriginOptions();
+  } else if (event.key === 'Escape' && $('cluster-origin').getAttribute('aria-expanded') === 'true') {
+    event.stopPropagation();
+    hideOriginOptions();
+  }
 }
 
 function showOriginOptions() {
@@ -247,6 +366,7 @@ function renderOrigins() {
 }
 
 async function loadContextOptions({originsChanged = false} = {}) {
+  clearFormValidation();
   const version = ++optionsVersion;
   const origins = state.form.origins.map(origin => origin.fias_id);
   const all = state.form.allOrigins;
@@ -318,15 +438,15 @@ function clearOrigin() {
 }
 
 function validate(request) {
-  if (!request.all_origins && !request.origin_fias && !request.origin_fiases?.length) return 'Выберите хотя бы одно отправление из списка.';
-  if (!request.destination_region) return 'Выберите один регион доставки.';
-  if (!request.period_types.length) return 'Выберите хотя бы один период.';
-  if (!request.price_types.length) return 'Выберите хотя бы один тип цены.';
+  if (!request.all_origins && !request.origin_fias && !request.origin_fiases?.length) return {message: 'Выберите хотя бы одно отправление из списка.', field: 'cluster-origin'};
+  if (!request.destination_region) return {message: 'Выберите один регион доставки.', field: 'cluster-region'};
+  if (!request.period_types.length) return {message: 'Выберите хотя бы один период.', field: 'cluster-periods'};
+  if (!request.price_types.length) return {message: 'Выберите хотя бы один тип цены.', field: 'cluster-prices'};
   const capability = modeParameter(state.modeCapabilities, request.mode, 'n_clusters');
   if (capability && request.parameters.k_mode === 'manual') {
     const min = capability?.min;
     const max = capability?.max;
-    if (!Number.isInteger(request.parameters.n_clusters) || request.parameters.n_clusters < min || request.parameters.n_clusters > max) return `K должен быть от ${min} до ${max}.`;
+    if (!Number.isInteger(request.parameters.n_clusters) || request.parameters.n_clusters < min || request.parameters.n_clusters > max) return {message: `K должен быть от ${min} до ${max}.`, field: 'manual-k'};
   }
   return null;
 }
@@ -334,21 +454,35 @@ function validate(request) {
 function cancelCalculation() {
   runController?.abort();
   runController = null;
+  if (state.revisionPending) state.revisionUncertain = true;
+  state.revisionPending = false;
   $('loading-overlay').classList.add('hidden');
   $('update-badge').classList.add('hidden');
   $('loading-sub').textContent = '';
   $('btn-run-clustering').disabled = false;
+  $('btn-cancel-calculation').classList.add('hidden');
+  $('cancel-comparison').classList.add('hidden');
   if (state.result.status === 'loading') state.result.status = state.result.data?.status || 'empty';
   if (state.comparison.status === 'loading') {
     state.comparison.status = Object.keys(state.comparison.results).length ? 'success' : 'empty';
   }
 }
 
+function cancelRequestedCalculation() {
+  const comparison = state.comparison.status === 'loading';
+  cancelCalculation();
+  if (state.comparison.open) closeComparison();
+  renderAll();
+  $('calculation-status').textContent = comparison ? 'Сравнение отменено.' : 'Расчёт отменён.';
+  $(comparison ? 'compare-modes' : 'btn-run-clustering').focus();
+}
+
 async function executeRun() {
   cancelPointDetailRequests();
   const request = buildRequest(state.form);
   const error = validate(request);
-  if (error) return showFormError(error);
+  if (error) return showFormError(error.message, error.field);
+  $('calculation-status').textContent = '';
   cancelExport();
   cancelCalculation();
   $('analysis-form-error').classList.add('hidden');
@@ -363,6 +497,8 @@ async function executeRun() {
   $('loading-text').textContent = 'Рассчитываем зоны…';
   $('loading-sub').textContent = MODE_LABELS[state.form.mode] || state.form.mode;
   $('btn-run-clustering').disabled = true;
+  $('btn-cancel-calculation').textContent = 'Отменить расчёт';
+  $('btn-cancel-calculation').classList.remove('hidden');
   try {
     const valid = (!cached && !state.result.data) || await validateCachedResults(cached ? [cached] : [], controller);
     if (controller.signal.aborted) return;
@@ -402,20 +538,30 @@ async function validateCachedResults(candidates, controller) {
     ...frozenPointContext(result), data_snapshot: result.data_snapshot,
   }));
   let revision;
+  state.revisionPending = true;
+  renderAll();
   try {
     revision = await fetchClusteringRevision(contexts, {signal: controller.signal});
   } catch (error) {
+    if (!controller.signal.aborted) state.revisionPending = false;
     if (!controller.signal.aborted && error.code === 'STALE_DATA_SNAPSHOT') {
       results.forEach(result => rejectDataSnapshot(state, result.data_snapshot));
+      renderAll();
+    } else if (!controller.signal.aborted) {
+      state.revisionUncertain = true;
       renderAll();
     }
     throw error;
   }
   if (controller.signal.aborted) return false;
+  state.revisionPending = false;
   if (typeof revision.data_snapshot !== 'string' || !Array.isArray(revision.available)
       || revision.available.length !== results.length || revision.available.some(value => typeof value !== 'boolean')) {
+    state.revisionUncertain = true;
+    renderAll();
     throw new Error('Некорректный ответ проверки актуальности данных');
   }
+  state.revisionUncertain = false;
   results.forEach((result, index) => {
     if (result.data_snapshot !== revision.data_snapshot) rejectDataSnapshot(state, result.data_snapshot);
     else if (!revision.available[index]) rejectUnavailableResult(state, result);
@@ -426,6 +572,9 @@ async function validateCachedResults(candidates, controller) {
 }
 
 function reset() {
+  $('calculation-status').textContent = '';
+  if (state.comparison.open) closeComparison(false);
+  clearFormValidation();
   cancelExport();
   cancelCalculation();
   cancelPointDetailRequests();
@@ -447,6 +596,7 @@ function selectCluster(clusterId, focus = false) {
   state.ui.selectedCluster = clusterId;
   highlightCluster(clusterId, focus);
   renderInspectorState();
+  if (clusterId != null) revealInspectorSelection();
   renderClusterTableState();
 }
 
@@ -459,27 +609,38 @@ function showSingleRunTable(result) {
 
 function openComparison() {
   comparisonFocusReturn = document.activeElement;
+  comparisonPanelReturn = activePanel ? { panel: activePanel, opener: panelFocusReturn } : null;
+  closePanel(false);
+  comparisonBackground = [...document.querySelectorAll('.topbar,#workspace,#records-modal')]
+    .map(element => [element, element.inert]);
+  for (const [element] of comparisonBackground) element.inert = true;
   state.comparison.open = true;
   renderComparisonState();
   $('comparison-view').focus();
   runComparison();
 }
 
-function closeComparison() {
+function closeComparison(restoreFocus = true) {
   state.comparison.open = false;
   renderComparisonState();
-  comparisonFocusReturn?.focus?.();
+  for (const [element, wasInert] of comparisonBackground) element.inert = wasInert;
+  comparisonBackground = [];
+  if (restoreFocus) {
+    if (comparisonPanelReturn) openPanel(comparisonPanelReturn.panel, comparisonPanelReturn.opener);
+    comparisonFocusReturn?.focus?.();
+  }
+  comparisonPanelReturn = null;
 }
 
 function trapComparisonFocus(event) {
-  const focusable = [...$('comparison-view').querySelectorAll('button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')];
+  const focusable = panelFocusables($('comparison-view'));
   if (!focusable.length) return;
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
-  if (event.shiftKey && document.activeElement === first) {
+  if (event.shiftKey && (document.activeElement === first || document.activeElement === $('comparison-view'))) {
     event.preventDefault();
     last.focus();
-  } else if (!event.shiftKey && document.activeElement === last) {
+  } else if (!event.shiftKey && (document.activeElement === last || !$('comparison-view').contains(document.activeElement))) {
     event.preventDefault();
     first.focus();
   }
@@ -489,11 +650,14 @@ async function runComparison() {
   cancelPointDetailRequests();
   const dataset = datasetSnapshot(state.form);
   const error = validate(buildRequest(state.form));
-  if (error) return showFormError(error);
+  if (error) return showFormError(error.message, error.field);
+  $('calculation-status').textContent = '';
   cancelExport();
   cancelCalculation();
   const controller = new AbortController();
   runController = controller;
+  $('btn-cancel-calculation').textContent = 'Отменить сравнение';
+  $('btn-cancel-calculation').classList.remove('hidden');
   const cache = state.comparison.cache || new Map();
   const signature = requestSignature(dataset);
   const cached = cache.get(signature);
@@ -534,7 +698,7 @@ async function runComparison() {
     state.comparison.status = 'error';
     state.comparison.error = { code: error.code, message: error.message };
   }
-  if (runController === controller) runController = null;
+  if (runController === controller) cancelCalculation();
   renderComparisonState();
 }
 
@@ -582,6 +746,8 @@ function exportBlockedReason() {
   if (!result) return 'Сначала рассчитайте результат.';
   if (state.rejectedSnapshots.has(result.data_snapshot)) return 'Данные Pulse изменились. Пересчитайте результат для загрузки XLSX.';
   if (state.unavailableResults.has(result)) return 'Сохранённый результат недоступен. Пересчитайте результат.';
+  if (state.revisionPending) return 'Проверяем актуальность данных. Дождитесь завершения проверки перед загрузкой XLSX.';
+  if (state.revisionUncertain) return 'Не удалось проверить актуальность данных. Повторите расчёт или сравнение перед загрузкой XLSX.';
   if (result.cluster_table?.supported !== true) return 'XLSX для Bear не поддерживается (EXPORT_UNSUPPORTED).';
   if (!result.cluster_table.rows?.length) return 'В результате нет кластеров для экспорта.';
   return '';
@@ -642,7 +808,7 @@ async function downloadExport() {
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-    exportStatus = { kind: 'success', message: `Файл ${file.filename} передан браузеру для сохранения.` };
+    exportStatus = { kind: 'success', message: `Файл ${file.filename} передан браузеру. Проверьте загрузку.` };
   } catch (error) {
     if (controller.signal.aborted || exportController !== controller || state.result.data !== result) return;
     if (error.code === 'STALE_DATA_SNAPSHOT') rejectDataSnapshot(state, result.data_snapshot);
@@ -685,7 +851,11 @@ function comparisonContext(form) {
 }
 
 function renderEmptyState() {
-  if (state.result.data || state.result.status === 'error') return;
+  if (state.result.data) {
+    $('empty-state').classList.add('hidden');
+    return;
+  }
+  if (state.result.status === 'error') return;
   const ready = Boolean((state.form.allOrigins || state.form.origins?.length || state.form.origin) && state.form.destinationRegion);
   $('empty-state').querySelector('.empty-title').textContent = ready
     ? 'Всё готово к расчёту.'
@@ -700,10 +870,14 @@ function renderInspectorState() {
   const focusedOrigin = focused?.dataset.originFias;
   const focusedPulse = focused?.matches?.('.pulse-details summary');
   renderInspector(state, {
+    isStale: () => isResultStale(state),
+    detailsBlocked: detailsBlocked(),
+    onLayout: syncPanelLayout,
     pointRowsKey,
     pointOrigins: state.ui.pointOrigins?.get(pointOriginsKey()),
     selectedOrigin: state.ui.selectedOrigin,
     onOriginSelect: origin => {
+      if (detailsBlocked()) return;
       cancelPointDetailRequests();
       state.ui.selectedOrigin = origin;
       const detail = pointRowsForSelection();
@@ -723,7 +897,7 @@ function renderInspectorState() {
       const parent = state.ui.selectedCluster == null
         ? document.querySelector('.cluster-card')
         : [...document.querySelectorAll('[data-point-id]')].find(button => button.dataset.pointId === point);
-      parent?.focus({preventScroll: true});
+      parent?.focus();
     },
     onPointSummary: () => {
       const origin = state.ui.selectedOrigin;
@@ -739,6 +913,11 @@ function renderInspectorState() {
     },
     onPulseToggle: open => {
       const detail = pointRowsForSelection();
+      if (open && detailsBlocked()) {
+        detail.open = false;
+        renderInspectorState();
+        return;
+      }
       detail.open = open;
       if (!open) cancelPointDetailRequests();
       else if (detail.status === 'idle') loadPointRows();
@@ -810,13 +989,20 @@ function selectPoint(pointId, focus = false) {
   }
   if (pointId && focus) focusClusteringPoint(pointId);
   renderInspectorState();
+  if (pointId != null) revealInspectorSelection();
   if (pointId && state.result.data.analysis.frozen_request) loadPointOrigins();
+}
+
+function detailsBlocked() {
+  const result = state.result.data;
+  return state.revisionPending || state.revisionUncertain || state.unavailableResults?.has(result)
+    || state.rejectedSnapshots?.has(result?.data_snapshot);
 }
 
 async function loadPointOrigins() {
   const result = state.result.data;
   const key = pointOriginsKey();
-  if (!key || state.unavailableResults?.has(result) || state.rejectedSnapshots?.has(result.data_snapshot)) return;
+  if (!key || detailsBlocked()) return;
   const cache = state.ui.pointOrigins ||= new Map();
   const summary = cache.get(key) || {status: 'idle', origins: []};
   cache.set(key, summary);
@@ -848,7 +1034,7 @@ async function loadPointRows({restart = false} = {}) {
   const result = state.result.data;
   const point = result?.points.find(item => item.id === state.ui.selectedPoint);
   if (!point || (result.cluster_table?.supported !== true && !state.ui.selectedOrigin)) return;
-  if (state.unavailableResults?.has(result) || state.rejectedSnapshots?.has(result.data_snapshot)) return;
+  if (detailsBlocked()) return;
   const key = pointRowsKey();
   const detail = pointRowsForSelection();
   detail.open = true;
@@ -906,9 +1092,33 @@ function renderComparisonState() {
   });
 }
 
-function showFormError(message) {
+function clearFormValidation() {
+  if (!invalidField) return;
+  const input = invalidField.querySelector('input') || invalidField;
+  input.removeAttribute('aria-invalid');
+  input.removeAttribute('aria-describedby');
+  invalidField = null;
+  $('analysis-form-error').classList.add('hidden');
+  $('clustering-controls').append($('analysis-form-error'));
+}
+
+function showFormError(message, field) {
+  clearFormValidation();
   $('analysis-form-error').textContent = message;
   $('analysis-form-error').classList.remove('hidden');
+  if (field) {
+    if (state.comparison.open) closeComparison(false);
+    openPanel($('sidebar'), $('mobile-controls-btn'));
+    const group = $(field);
+    invalidField = group;
+    const section = group.closest('details.form-section');
+    if (section) section.open = true;
+    group.after($('analysis-form-error'));
+    const input = group.querySelector('input') || group;
+    input.setAttribute('aria-invalid', 'true');
+    input.setAttribute('aria-describedby', 'analysis-form-error');
+    input.focus();
+  }
 }
 
 function escapeText(value) {

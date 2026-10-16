@@ -95,7 +95,8 @@ export function renderFormState(state) {
   $('cost-controls').classList.toggle('hidden', form.mode !== 'geo_cost');
   $('volume-controls').classList.toggle('hidden', form.mode !== 'geo_volume');
   $('manual-k-row').classList.toggle('hidden', form.kMode !== 'manual');
-  $('candidate-layer-option').classList.toggle('hidden', !isZoneMode);
+  const mapMode = state.result.data?.analysis?.mode || form.mode;
+  $('candidate-layer-option').classList.toggle('hidden', modeResultKind(state.modeCapabilities, mapMode) !== 'zones');
   const threshold = form.mode === 'bear_volume_zones' ? form.bearVolumeThreshold : form.bearThreshold;
   const weightedCaption = form.mode === 'geo_cost'
     ? ` · ${Math.round((1 - form.costWeight) * 100)}/${Math.round(form.costWeight * 100)}`
@@ -110,7 +111,8 @@ export function renderFormState(state) {
   const labels = [
     ...form.periodTypes.map(value => PERIOD_LABELS[value] || value),
     ...form.priceTypes.map(value => PRICE_LABELS[value] || value),
-    ...form.vehicleTypes, ...form.tonnageIds.map(value => `${value} т`),
+    ...(form.vehicleTypes.length ? form.vehicleTypes : ['Все кузова']),
+    ...(form.tonnageIds.length ? form.tonnageIds.map(value => `${value} т`) : ['Все тоннажи']),
   ];
   $('filter-summary').textContent = labels.length ? labels.join(' · ') : 'Фильтры не выбраны';
   $('preview-periods').textContent = form.periodTypes.map(value => PERIOD_LABELS[value] || value).join(', ') || '—';

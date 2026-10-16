@@ -1,0 +1,593 @@
+{
+  "scope": "Implementation root session and available own-thread descendants, before retrospective user message at root line12050. Source metadata only, not provider invoice.",
+  "main_session": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+  "usage_dedup": "token_usage_record; thread_id == file metadata id; distinct response_id; no event_msg cumulative token_count sums",
+  "usage_total": {
+    "records": 3658,
+    "input_tokens": 539820954,
+    "cached_input_tokens": 524759552,
+    "output_tokens": 1585159,
+    "reasoning_output_tokens": 661665,
+    "total_tokens": 541406113
+  },
+  "usage_root": {
+    "records": 1412,
+    "input_tokens": 230584726,
+    "cached_input_tokens": 226631168,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1036377,
+    "reasoning_output_tokens": 491583,
+    "total_tokens": 231621103
+  },
+  "usage_children": {
+    "records": 2246,
+    "input_tokens": 309236228,
+    "cached_input_tokens": 298128384,
+    "output_tokens": 548782,
+    "reasoning_output_tokens": 170082,
+    "total_tokens": 309785010
+  },
+  "thread_files": [
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T13-29-26-01a134cf-57be-79b3-9600-0a14853a8d4b.jsonl",
+      "thread_id": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "parent": null,
+      "own_usage_records": 1412
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T13-29-29-01a134cf-597e-76e1-b75b-357b0dfb591b.jsonl",
+      "thread_id": "01a134cf-597e-76e1-b75b-357b0dfb591b",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 42
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T13-35-13-01a134d4-a357-7a82-b2b8-7f32748f7655.jsonl",
+      "thread_id": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 537
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T13-35-13-01a134d4-a508-7bb2-bc2c-f05b29a99295.jsonl",
+      "thread_id": "01a134d4-a508-7bb2-bc2c-f05b29a99295",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 15
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T13-50-29-01a134e2-9e64-7323-90a0-ccd7ef35482a.jsonl",
+      "thread_id": "01a134e2-9e64-7323-90a0-ccd7ef35482a",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 16
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T13-55-39-01a134e7-57d7-7f82-9c93-31bcece697ca.jsonl",
+      "thread_id": "01a134e7-57d7-7f82-9c93-31bcece697ca",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 165
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T13-55-50-01a134e7-8411-7112-9efa-3ce3bf0cc36e.jsonl",
+      "thread_id": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 433
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T15-00-18-01a13522-8978-7d82-837d-f33c1e6a6a51.jsonl",
+      "thread_id": "01a13522-8978-7d82-837d-f33c1e6a6a51",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 84
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T15-00-18-01a13522-8b54-71b0-b170-d9f57f17772b.jsonl",
+      "thread_id": "01a13522-8b54-71b0-b170-d9f57f17772b",
+      "parent": "01a13522-8978-7d82-837d-f33c1e6a6a51",
+      "own_usage_records": 11
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T15-37-25-01a13544-8341-7bf1-a551-4fb72a4920ce.jsonl",
+      "thread_id": "01a13544-8341-7bf1-a551-4fb72a4920ce",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 36
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T18-45-02-01a135f0-47e2-7a21-9d26-dbe50dcb7b62.jsonl",
+      "thread_id": "01a135f0-47e2-7a21-9d26-dbe50dcb7b62",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 10
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T18-46-19-01a135f1-7586-7203-a94b-9b374819f9f1.jsonl",
+      "thread_id": "01a135f1-7586-7203-a94b-9b374819f9f1",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 10
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T19-34-29-01a1361d-8f34-7822-9f5c-43ee5d9dde34.jsonl",
+      "thread_id": "01a1361d-8f34-7822-9f5c-43ee5d9dde34",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 52
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T21-28-48-01a13686-3951-71c1-b453-c7afed53ee78.jsonl",
+      "thread_id": "01a13686-3951-71c1-b453-c7afed53ee78",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 12
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T23-20-36-01a136ec-948e-7980-b3e8-e02e7c70f207.jsonl",
+      "thread_id": "01a136ec-948e-7980-b3e8-e02e7c70f207",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 60
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T23-26-24-01a136f1-e18b-7bf3-a702-dd1c1d52ee80.jsonl",
+      "thread_id": "01a136f1-e18b-7bf3-a702-dd1c1d52ee80",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 2
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\13\\rollout-2026-10-13T23-26-45-01a136f2-32d6-7660-8c59-fa6d71285d8e.jsonl",
+      "thread_id": "01a136f2-32d6-7660-8c59-fa6d71285d8e",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 1
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T00-17-32-01a13720-b414-7261-8583-31cc50ac63d3.jsonl",
+      "thread_id": "01a13720-b414-7261-8583-31cc50ac63d3",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 18
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T00-19-18-01a13722-4fc7-7d21-ae25-1cf4c12135aa.jsonl",
+      "thread_id": "01a13722-4fc7-7d21-ae25-1cf4c12135aa",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 16
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T10-22-09-01a1394a-3cce-7673-82fb-1c52e354c8ca.jsonl",
+      "thread_id": "01a1394a-3cce-7673-82fb-1c52e354c8ca",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 60
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T10-56-20-01a13969-8bc4-79c1-95ca-09628c2c1772.jsonl",
+      "thread_id": "01a13969-8bc4-79c1-95ca-09628c2c1772",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 14
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T14-13-33-01a13a1e-17dc-7ef2-94c4-4f9ace08b7f0.jsonl",
+      "thread_id": "01a13a1e-17dc-7ef2-94c4-4f9ace08b7f0",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 58
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T15-30-03-01a13a64-21b5-7763-b834-f98a38e36eca.jsonl",
+      "thread_id": "01a13a64-21b5-7763-b834-f98a38e36eca",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 8
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T15-30-19-01a13a64-6058-7e00-9710-a04363a39fbe.jsonl",
+      "thread_id": "01a13a64-6058-7e00-9710-a04363a39fbe",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 3
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T16-38-33-01a13aa2-daca-7da2-b27c-fd5082ec5a30.jsonl",
+      "thread_id": "01a13aa2-daca-7da2-b27c-fd5082ec5a30",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 1
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T17-02-03-01a13ab8-5a5e-7bc3-a4f3-860ebcde1f59.jsonl",
+      "thread_id": "01a13ab8-5a5e-7bc3-a4f3-860ebcde1f59",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 23
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T17-54-14-01a13ae8-2496-7b51-93a7-48db7145753b.jsonl",
+      "thread_id": "01a13ae8-2496-7b51-93a7-48db7145753b",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 5
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T23-06-40-01a13c06-2ec8-7433-8572-663ea2c80406.jsonl",
+      "thread_id": "01a13c06-2ec8-7433-8572-663ea2c80406",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 34
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T23-17-33-01a13c10-2606-7a01-8c1b-a28bace93b07.jsonl",
+      "thread_id": "01a13c10-2606-7a01-8c1b-a28bace93b07",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 28
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\14\\rollout-2026-10-14T23-18-15-01a13c10-c8fd-7bc3-80aa-3091ce71e4ed.jsonl",
+      "thread_id": "01a13c10-c8fd-7bc3-80aa-3091ce71e4ed",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 30
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T00-17-05-01a13c46-a5fe-79d0-9626-e7a18001c9d1.jsonl",
+      "thread_id": "01a13c46-a5fe-79d0-9626-e7a18001c9d1",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 86
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T14-28-49-01a13f52-6f01-77c2-b961-5f489a784320.jsonl",
+      "thread_id": "01a13f52-6f01-77c2-b961-5f489a784320",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 71
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T14-32-02-01a13f55-619a-7d23-be32-0b3ca7155979.jsonl",
+      "thread_id": "01a13f55-619a-7d23-be32-0b3ca7155979",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 52
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T14-34-15-01a13f57-691d-7571-9745-9b8325733aa5.jsonl",
+      "thread_id": "01a13f57-691d-7571-9745-9b8325733aa5",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 1
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T14-50-52-01a13f66-9c46-7750-815f-b43aa649e891.jsonl",
+      "thread_id": "01a13f66-9c46-7750-815f-b43aa649e891",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 43
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T15-37-16-01a13f91-1a81-7e50-90d3-147424edf6ad.jsonl",
+      "thread_id": "01a13f91-1a81-7e50-90d3-147424edf6ad",
+      "parent": "01a134cf-57be-79b3-9600-0a14853a8d4b",
+      "own_usage_records": 110
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T19-47-39-01a14076-5508-7f53-b506-7684cb38c170.jsonl",
+      "thread_id": "01a14076-5508-7f53-b506-7684cb38c170",
+      "parent": "01a134d4-a357-7a82-b2b8-7f32748f7655",
+      "own_usage_records": 54
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\15\\rollout-2026-10-15T19-47-47-01a14076-752e-7952-9190-46a230d9d594.jsonl",
+      "thread_id": "01a14076-752e-7952-9190-46a230d9d594",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 42
+    },
+    {
+      "path": "C:\\Users\\User\\.codex\\sessions\\2026\\10\\16\\rollout-2026-10-16T00-48-50-01a1418a-117b-7c12-8d01-c6807ceae227.jsonl",
+      "thread_id": "01a1418a-117b-7c12-8d01-c6807ceae227",
+      "parent": "01a134e7-8411-7112-9efa-3ce3bf0cc36e",
+      "own_usage_records": 3
+    }
+  ],
+  "root_tool_counts": {
+    "exec_calls": 1112,
+    "js": 1,
+    "spawn_agent": 5,
+    "followup_task": 160,
+    "send_message": 45,
+    "sleep": 47,
+    "wait": 25,
+    "wait_agent": 3,
+    "list_agents": 3
+  },
+  "local_junit": [
+    {
+      "path": ".scratch\\comparison08-final-frontend.xml",
+      "tests": 251,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 647.999
+    },
+    {
+      "path": ".scratch\\comparison08-final-python.xml",
+      "tests": 579,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 346.036
+    },
+    {
+      "path": ".scratch\\comparison08-final2-frontend.xml",
+      "tests": 251,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 666.366
+    },
+    {
+      "path": ".scratch\\comparison08-final2-python.xml",
+      "tests": 579,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 315.674
+    },
+    {
+      "path": ".scratch\\foundation-direct-cell-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 248.768
+    },
+    {
+      "path": ".scratch\\foundation-final-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 229.592
+    },
+    {
+      "path": ".scratch\\foundation-font-chain-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 253.887
+    },
+    {
+      "path": ".scratch\\foundation-font-link-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 217.917
+    },
+    {
+      "path": ".scratch\\foundation-font-ready-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 192.961
+    },
+    {
+      "path": ".scratch\\foundation-frontend-results.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 233.303
+    },
+    {
+      "path": ".scratch\\foundation-motion-final-frontend.xml",
+      "tests": 141,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 323.764
+    },
+    {
+      "path": ".scratch\\foundation-motion-frontend.xml",
+      "tests": 140,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 237.946
+    },
+    {
+      "path": ".scratch\\foundation-rem-diagnostic-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 233.468
+    },
+    {
+      "path": ".scratch\\foundation-resize-recovery-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 205.002
+    },
+    {
+      "path": ".scratch\\foundation-reviewed-frontend.xml",
+      "tests": 138,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 239.902
+    },
+    {
+      "path": ".scratch\\inspector07-final-frontend.xml",
+      "tests": 234,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2921.193
+    },
+    {
+      "path": ".scratch\\inspector07-final-python.xml",
+      "tests": 567,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 306.943
+    },
+    {
+      "path": ".scratch\\inspector07-final3-frontend.xml",
+      "tests": 239,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 537.473
+    },
+    {
+      "path": ".scratch\\layout02-final-frontend.xml",
+      "tests": 157,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 339.977
+    },
+    {
+      "path": ".scratch\\layout02-frontend.xml",
+      "tests": 156,
+      "failures": 18,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 298.93
+    },
+    {
+      "path": ".scratch\\layout02-high-final-frontend.xml",
+      "tests": 175,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 311.908
+    },
+    {
+      "path": ".scratch\\parameters03-final-frontend.xml",
+      "tests": 188,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 441.73
+    },
+    {
+      "path": ".scratch\\parameters03-final2-frontend.xml",
+      "tests": 190,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 423.959
+    },
+    {
+      "path": ".scratch\\recovery09-final6-frontend.xml",
+      "tests": 297,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 733.023
+    },
+    {
+      "path": ".scratch\\recovery09-final6-python.xml",
+      "tests": 625,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 514.692
+    },
+    {
+      "path": ".scratch\\recovery09-final7-frontend.xml",
+      "tests": 136,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 221.954
+    },
+    {
+      "path": ".scratch\\recovery09-final9-frontend.xml",
+      "tests": 136,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 403.759
+    },
+    {
+      "path": ".scratch\\recovery09-final9-python.xml",
+      "tests": 628,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 687.749
+    },
+    {
+      "path": ".scratch\\recovery09-focused47.xml",
+      "tests": 47,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 278.35
+    },
+    {
+      "path": ".scratch\\recovery10-final-frontend.xml",
+      "tests": 136,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 443.876
+    },
+    {
+      "path": ".scratch\\recovery10-final-python.xml",
+      "tests": 628,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 701.369
+    },
+    {
+      "path": ".scratch\\recovery10-final2-frontend.xml",
+      "tests": 136,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 409.991
+    },
+    {
+      "path": ".scratch\\recovery10-final2-python.xml",
+      "tests": 633,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 550.796
+    },
+    {
+      "path": ".scratch\\summary05-final2-frontend.xml",
+      "tests": 209,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 401.628
+    },
+    {
+      "path": ".scratch\\summary05-final2-python.xml",
+      "tests": 537,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 197.227
+    },
+    {
+      "path": ".scratch\\table06-final-python.xml",
+      "tests": 549,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 247.288
+    },
+    {
+      "path": ".scratch\\table06-final2-frontend.xml",
+      "tests": 222,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6492.857
+    },
+    {
+      "path": ".scratch\\table06-final2-python.xml",
+      "tests": 550,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 274.875
+    },
+    {
+      "path": ".scratch\\table06-final3-frontend.xml",
+      "tests": 222,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 479.797
+    }
+  ],
+  "prices_and_billed_cost": "UNKNOWN",
+  "per_ticket_token_cost": "UNKNOWN"
+}

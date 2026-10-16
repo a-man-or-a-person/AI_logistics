@@ -19,6 +19,7 @@ let _overlay = null;
 let _popupContainer = null;
 let _popupContent = null;
 let _popupCloser = null;
+let _popupFocusReturn = null;
 let _defaultLayer = null;
 let _hybridLayer = null;
 let _selectedMlZoneId = null;
@@ -38,6 +39,14 @@ export function initMap(containerId) {
   _popupContent = document.getElementById('popup-content');
   _popupCloser = document.getElementById('popup-closer');
 
+  _popupContainer.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      _popupCloser.click();
+    }
+  });
+
   // Overlay для попапа
   _overlay = new ol.Overlay({
     element: _popupContainer,
@@ -50,7 +59,12 @@ export function initMap(containerId) {
 
   _popupCloser.onclick = function() {
     _overlay.setPosition(undefined);
-    _popupCloser.blur();
+    const returnFocus = [_popupFocusReturn, document.getElementById('open-data-point'),
+      document.getElementById('mobile-controls-btn'), document.querySelector('.mode-tab[aria-current]')]
+      .find(element => element?.isConnected && element.checkVisibility() && !element.closest('[inert]'));
+    if (_popupFocusReturn) returnFocus?.focus();
+    else _popupCloser.blur();
+    _popupFocusReturn = null;
     return false;
   };
 
@@ -72,7 +86,7 @@ export function initMap(containerId) {
 
   // Векторный слой для маркеров
   _vectorSource = new ol.source.Vector();
-  
+
   _clusterSource = new ol.source.Cluster({
     distance: 35, // Пикселей между маркерами для кластеризации
     source: _vectorSource,
@@ -127,6 +141,7 @@ export function initMap(containerId) {
 
   // Обработка клика по маркеру
   _map.on('singleclick', function (evt) {
+    _popupFocusReturn = null;
     const feature = _map.forEachFeatureAtPixel(evt.pixel, function (feat) {
       return feat;
     });
@@ -186,81 +201,20 @@ export function initMap(containerId) {
       }
 
       const clusterFeatures = feature.get('features');
-      
+
       // Если это кластер из нескольких точек
       if (clusterFeatures && clusterFeatures.length > 1) {
         const extent = ol.extent.createEmpty();
         clusterFeatures.forEach((f) => ol.extent.extend(extent, f.getGeometry().getExtent()));
-        
+
         const currentZoom = _map.getView().getZoom();
         const maxZoom = _map.getView().getMaxZoom();
         // Проверяем, находятся ли точки в абсолютно одинаковых координатах (размер экстента = 0)
         const isPointExtent = ol.extent.getWidth(extent) === 0 && ol.extent.getHeight(extent) === 0;
-        
+
         if (isPointExtent || currentZoom >= maxZoom - 1) {
           // Точки невозможно разделить зумом -> показываем список
-          const popupHtml = _makeClusterPopupContent(clusterFeatures);
-          _popupContent.innerHTML = popupHtml;
-          _popupContainer.classList.remove('hidden');
-          _overlay.setPosition(feature.getGeometry().getCoordinates());
-          
-          // Биндим кнопки списка
-          const clusterBtns = _popupContent.querySelectorAll('.popup-btn-details-small');
-          clusterBtns.forEach(b => {
-            b.addEventListener('click', () => {
-              const event = new CustomEvent('show-records-modal', {
-                detail: {
-                  town: b.dataset.town,
-                  region: b.dataset.region,
-                  type: b.dataset.type
-                }
-              });
-              window.dispatchEvent(event);
-            });
-          });
-
-          const regeocodeBtns = _popupContent.querySelectorAll('.popup-btn-regeocode-small');
-          regeocodeBtns.forEach(b => {
-            b.addEventListener('click', (e) => {
-              e.stopPropagation();
-              b.disabled = true;
-              b.style.opacity = '0.5';
-              b.style.cursor = 'wait';
-              const event = new CustomEvent('regeocode-point', {
-                detail: {
-                  town: b.dataset.town,
-                  region: b.dataset.region
-                }
-              });
-              window.dispatchEvent(event);
-            });
-          });
-
-          const regeocodeAllBtn = _popupContent.querySelector('.popup-btn-regeocode-all');
-          if (regeocodeAllBtn) {
-            regeocodeAllBtn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              regeocodeAllBtn.disabled = true;
-              regeocodeAllBtn.style.opacity = '0.5';
-              regeocodeAllBtn.style.cursor = 'wait';
-              
-              const points = clusterFeatures.map(f => {
-                const pt = f.get('ptData');
-                return { town: pt.town, region: pt.region };
-              });
-              
-              // Optionally disable all individual buttons too
-              regeocodeBtns.forEach(b => {
-                b.disabled = true;
-                b.style.opacity = '0.5';
-              });
-              
-              const event = new CustomEvent('regeocode-all-points', {
-                detail: { points }
-              });
-              window.dispatchEvent(event);
-            });
-          }
+          _showDataPointGroup(clusterFeatures, feature.getGeometry().getCoordinates());
         } else {
           // Обычный зум в кластер
           _map.getView().fit(extent, {
@@ -270,54 +224,15 @@ export function initMap(containerId) {
           });
           _overlay.setPosition(undefined); // Скрываем попап, если был открыт
         }
-      } 
+      }
       // Если это одиночная точка (или кластер из одной точки) — показываем обычный попап
       else if (clusterFeatures && clusterFeatures.length === 1) {
         const ptFeature = clusterFeatures[0];
         const coordinates = feature.getGeometry().getCoordinates();
         const ptData = ptFeature.get('ptData');
         const kind = ptFeature.get('kind');
-        
-        // Ленивая генерация HTML попапа
-        const popupHtml = _makePopupContent(ptData, kind);
-        
-        _popupContent.innerHTML = popupHtml;
-        _popupContainer.classList.remove('hidden');
-        _overlay.setPosition(coordinates);
-        
-        // Подключаем кнопку "Детализация" внутри попапа
-        const btn = _popupContent.querySelector('.popup-btn-details');
-        if (btn) {
-          btn.addEventListener('click', () => {
-            const event = new CustomEvent('show-records-modal', {
-              detail: {
-                town: ptData.town,
-                region: ptData.region,
-                type: kind === 'ship' ? 'shipment' : 'delivery'
-              }
-            });
-            window.dispatchEvent(event);
-          });
-        }
-        
-        // Кнопка пересчета координат
-        const btnRegeocode = _popupContent.querySelector('.popup-btn-regeocode');
-        if (btnRegeocode) {
-          btnRegeocode.addEventListener('click', () => {
-            const event = new CustomEvent('regeocode-point', {
-              detail: {
-                town: ptData.town,
-                region: ptData.region
-              }
-            });
-            window.dispatchEvent(event);
-            
-            btnRegeocode.disabled = true;
-            btnRegeocode.innerHTML = '⏳ Пересчет...';
-            btnRegeocode.style.opacity = '0.7';
-            btnRegeocode.style.cursor = 'wait';
-          });
-        }
+
+        showDataPoint(ptData, kind, {coordinates});
       } else {
         _overlay.setPosition(undefined);
       }
@@ -528,9 +443,9 @@ function mlClusterStyleFunction(feature) {
     if (['bear_candidate', 'bear_volume_candidate'].includes(status) && !_clusteringLayerVisibility.candidates) return null;
     const clusterId = feature.get('clusterId');
     const selected = _selectedMlZoneId;
-    const active = (selected != null && Number(clusterId) === selected)
-      || (_hoveredMlZoneId != null && Number(clusterId) === _hoveredMlZoneId);
-    const dimmed = selected != null && Number(clusterId) !== selected;
+    const active = clusterId != null && ((selected != null && Number(clusterId) === selected)
+      || (_hoveredMlZoneId != null && Number(clusterId) === _hoveredMlZoneId));
+    const dimmed = selected != null && (clusterId == null || Number(clusterId) !== selected);
     const unavailable = ['spatial_outlier', 'economic_unavailable'].includes(status);
     return new ol.style.Style({
       image: new ol.style.Circle({
@@ -635,9 +550,9 @@ export function selectMlZone(clusterId, fit = false) {
 }
 
 export function focusMlZone(clusterId) {
-  if (!_map || !_mlVectorSource) return;
+  if (!_map || !_mlVectorSource || clusterId == null) return;
   const productFeatures = _mlVectorSource.getFeatures().filter(feature =>
-    feature.get('isProductPoint') && Number(feature.get('clusterId')) === Number(clusterId)
+    feature.get('isProductPoint') && feature.get('clusterId') != null && Number(feature.get('clusterId')) === Number(clusterId)
   );
   if (productFeatures.length) {
     const extent = ol.extent.createEmpty();
@@ -707,7 +622,7 @@ function clusterStyleFunction(feature) {
     const kind = ptFeature.get('kind');
     const ptData = ptFeature.get('ptData');
     const ptSize = _markerSize(ptData.count);
-    
+
     const cacheKey = `${kind}_${ptSize}`;
     if (!_styleCache[cacheKey]) {
       const color = kind === 'ship' ? SHIP_COLOR : DEL_COLOR;
@@ -767,6 +682,138 @@ function _markerSize(count) {
   if (count > 1000)  return 30;
   if (count > 100)   return 26;
   return 22;
+}
+
+
+
+function _showDataPointGroup(clusterFeatures, position) {
+  const popupHtml = _makeClusterPopupContent(clusterFeatures);
+  _popupContent.innerHTML = popupHtml;
+  _popupContainer.classList.remove('hidden');
+  _overlay.setPosition(position);
+
+  // Биндим кнопки списка
+  const clusterBtns = _popupContent.querySelectorAll('.popup-btn-details-small');
+  clusterBtns.forEach(b => {
+    b.addEventListener('click', () => {
+      const event = new CustomEvent('show-records-modal', {
+        detail: {
+          town: b.dataset.town,
+          region: b.dataset.region,
+          type: b.dataset.type
+        }
+      });
+      window.dispatchEvent(event);
+    });
+  });
+
+  const regeocodeBtns = _popupContent.querySelectorAll('.popup-btn-regeocode-small');
+  regeocodeBtns.forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      b.disabled = true;
+      b.style.opacity = '0.5';
+      b.style.cursor = 'wait';
+        _popupCloser.focus();
+      const event = new CustomEvent('regeocode-point', {
+        detail: {
+          town: b.dataset.town,
+          region: b.dataset.region
+        }
+      });
+      window.dispatchEvent(event);
+    });
+  });
+
+  const regeocodeAllBtn = _popupContent.querySelector('.popup-btn-regeocode-all');
+  if (regeocodeAllBtn) {
+    regeocodeAllBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      regeocodeAllBtn.disabled = true;
+      regeocodeAllBtn.style.opacity = '0.5';
+      regeocodeAllBtn.style.cursor = 'wait';
+        _popupCloser.focus();
+
+      const points = clusterFeatures.map(f => {
+        const pt = f.get('ptData');
+        return { town: pt.town, region: pt.region };
+      });
+
+      // Optionally disable all individual buttons too
+      regeocodeBtns.forEach(b => {
+        b.disabled = true;
+        b.style.opacity = '0.5';
+      });
+
+      const event = new CustomEvent('regeocode-all-points', {
+        detail: { points }
+      });
+      window.dispatchEvent(event);
+    });
+  }
+}
+
+export function showDataPoint(ptData, kind, {coordinates, returnFocus} = {}) {
+  _popupFocusReturn = returnFocus || null;
+  const position = coordinates || ol.proj.fromLonLat([ptData.lon, ptData.lat]);
+  if (returnFocus) {
+    _map.getView().setCenter(position);
+    const group = _clusterSource.getFeatures().find(feature =>
+      feature.get('features')?.some(member => member.get('ptData') === ptData));
+    const members = group?.get('features') || [];
+    const first = members[0]?.getGeometry().getCoordinates();
+    const coincident = members.every(member => {
+      const point = member.getGeometry().getCoordinates();
+      return point[0] === first[0] && point[1] === first[1];
+    });
+    if (members.length > 1 && (coincident || _map.getView().getZoom() >= _map.getView().getMaxZoom() - 1)) {
+      _showDataPointGroup(members, group.getGeometry().getCoordinates());
+      _popupCloser.focus();
+      return;
+    }
+  }
+  // Ленивая генерация HTML попапа
+  const popupHtml = _makePopupContent(ptData, kind);
+
+  _popupContent.innerHTML = popupHtml;
+  _popupContainer.classList.remove('hidden');
+  _overlay.setPosition(position);
+
+  // Подключаем кнопку "Детализация" внутри попапа
+  const btn = _popupContent.querySelector('.popup-btn-details');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const event = new CustomEvent('show-records-modal', {
+        detail: {
+          town: ptData.town,
+          region: ptData.region,
+          type: kind === 'ship' ? 'shipment' : 'delivery'
+        }
+      });
+      window.dispatchEvent(event);
+    });
+  }
+
+  // Кнопка пересчета координат
+  const btnRegeocode = _popupContent.querySelector('.popup-btn-regeocode');
+  if (btnRegeocode) {
+    btnRegeocode.addEventListener('click', () => {
+      const event = new CustomEvent('regeocode-point', {
+        detail: {
+          town: ptData.town,
+          region: ptData.region
+        }
+      });
+      window.dispatchEvent(event);
+
+      btnRegeocode.disabled = true;
+      btnRegeocode.innerHTML = '⏳ Пересчет...';
+      btnRegeocode.style.opacity = '0.7';
+      btnRegeocode.style.cursor = 'wait';
+      _popupCloser.focus();
+    });
+  }
+  if (returnFocus) _popupCloser.focus();
 }
 
 // ── Formatter helpers ──────────────────────────────────────────
@@ -895,6 +942,7 @@ function _makeClusterPopupContent(features) {
     const pt = f.get('ptData');
     const kind = f.get('kind');
     const typeEmoji = kind === 'ship' ? '📦' : '📍';
+    const targetLabel = _escapeHtml(`${kind === 'ship' ? 'Отгрузка' : 'Доставка'} · ${pt.town} · ${pt.region || 'Регион не указан'}`);
     const priceFormatted = pt.avg_price ? _fmt(pt.avg_price, 0) + ' ₽' : '—';
     return `
       <div class="cluster-popup-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
@@ -903,10 +951,10 @@ function _makeClusterPopupContent(features) {
           <div style="font-size: 11px; color: var(--text-muted);">${priceFormatted} • ${pt.count} заяв.</div>
         </div>
         <div style="display: flex; gap: 4px;">
-          <button class="popup-btn-regeocode-small" data-town="${_escapeHtml(pt.town)}" data-region="${_escapeHtml(pt.region)}" title="Пересчитать координаты" style="background: rgba(255,255,255,0.1); color: var(--text-main); border: 1px solid var(--border); padding: 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
+          <button class="popup-btn-regeocode-small" data-town="${_escapeHtml(pt.town)}" data-region="${_escapeHtml(pt.region)}" aria-label="Пересчитать координаты: ${targetLabel}" title="Пересчитать координаты" style="background: rgba(255,255,255,0.1); color: var(--text-main); border: 1px solid var(--border); padding: 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">
             🔄
           </button>
-          <button class="popup-btn-details-small" data-town="${_escapeHtml(pt.town)}" data-region="${_escapeHtml(pt.region)}" data-type="${kind === 'ship' ? 'shipment' : 'delivery'}" style="background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; transition: background 0.2s;">
+          <button class="popup-btn-details-small" data-town="${_escapeHtml(pt.town)}" data-region="${_escapeHtml(pt.region)}" data-type="${kind === 'ship' ? 'shipment' : 'delivery'}" aria-label="Детали: ${targetLabel}" style="background: var(--accent); color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500; transition: background 0.2s;">
             Детали
           </button>
         </div>
